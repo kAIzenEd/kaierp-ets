@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Student Form View ────────────────────────────────────── -->
+    <record id="view_school_student_form" model="ir.ui.view">
+        <field name="name">school.student.form</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <form string="Student Profile">
+                <header>
+                    <button name="action_set_active"    string="Set Active"    type="object"
+                            invisible="state == 'active'"
+                            class="btn-primary"/>
+                    <button name="action_set_graduated" string="Mark Graduated" type="object"
+                            invisible="state != 'active'"
+                            class="btn-secondary"/>
+                    <button name="action_print_transcript" string="Print Transcript" type="object"
+                            icon="fa-file-text-o" class="btn-secondary"/>
+                    <button name="action_schedule_meeting"  string="Schedule Meeting"  type="object"
+                            icon="fa-calendar" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,on_hold,graduated"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_enrollments" icon="fa-book">
+                            <field string="Classes"  name="enrollment_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_grades" icon="fa-star">
+                            <field string="Grades"   name="grade_count"      widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_grades" icon="fa-graduation-cap">
+                            <field string="GPA"      name="gpa"              widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_grades" icon="fa-check-circle">
+                            <field string="Attend.%" name="attendance_percentage" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <field name="photo" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'photo'}"/>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" readonly="1" placeholder="Auto from First + Last Name"/></h1>
+                        <div>
+                            <field name="student_id" 
+                                   help="Auto-generated when creating via form. Use import with Student ID column for bulk updates."/>
+                            <span class="mx-2">·</span>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'active'"
+                                   decoration-warning="state == 'on_hold'"
+                                   decoration-info="state == 'graduated'"
+                                   decoration-danger="state in ('expelled','transferred')"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Student Details">
+                            <field name="class_id" string="Academic Class"/>
+                            <!-- <field name="grade_label"/> -->
+                            <field name="roll_number"/>
+                            <field name="first_name"/>
+                            <field name="last_name"/>
+                            <field name="student_type"/>
+                            <field name="id_status"/>
+                            <field name="aadhaar_number"/>
+                            <field name="central_pen"/>
+                            <field name="aapaar_id"/>
+                            <field name="enrollment_year"/>
+                            <field name="previous_school"/>
+                        </group>
+                        <group string="Personal Information">
+                            <field name="gender" required="1"/>
+                            <field name="date_of_birth" required="1"/>
+                            <field name="dob_udise_aadhaar"/>
+                            <field name="birthday" readonly="1"/>
+                            <field name="age"/>
+                            <field name="age_exact" readonly="1"/>
+                            <field name="birth_month" readonly="1"/>
+                            <field name="birth_day" readonly="1"/>
+                            <field name="blood_group"/>
+                            <field name="caste"/>
+                            <field name="tribe"/>
+                            <field name="mother_tongue"/>
+                            <field name="religious_community"/>
+                            <field name="apl_bpl"/>
+                            <field name="house"/>
+                            <field name="siblings_at_htrs"/>
+                            <field name="family_id"/>
+                            <field name="village_of_family"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Contact">
+                            <field name="email" widget="email"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="mobile" widget="phone"/>
+                            <field name="street"/>
+                            <field name="city"/>
+                            <field name="state_id"/>
+                            <field name="country_id"/>
+                            <field name="permanent_state_id"/>
+                            <field name="zip"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Tab 1: Academic -->
+                        <page string="Academic" name="academic">
+                            <group>
+                                <group string="Enrollment Info">
+                                    <field name="academic_year"/>
+                                    <field name="admission_date"/>
+                                    <field name="graduation_date"/>
+                                </group>
+                                <group string="Performance">
+                                    <field name="gpa" readonly="1"/>
+                                    <field name="attendance_percentage" readonly="1"
+                                           widget="progressbar"/>
+                                    <field name="total_fees_due" readonly="1"/>
+                                </group>
+                            </group>
+
+                            <separator string="Enrolled Classes"/>
+                            <field name="enrollment_ids" mode="list" nolabel="1">
+                                <list string="Enrollments" editable="bottom">
+                                    <field name="class_id"/>
+                                    <field name="teacher_id" readonly="1"/>
+                                    <field name="academic_year" readonly="1"/>
+                                    <field name="enrollment_date"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'completed'"
+                                           decoration-danger="state in ('dropped','failed')"
+                                           decoration-warning="state == 'waitlisted'"/>
+                                    <button name="action_drop" string="Drop" type="object"
+                                            icon="fa-times" invisible="state != 'enrolled'"/>
+                                </list>
+                            </field>
+
+                            <separator string="Grades"/>
+                            <field name="grade_ids" mode="list" nolabel="1">
+                                <list string="Grades" create="0" delete="0">
+                                    <field name="class_id"/>
+                                    <field name="assessment_type"/>
+                                    <field name="date"/>
+                                    <field name="score"/>
+                                    <field name="max_score"/>
+                                    <field name="percentage" widget="progressbar"/>
+                                    <field name="letter_grade"/>
+                                    <field name="gpa_points"/>
+                                    <field name="is_published" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab 2: Guardian -->
+                        <page string="Guardian / Family" name="guardian">
+                            <group string="Primary Guardian">
+                                <group>
+                                    <field name="guardian_name"/>
+                                    <field name="guardian_relation"/>
+                                    <field name="guardian_phone" widget="phone"/>
+                                    <field name="guardian_email" widget="email"/>
+                                    <field name="guardian_occupation"/>
+                                    <field name="guardian_whatsapp"/>
+                                </group>
+                                <group string="WhatsApp Groups">
+                                    <field name="guardian_school_whatsapp_group" string="Guardian - In SCHOOL WhatsApp Group"/>
+                                    <field name="guardian_hostel_whatsapp_group" string="Guardian - In HOSTEL WhatsApp Group"/>
+                                    <field name="guardian_class_whatsapp_group" string="Guardian - In CLASS WhatsApp Group"/>
+                                </group>
+                            </group>
+                            <group string="Father">
+                                <group>
+                                    <field name="father_name"/>
+                                    <field name="father_mobile" widget="phone"/>
+                                    <field name="father_occupation"/>
+                                    <field name="father_education"/>
+                                    <field name="father_whatsapp"/>
+                                </group>
+                                <group string="WhatsApp Groups">
+                                    <field name="father_school_whatsapp_group" string="Father - In SCHOOL WhatsApp Group"/>
+                                    <field name="father_hostel_whatsapp_group" string="Father - In HOSTEL WhatsApp Group"/>
+                                    <field name="father_class_whatsapp_group" string="Father - In CLASS WhatsApp Group"/>
+                                </group>
+                            </group>
+                            <group string="Mother">
+                                <group>
+                                    <field name="mother_name"/>
+                                    <field name="mother_mobile" widget="phone"/>
+                                    <field name="mother_occupation"/>
+                                    <field name="mother_education"/>
+                                    <field name="mother_whatsapp"/>
+                                </group>
+                                <group string="WhatsApp Groups">
+                                    <field name="mother_school_whatsapp_group" string="Mother - In SCHOOL WhatsApp Group"/>
+                                    <field name="mother_hostel_whatsapp_group" string="Mother - In HOSTEL WhatsApp Group"/>
+                                    <field name="mother_class_whatsapp_group" string="Mother - In CLASS WhatsApp Group"/>
+                                </group>
+                            </group>
+                            <group string="Other Contact">
+                                <group>
+                                    <field name="other_contact_name"/>
+                                    <field name="other_contact_relation"/>
+                                    <field name="other_contact_mobile" widget="phone"/>
+                                    <field name="other_contact_whatsapp"/>
+                                </group>
+                                <group string="WhatsApp Groups">
+                                    <field name="other_contact_school_whatsapp_group" string="Other - In SCHOOL WhatsApp Group"/>
+                                    <field name="other_contact_hostel_whatsapp_group" string="Other - In HOSTEL WhatsApp Group"/>
+                                    <field name="other_contact_class_whatsapp_group" string="Other - In CLASS WhatsApp Group"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="family_income"/>
+                            </group>
+                        </page>
+
+                        <!-- Tab 3: Fees -->
+                        <page string="Fees" name="fees">
+                            <field name="fee_ids" mode="list" nolabel="1">
+                                <list string="Fees" editable="bottom">
+                                    <field name="name"/>
+                                    <field name="fee_type"/>
+                                    <field name="academic_year"/>
+                                    <field name="amount_due"/>
+                                    <field name="amount_paid"/>
+                                    <field name="amount_balance" readonly="1"/>
+                                    <field name="due_date"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'paid'"
+                                           decoration-warning="state == 'partial'"
+                                           decoration-danger="state == 'overdue'"/>
+                                    <button name="action_mark_paid" string="Mark Paid"
+                                            type="object" icon="fa-check"
+                                            invisible="state == 'paid'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab 4: Attendance -->
+                        <page string="Attendance" name="attendance">
+                            <field name="attendance_ids" mode="list" nolabel="1">
+                                <list string="Attendance" editable="bottom" decoration-danger="state == 'absent'">
+                                    <field name="date"/>
+                                    <field name="class_id"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'present'"
+                                           decoration-warning="state == 'late'"
+                                           decoration-info="state == 'excused'"
+                                           decoration-danger="state == 'absent'"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab 5: Medical -->
+                        <page string="Medical" name="medical">
+                            <group>
+                                <group>
+                                    <field name="blood_group"/>
+                                    <field name="medical_conditions"/>
+                                    <field name="allergies"/>
+                                </group>
+                                <group>
+                                    <field name="doctor_name"/>
+                                    <field name="doctor_phone" widget="phone"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Tab 6: Notes -->
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Student List View ────────────────────────────────────── -->
+    <record id="view_school_student_list" model="ir.ui.view">
+        <field name="name">school.student.list</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <list string="Students" decoration-muted="state != 'active'"
+                  decoration-danger="state == 'expelled'">
+                <field name="photo"       widget="image" options="{'size': [40, 40]}"/>
+                <field name="student_id"/>
+                <field name="name"/>
+                <!-- <field name="grade_label"/> -->
+                <field name="roll_number"/>
+                <field name="gender"/>
+                <field name="age"/>
+                <field name="academic_year"/>
+                <field name="enrollment_count"/>
+                <field name="gpa"       digits="[5,2]"/>
+                <field name="attendance_percentage" widget="progressbar"/>
+                <field name="total_fees_due"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'graduated'"
+                       decoration-danger="state == 'expelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Student Kanban View ──────────────────────────────────── -->
+    <record id="view_school_student_kanban" model="ir.ui.view">
+        <field name="name">school.student.kanban</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" group_by_tooltip="{'state': 'Students by Status'}">
+                <field name="name"/>
+                <field name="photo"/>
+                <field name="student_id"/>
+                <field name="state"/>
+                <field name="gpa"/>
+                <field name="enrollment_count"/>
+                <templates>
+                    <t t-name="kanban-card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('school.student', 'photo', record.id.raw_value)"
+                                     alt="Photo" class="o_image_64_cover"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                                <div><field name="student_id"/></div>
+                                <div>
+                                    <span>GPA: </span><field name="gpa"/>
+                                    <span class="ms-2">Classes: </span><field name="enrollment_count"/>
+                                </div>
+                                <div class="mt-1">
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'active'"
+                                           decoration-info="state == 'graduated'"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ─── Student Search View ────────────────────────────────────
+    <record id="view_school_student_search" model="ir.ui.view">
+        <field name="name">school.student.search</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <search string="Search Students">
+                <field name="name" string="Student Name"/>
+                <field name="student_id" string="Student ID"/>
+                <field name="email"/>
+                <field name="academic_year"/>
+                <separator/>
+                <filter string="Active"     name="active"     domain="[('state','=','active')]"/>
+                <filter string="Graduated"  name="graduated"  domain="[('state','=','graduated')]"/>
+                <filter string="On Hold"    name="on_hold"    domain="[('state','=','on_hold')]"/>
+                <separator/>
+                <filter string="Male"   name="male"   domain="[('gender','=','male')]"/>
+                <filter string="Female" name="female" domain="[('gender','=','female')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status"        name="by_state"   context="{'group_by':'state'}"/>
+                    <filter string="Academic Year" name="by_year"    context="{'group_by':'academic_year'}"/>
+                    <filter string="Gender"        name="by_gender"  context="{'group_by':'gender'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+
+    <!-- ─── Action ───────────────────────────────────────────────── -->
+    <record id="action_school_student" model="ir.actions.act_window">
+        <field name="name">Students</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No students yet. Add your first student!
+            </p>
+        </field>
+    </record>
+
+</odoo>

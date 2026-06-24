@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_school_registrar_form" model="ir.ui.view">
+        <field name="name">school.registrar.form</field>
+        <field name="model">school.registrar</field>
+        <field name="arch" type="xml">
+            <form string="Registrar">
+                <header>
+                    <button name="action_create_user" string="Create Login" type="object"
+                            class="btn-primary" invisible="user_id"
+                            groups="kaierp.group_school_manager"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,on_leave,inactive"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_admissions" type="object"
+                                class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="admission_count" widget="statinfo"
+                                   string="Applications"/>
+                        </button>
+                    </div>
+                    <field name="photo" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Full Name"/></h1>
+                        <div><field name="registrar_id" readonly="1"/></div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="gender" required="1"/>
+                            <field name="email" widget="email" required="1"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="join_date"/>
+                        </group>
+                        <group>
+                            <field name="department"/>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Notes..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_school_registrar_list" model="ir.ui.view">
+        <field name="name">school.registrar.list</field>
+        <field name="model">school.registrar</field>
+        <field name="arch" type="xml">
+            <list string="Registrars">
+                <field name="photo" widget="image" options="{'size': [40,40]}"/>
+                <field name="registrar_id"/>
+                <field name="name"/>
+                <field name="gender"/>
+                <field name="department"/>
+                <field name="email" widget="email"/>
+                <field name="phone" widget="phone"/>
+                <field name="user_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'on_leave'"
+                       decoration-muted="state == 'inactive'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_registrar_search" model="ir.ui.view">
+        <field name="name">school.registrar.search</field>
+        <field name="model">school.registrar</field>
+        <field name="arch" type="xml">
+            <search string="Registrars">
+                <field name="name"/>
+                <field name="registrar_id"/>
+                <field name="email"/>
+                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Has Login" name="has_user" domain="[('user_id', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_school_registrar" model="ir.actions.act_window">
+        <field name="name">Registrars</field>
+        <field name="res_model">school.registrar</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first registrar profile.
+            </p>
+            <p>
+                Registrars can log in to Odoo and manage admission applications.
+                Use <strong>Create Login</strong> on a profile to send them an invitation email.
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Admission Form View ──────────────────────────────────── -->
+    <record id="view_school_admission_form" model="ir.ui.view">
+        <field name="name">school.admission.form</field>
+        <field name="model">school.admission</field>
+        <field name="arch" type="xml">
+            <form string="Admission Application">
+                <header>
+                    <button name="action_request_applicant_response"
+                            string="Request Applicant Response" type="object"
+                            class="btn-warning"
+                            invisible="state != 'initial_review'"/>
+                    <button name="action_resume_initial_review"
+                            string="Resume Initial Review" type="object"
+                            class="btn-secondary"
+                            invisible="state != 'pending_applicant'"/>
+                    <button name="action_move_to_exam_interview"
+                            string="Proceed to Exam &amp; Interview" type="object"
+                            class="btn-primary"
+                            invisible="state not in ('initial_review', 'pending_applicant')"/>
+                    <button name="action_schedule_interview"
+                            string="Schedule Interview" type="object"
+                            icon="fa-calendar"
+                            invisible="state != 'pending_exam_interview'"/>
+                    <button name="action_deny_admission"
+                            string="Deny Admission" type="object"
+                            icon="fa-times" class="btn-danger"
+                            invisible="state != 'pending_exam_interview'"/>
+                    <button name="action_accept_and_create_student"
+                            string="Accept &amp; Create Student" type="object"
+                            icon="fa-graduation-cap" class="btn-success"
+                            invisible="state != 'pending_exam_interview'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="initial_review,pending_applicant,pending_exam_interview,accepted"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_student" icon="fa-graduation-cap"
+                                invisible="not student_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">View</span>
+                                <span class="o_stat_text">Student</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <field name="photo" widget="image" class="oe_avatar"/>
+
+                    <div class="oe_title">
+                        <label for="first_name"/>
+                        <h1>
+                            <field name="first_name" placeholder="First Name" class="oe_inline"/>
+                            <field name="middle_name" placeholder="Middle" class="oe_inline"/>
+                            <field name="last_name" placeholder="Last Name" class="oe_inline"/>
+                        </h1>
+                        <field name="name" invisible="1"/>
+                        <div>
+                            <field name="reference" readonly="1"/>
+                            <span class="mx-2">·</span>
+                            <field name="course"/>
+                            <span class="mx-2">·</span>
+                            <field name="applied_term"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Academic Choice">
+                            <field name="course" required="1"/>
+                            <field name="applied_term" required="1"/>
+                            <field name="study_mode" required="1"/>
+                            <field name="application_date"/>
+                            <field name="website_submission_id" readonly="1"/>
+                        </group>
+                        <group string="Application Status">
+                            <field name="priority" widget="priority"/>
+                            <field name="self_declaration_agreed"/>
+                            <field name="documents_pending_review" readonly="1"
+                                   invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            <field name="documents_with_issues" readonly="1"
+                                   invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            <field name="application_fee_paid" readonly="1"/>
+                            <field name="payment_successful" readonly="1"/>
+                            <field name="payment_amount" readonly="1"/>
+                            <field name="payment_id" readonly="1"/>
+                            <field name="student_id" readonly="1" invisible="not student_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Personal" name="personal">
+                            <group>
+                                <group string="Personal Information">
+                                    <field name="title"/>
+                                    <field name="first_name" required="1"/>
+                                    <field name="middle_name"/>
+                                    <field name="last_name" required="1"/>
+                                    <field name="whatsapp_number" required="1"/>
+                                    <field name="date_of_birth" required="1"/>
+                                    <field name="gender" required="1"/>
+                                    <field name="nationality"/>
+                                    <field name="age"/>
+                                    <field name="marital_status"/>
+                                    <field name="mother_tongue"/>
+                                    <field name="plan_married_during_study"/>
+                                </group>
+                                <group string="Other Personal">
+                                    <field name="has_children"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Contact" name="contact">
+                            <group>
+                                <group string="Contact Information">
+                                    <field name="email" widget="email" required="1"/>
+                                    <field name="mobile_number" widget="phone"/>
+                                    <field name="phone_number" widget="phone"/>
+                                    <field name="postal_address" required="1"/>
+                                    <field name="city" required="1"/>
+                                    <field name="state_name"/>
+                                    <field name="zip_code"/>
+                                    <field name="country_id" required="1"/>
+                                </group>
+                                <group string="Physical Address">
+                                    <field name="has_different_physical_address"/>
+                                    <field name="physical_address"
+                                           invisible="not has_different_physical_address"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Emergency Contact" name="emergency">
+                            <group>
+                                <group>
+                                    <field name="emergency_title"/>
+                                    <field name="emergency_name"/>
+                                    <field name="emergency_relationship"/>
+                                    <field name="emergency_mobile" widget="phone"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Church" name="church">
+                            <group>
+                                <group>
+                                    <field name="church_name"/>
+                                    <field name="church_location"/>
+                                    <field name="church_denomination"/>
+                                    <field name="church_ministry_type"/>
+                                    <field name="is_ordained"/>
+                                    <field name="church_financial_support"/>
+                                    <field name="graduated_seminary_last_two_years"/>
+                                    <field name="working_for_organisation"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="References" name="references">
+                            <group>
+                                <field name="personal_reference_1"
+                                       placeholder="Name, address, phone"/>
+                                <field name="personal_reference_2"
+                                       placeholder="Name, address, phone"/>
+                                <field name="personal_reference_3"
+                                       placeholder="Name, address, phone"/>
+                            </group>
+                        </page>
+
+                        <page string="Academic" name="academic">
+                            <group>
+                                <group string="Qualifications">
+                                    <field name="applicant_type"/>
+                                    <field name="marksheet_name"/>
+                                    <field name="class_x_year"/>
+                                    <field name="diploma_after_class_x"/>
+                                    <field name="class_xii_diploma_year"/>
+                                    <field name="has_undergraduate_theology"/>
+                                    <field name="has_undergraduate_non_theology"/>
+                                    <field name="has_postgraduate_theology"/>
+                                    <field name="has_postgraduate_non_theology"/>
+                                    <field name="has_doctoral_non_theology"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Financial" name="financial">
+                            <group>
+                                <group>
+                                    <field name="monthly_support_inr"/>
+                                    <field name="monthly_support_usd"/>
+                                    <field name="has_financial_sponsor"/>
+                                    <field name="financial_supporter_role"/>
+                                    <field name="financial_supporter_name"/>
+                                    <field name="financial_supporter_relation"/>
+                                </group>
+                                <group>
+                                    <field name="financial_supporter_email" widget="email"/>
+                                    <field name="financial_supporter_phone" widget="phone"/>
+                                    <field name="financial_supporter_address"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Family" name="family">
+                            <group>
+                                <group>
+                                    <field name="father_name"/>
+                                    <field name="father_occupation"/>
+                                    <field name="mother_name"/>
+                                    <field name="mother_occupation"/>
+                                    <field name="parents_born_again"/>
+                                    <field name="parents_believers"/>
+                                </group>
+                                <group>
+                                    <field name="family_postal_addresses"/>
+                                    <field name="family_email_addresses"/>
+                                    <field name="family_contact_details"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Spiritual" name="spiritual">
+                            <group>
+                                <group>
+                                    <field name="religious_background_birth"/>
+                                    <field name="believers_baptism"/>
+                                    <field name="called_to_ministry"/>
+                                    <field name="read_doctrinal_statement"/>
+                                    <field name="agree_doctrinal_statement"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Work" name="work">
+                            <group>
+                                <group>
+                                    <field name="currently_employed"/>
+                                    <field name="active_christian_ministry"/>
+                                    <field name="how_knew_seminary"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Health" name="health">
+                            <group>
+                                <group>
+                                    <field name="blood_group"/>
+                                    <field name="height_cm"/>
+                                    <field name="weight_kg"/>
+                                    <field name="allergies"/>
+                                    <field name="chronic_illness"/>
+                                    <field name="prolonged_medication"/>
+                                    <field name="vision_hearing_problem"/>
+                                </group>
+                                <group>
+                                    <field name="uses_tobacco"/>
+                                    <field name="uses_intoxicants"/>
+                                    <field name="suffers_sleeplessness"/>
+                                    <field name="psychiatric_care_history"/>
+                                    <field name="other_medical_problems"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Document Review" name="document_review"
+                              invisible="state in ('admission_denied', 'accepted')">
+                            <div class="mb-2">
+                                <button name="action_verify_all_documents" type="object"
+                                        string="Verify All Documents" class="btn-secondary"
+                                        icon="fa-check-square-o"/>
+                            </div>
+                            <p class="text-muted">
+                                Check <strong>Verified</strong> for each document you have reviewed
+                                (uploaded or not required). Check <strong>Issue</strong> only when
+                                something needs correction from the applicant.
+                            </p>
+                            <field name="document_review_ids" nolabel="1">
+                                <list editable="top" create="0" delete="0">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="document_label" readonly="1"/>
+                                    <field name="has_file" readonly="1" string="Uploaded"/>
+                                    <field name="is_verified" string="Verified"/>
+                                    <field name="has_issue" string="Issue"/>
+                                    <field name="review_notes"
+                                           placeholder="Notes (optional)"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Documents" name="documents">
+                            <group string="Identity &amp; Personal">
+                                <group>
+                                    <field name="doc_aadhaar" widget="binary"/>
+                                    <field name="doc_passport" widget="binary"/>
+                                    <field name="doc_visa" widget="binary"/>
+                                    <field name="doc_change_of_name" widget="binary"/>
+                                    <field name="doc_marriage_certificate" widget="binary"/>
+                                    <field name="doc_personal_testimony" widget="binary"/>
+                                </group>
+                                <group string="References &amp; Conduct">
+                                    <field name="doc_church_recommendation" widget="binary"/>
+                                    <field name="doc_reference_form_1" widget="binary"/>
+                                    <field name="doc_reference_form_2" widget="binary"/>
+                                    <field name="doc_reference_form_3" widget="binary"/>
+                                    <field name="doc_reference_form_4_employer" widget="binary"/>
+                                    <field name="doc_conduct_seminary" widget="binary"/>
+                                    <field name="doc_conduct_employer" widget="binary"/>
+                                </group>
+                            </group>
+                            <group string="Financial &amp; Experience">
+                                <group>
+                                    <field name="doc_finance_assurance" widget="binary"/>
+                                    <field name="doc_financial_guarantee" widget="binary"/>
+                                    <field name="doc_christian_ministry_experience" widget="binary"/>
+                                    <field name="doc_work_experience" widget="binary"/>
+                                    <field name="doc_school_admission_children" widget="binary"/>
+                                </group>
+                                <group string="Health Documents">
+                                    <field name="doc_fitness_certificate" widget="binary"/>
+                                    <field name="doc_chronic_illness" widget="binary"/>
+                                    <field name="doc_prolonged_medication" widget="binary"/>
+                                    <field name="doc_vision_hearing" widget="binary"/>
+                                    <field name="doc_psychiatric_care" widget="binary"/>
+                                </group>
+                            </group>
+                            <group string="Academic Records">
+                                <group>
+                                    <field name="doc_class_x" widget="binary"/>
+                                    <field name="doc_class_xii_diploma" widget="binary"/>
+                                    <field name="doc_ug_degree_1_mark_sheet" widget="binary"/>
+                                    <field name="doc_ug_degree_1_certificate" widget="binary"/>
+                                    <field name="doc_ug_degree_2_mark_sheet" widget="binary"/>
+                                    <field name="doc_ug_degree_2_certificate" widget="binary"/>
+                                </group>
+                                <group>
+                                    <field name="doc_pg_degree_1_mark_sheet" widget="binary"/>
+                                    <field name="doc_pg_degree_1_certificate" widget="binary"/>
+                                    <field name="doc_pg_degree_2_mark_sheet" widget="binary"/>
+                                    <field name="doc_pg_degree_2_certificate" widget="binary"/>
+                                    <field name="doc_pg_diploma_mark_sheet" widget="binary"/>
+                                    <field name="doc_pg_diploma_certificate" widget="binary"/>
+                                    <field name="doc_other_degrees" widget="binary"/>
+                                    <field name="doc_yet_to_graduate" widget="binary"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Application Fee" name="application_fee">
+                            <group>
+                                <group string="Razorpay Payment">
+                                    <field name="application_fee_paid" readonly="1"/>
+                                    <field name="payment_successful" readonly="1"/>
+                                    <field name="payment_provider" readonly="1"/>
+                                    <field name="payment_amount" readonly="1"/>
+                                    <field name="payment_amount_paise" readonly="1"/>
+                                    <field name="payment_currency" readonly="1"/>
+                                </group>
+                                <group string="Razorpay References">
+                                    <field name="payment_id" readonly="1"/>
+                                    <field name="payment_order_id" readonly="1"/>
+                                    <field name="payment_receipt" readonly="1"/>
+                                    <field name="payment_status" readonly="1"/>
+                                    <field name="payment_method" readonly="1"/>
+                                </group>
+                            </group>
+                            <group string="Offline Payment Upload">
+                                <field name="doc_application_fee" widget="binary"/>
+                            </group>
+                        </page>
+
+                        <page string="Exam &amp; Interview" name="exam_interview"
+                              invisible="state not in ('pending_exam_interview', 'admission_denied', 'accepted')">
+                            <group>
+                                <group string="Entrance Exam">
+                                    <field name="exam_result_file" filename="exam_result_filename"/>
+                                    <field name="exam_result_filename" invisible="1"/>
+                                    <field name="exam_pass" widget="radio"/>
+                                </group>
+                                <group string="Interview">
+                                    <field name="interview_date"/>
+                                    <field name="interviewer_id"/>
+                                    <field name="interview_pass" widget="radio"/>
+                                </group>
+                            </group>
+                            <field name="interview_notes"
+                                   placeholder="Interview notes and observations..."/>
+                        </page>
+
+                        <page string="Decision" name="decision"
+                              invisible="state not in ('admission_denied', 'accepted')">
+                            <group>
+                                <field name="decision_date"/>
+                                <field name="rejection_reason"
+                                       invisible="state != 'admission_denied'"
+                                       placeholder="Reason for denial..."/>
+                                <field name="student_id" readonly="1"
+                                       invisible="state != 'accepted'"/>
+                            </group>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="Internal notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Admission List View ──────────────────────────────────── -->
+    <record id="view_school_admission_list" model="ir.ui.view">
+        <field name="name">school.admission.list</field>
+        <field name="model">school.admission</field>
+        <field name="arch" type="xml">
+            <list string="Admissions" decoration-success="state == 'accepted'"
+                  decoration-danger="state == 'admission_denied'"
+                  decoration-warning="state == 'pending_applicant'">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="course"/>
+                <field name="applied_term"/>
+                <field name="study_mode"/>
+                <field name="email"/>
+                <field name="whatsapp_number"/>
+                <field name="gender"/>
+                <field name="application_date"/>
+                <field name="interview_date"/>
+                <field name="decision_date"/>
+                <field name="website_submission_id" optional="hide"/>
+                <field name="application_fee_paid" optional="show"/>
+                <field name="payment_id" optional="hide"/>
+                <field name="payment_amount" optional="hide"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-success="state == 'accepted'"
+                       decoration-danger="state == 'admission_denied'"
+                       decoration-warning="state == 'pending_applicant'"
+                       decoration-info="state in ('initial_review', 'pending_exam_interview')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Admission Kanban View (Pipeline) ─────────────────────── -->
+    <record id="view_school_admission_kanban" model="ir.ui.view">
+        <field name="name">school.admission.kanban</field>
+        <field name="model">school.admission</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" quick_create="false"
+                    group_create="false" group_delete="false">
+                <field name="name"/>
+                <field name="state"/>
+                <field name="color"/>
+                <field name="course"/>
+                <field name="applied_term"/>
+                <field name="priority"/>
+                <field name="email"/>
+                <field name="interview_date"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click oe_kanban_color_#{record.color.raw_value}">
+                            <div class="d-flex justify-content-between">
+                                <strong><field name="name"/></strong>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="text-muted small">
+                                <field name="reference"/> · <field name="course"/>
+                            </div>
+                            <div class="text-muted small">
+                                <field name="applied_term"/>
+                            </div>
+                            <div class="mt-1"><i class="fa fa-envelope-o text-muted"/> <field name="email"/></div>
+                            <div t-if="record.interview_date.raw_value" class="mt-1">
+                                <i class="fa fa-calendar text-muted"/> <field name="interview_date"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_school_admission_search" model="ir.ui.view">
+        <field name="name">school.admission.search</field>
+        <field name="model">school.admission</field>
+        <field name="arch" type="xml">
+            <search string="Admissions">
+                <field name="name"/>
+                <field name="reference"/>
+                <field name="email"/>
+                <filter string="Initial Review" name="initial_review"
+                        domain="[('state', '=', 'initial_review')]"/>
+                <filter string="Pending Applicant" name="pending_applicant"
+                        domain="[('state', '=', 'pending_applicant')]"/>
+                <filter string="Exam &amp; Interview" name="pending_exam_interview"
+                        domain="[('state', '=', 'pending_exam_interview')]"/>
+                <filter string="Accepted" name="accepted"
+                        domain="[('state', '=', 'accepted')]"/>
+                <filter string="Denied" name="admission_denied"
+                        domain="[('state', '=', 'admission_denied')]"/>
+                <group>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Course" name="group_course" context="{'group_by': 'course'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Action ───────────────────────────────────────────────── -->
+    <record id="action_school_admission" model="ir.actions.act_window">
+        <field name="name">Admissions</field>
+        <field name="res_model">school.admission</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_initial_review': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No admission applications yet.
+            </p>
+        </field>
+    </record>
+
+</odoo>

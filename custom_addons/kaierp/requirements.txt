@@ -1,0 +1,8 @@
+# Python dependencies used by the kAI-ERP addon for local AI integrations
+#odoorpc
+#crewai
+
+# Odoo runtime dependencies needed when launching Odoo from this venv
+Babel
+geoip2
+maxminddb

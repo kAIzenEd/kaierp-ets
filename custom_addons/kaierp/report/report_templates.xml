@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="report_student_transcript">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="student">
+            <t t-call="web.external_layout">
+                <div class="page">
+
+                    <!-- ── Header ─────────────────────────────────── -->
+                    <div class="row mb-4">
+                        <div class="col-3">
+                            <t t-if="student.photo">
+                                <img t-att-src="image_data_uri(student.photo)"
+                                     style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:2px solid #333"/>
+                            </t>
+                        </div>
+                        <div class="col-9">
+                            <h2 class="mb-0">Official Academic Transcript</h2>
+                            <hr/>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Student Name:</strong>
+                                    <t t-esc="student.name"/><br/>
+                                    <strong>Student ID:</strong>
+                                    <t t-esc="student.student_id"/><br/>
+                                    <strong>Gender:</strong>
+                                    <t t-esc="dict(student._fields['gender'].selection).get(student.gender, '')"/>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Admission Date:</strong>
+                                    <t t-esc="student.admission_date"/><br/>
+                                    <strong>Status:</strong>
+                                    <t t-esc="dict(student._fields['state'].selection).get(student.state, '')"/><br/>
+                                    <strong>Cumulative GPA:</strong>
+                                    <t t-esc="'%.2f / 4.00' % student.gpa"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Grades by Year ──────────────────────────── -->
+                    <t t-set="years" t-value="student.grade_ids.filtered(lambda g: g.assessment_type == 'final_grade').mapped('academic_year')"/>
+                    <t t-set="unique_years" t-value="list(dict.fromkeys(years))"/>
+
+                    <t t-foreach="unique_years" t-as="year">
+                        <h4 class="mt-4">Academic Year: <t t-esc="year"/></h4>
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Course Code</th>
+                                    <th>Course Name</th>
+                                    <!-- <th>Subject</th> -->
+                                    <th>Credits</th>
+                                    <th>Score</th>
+                                    <th>Grade</th>
+                                    <th>GPA Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="year_grades" t-value="student.grade_ids.filtered(lambda g: g.assessment_type == 'final_grade' and g.academic_year == year)"/>
+                                <t t-foreach="year_grades" t-as="grade">
+                                    <tr>
+                                        <td><t t-esc="grade.class_id.code"/></td>
+                                        <td><t t-esc="grade.class_id.name"/></td>
+                                        <!-- <td><t t-esc="grade.class_id.subject"/></td> -->
+                                        <td><t t-esc="grade.class_id.credit_hours"/></td>
+                                        <td><t t-esc="'%.1f / %.1f' % (grade.score, grade.max_score)"/></td>
+                                        <td class="text-center fw-bold">
+                                            <t t-esc="grade.letter_grade"/>
+                                        </td>
+                                        <td><t t-esc="'%.2f' % grade.gpa_points"/></td>
+                                    </tr>
+                                </t>
+                                <!-- Year summary row -->
+                                <t t-set="yr_credits" t-value="sum(year_grades.mapped('class_id.credit_hours'))"/>
+                                <t t-set="yr_wp"      t-value="sum(g.gpa_points * g.class_id.credit_hours for g in year_grades)"/>
+                                <t t-set="yr_gpa"     t-value="yr_wp / yr_credits if yr_credits else 0"/>
+                                <tr class="table-light fw-bold">
+                                    <td colspan="3">Year Total / GPA</td>
+                                    <td><t t-esc="yr_credits"/></td>
+                                    <td>—</td>
+                                    <td>—</td>
+                                    <td><t t-esc="'%.2f' % yr_gpa"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <!-- ── Cumulative Summary ──────────────────────── -->
+                    <div class="row mt-4">
+                        <div class="col-6 offset-6">
+                            <table class="table table-sm table-bordered">
+                                <tr class="table-dark">
+                                    <th colspan="2" class="text-center">Cumulative Summary</th>
+                                </tr>
+                                <tr>
+                                    <td>Total Credit Hours</td>
+                                    <td class="text-end">
+                                        <t t-esc="sum(student.grade_ids.filtered(lambda g: g.assessment_type=='final_grade').mapped('class_id.credit_hours'))"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Cumulative GPA</td>
+                                    <td class="text-end fw-bold">
+                                        <t t-esc="'%.2f / 4.00' % student.gpa"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Status</td>
+                                    <td class="text-end">
+                                        <t t-esc="dict(student._fields['state'].selection).get(student.state, '')"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ── Footer note ────────────────────────────── -->
+                    <div class="mt-5 text-muted small text-center">
+                        <em>This is an official academic transcript generated by the School Management System.
+                        Issued on <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%B %d, %Y %H:%M')"/></em>
+                    </div>
+
+                </div>
+            </t>
+        </t>
+    </t>
+</template>
+</odoo>

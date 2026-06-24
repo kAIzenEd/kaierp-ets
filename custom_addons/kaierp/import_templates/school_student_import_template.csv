@@ -1,0 +1,2 @@
+id,name,gender,date_of_birth,email,phone,street,city,state_id/id,country_id/id,zip,guardian_name,guardian_relation,guardian_phone,guardian_email,admission_date,academic_year,state,class_id,nationality
+4,Ananya Iyer,female,2011-07-19,ananya.iyer@example.com,9000000004,18 Temple Rd,Vizag,,,600001,Suresh Iyer,father,9000000104,suresh.iyer@example.com,2026-06-01,2026-2027,active,12,India

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_school_enroll_wizard_form" model="ir.ui.view">
+        <field name="name">school.enroll.student.wizard.form</field>
+        <field name="model">school.enroll.student.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Enroll Students">
+                <group>
+                    <field name="class_id"       readonly="1"/>
+                    <field name="available_seats" readonly="1"/>
+                    <field name="enrollment_date"/>
+                </group>
+                <separator string="Select Students to Enroll"/>
+                <field name="student_ids" widget="many2many_checkboxes"/>
+                <footer>
+                    <button name="action_enroll" string="Enroll Selected Students"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

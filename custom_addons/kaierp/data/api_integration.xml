@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Allow API key generation for integration users -->
+        <record id="base_enable_programmatic_api_keys" model="ir.config_parameter">
+            <field name="key">base.enable_programmatic_api_keys</field>
+            <field name="value">True</field>
+        </record>
+
+        <!-- Shared secret for Railway → Odoo (set your own value in production) -->
+        <record id="kaierp_admission_webhook_secret" model="ir.config_parameter">
+            <field name="key">kaierp.admission_webhook_secret</field>
+            <field name="value">change-me-ets-admission-webhook</field>
+        </record>
+
+        <!-- Dedicated user for website → Odoo integration -->
+        <record id="partner_ets_website_api" model="res.partner">
+            <field name="name">ETS Website Integration</field>
+            <field name="email">ets.website.api@ets-aca.org</field>
+        </record>
+
+        <record id="user_ets_website_api" model="res.users">
+            <field name="name">ETS Website Integration</field>
+            <field name="login">ets.website.api@ets-aca.org</field>
+            <field name="partner_id" ref="partner_ets_website_api"/>
+            <field name="group_ids" eval="[
+                (4, ref('base.group_user')),
+                (4, ref('kaierp.group_school_manager')),
+            ]"/>
+        </record>
+
+    </data>
+</odoo>

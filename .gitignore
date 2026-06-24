@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+
+# Odoo / local
+*.log
+.DS_Store
+
+# Secrets & environment
+.env
+.env.*
+!.env.example
+
+# Backups (database dumps & filestore — keep off Git)
+backups/
+*.dump
+*.sql
+*.sql.gz
+*_filestore.tar.gz
+
+# LibreOffice lock files
+.~lock.*
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*~
+
+# macOS
+.AppleDouble
+.LSOverride

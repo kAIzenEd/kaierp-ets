@@ -1,0 +1,662 @@
+/* ============================================================
+   School Management Dashboard — Styles
+   Place at: school_management/static/src/css/school_dashboard.css
+   ============================================================ */
+
+/* ── CSS custom properties ─────────────────────────────────── */
+.school-dashboard {
+    /* Brand palette (matches hero banner) */
+    --brand-cream     : #fdfbe2;
+    --brand-red       : #a11d21;
+    --brand-navy      : #0f1035;
+    --brand-red-soft  : rgba(161, 29, 33, 0.10);
+    --brand-navy-soft : rgba(15, 16, 53, 0.08);
+    --brand-cream-deep: #f0ebd0;
+
+    --sd-bg     : #faf8f2;
+    --sd-surface: #ffffff;
+    --sd-border : #e8e2d0;
+    --sd-text   : var(--brand-navy);
+    --sd-muted  : rgba(15, 16, 53, 0.62);
+    --sd-subtle : rgba(15, 16, 53, 0.42);
+
+    --sd-shadow-sm : 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --sd-shadow-md : 0 4px 16px rgba(0,0,0,.10);
+    --sd-shadow-lg : 0 8px 28px rgba(0,0,0,.14);
+
+    --sd-radius : 14px;
+
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background  : var(--sd-bg);
+    color       : var(--sd-text);
+    width       : 100%;
+    display     : block;
+}
+
+/* ============================================================
+   HERO BANNER
+   ============================================================ */
+.school-hero {
+    position   : relative;
+    background : linear-gradient(135deg, #8f1a1e 0%, #a11d21 50%, #8f1a1e 100%);
+    padding    : 36px 48px;
+    overflow   : hidden;
+}
+
+.school-hero::before,
+.school-hero::after {
+    content        : '';
+    position       : absolute;
+    left           : 0;
+    right          : 0;
+    z-index        : 2;
+    pointer-events : none;
+}
+
+.school-hero::before {
+    top        : 0;
+    height     : 6px;
+    background : #fdfbe2;
+}
+
+.school-hero::after {
+    bottom     : 0;
+    height     : 10px;
+    background : #0f1035;
+}
+
+/* Decorative circles */
+.school-hero-bg-circle {
+    position      : absolute;
+    border-radius : 50%;
+    background    : rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+.school-hero-bg-circle--tl {
+    width : 320px;
+    height: 320px;
+    top   : -100px;
+    left  : -80px;
+}
+.school-hero-bg-circle--br {
+    width : 440px;
+    height: 440px;
+    bottom: -200px;
+    right : 80px;
+}
+
+.school-hero-content {
+    position        : relative;
+    z-index         : 1;
+    display         : flex;
+    justify-content : space-between;
+    align-items     : center;
+    flex-wrap       : wrap;
+    gap             : 24px;
+}
+
+/* Branding */
+.school-logo-area {
+    display    : flex;
+    align-items: center;
+    gap        : 18px;
+}
+
+.school-logo-icon {
+    font-size: 52px;
+    filter   : drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+}
+
+.school-logo-img { width: 80px; height: 80px; object-fit: fill; }
+
+@keyframes heroIconBob {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-6px); }
+}
+
+.school-title {
+    color        : #ffffff;
+    font-size    : 2rem;
+    font-weight  : 800;
+    margin       : 0;
+    letter-spacing: -0.5px;
+    text-shadow  : 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.school-subtitle {
+    color     : rgba(255, 255, 255, 0.72);
+    margin    : 5px 0 0;
+    font-size : 0.92rem;
+    letter-spacing: 0.6px;
+}
+
+/* Clock */
+.school-clock {
+    text-align: right;
+}
+
+.school-time {
+    color          : #ffffff;
+    font-size      : 2.5rem;
+    font-weight    : 200;
+    letter-spacing : 3px;
+    font-variant-numeric: tabular-nums;
+    text-shadow    : 0 2px 10px rgba(0, 0, 0, 0.25);
+    line-height    : 1;
+}
+
+.school-date {
+    color      : rgba(255, 255, 255, 0.75);
+    font-size  : 0.88rem;
+    margin-top : 6px;
+    letter-spacing: 0.4px;
+}
+
+/* ============================================================
+   BODY WRAPPER
+   ============================================================ */
+.school-body {
+    padding   : 32px 48px 48px;
+    max-width : 1440px;
+    margin    : 0 auto;
+    width     : 100%;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   STAT CARDS
+   ============================================================ */
+.school-stats-grid {
+    display              : grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap                  : 18px;
+    margin-bottom        : 28px;
+}
+
+.school-stat-card {
+    background   : var(--sd-surface);
+    border-radius: var(--sd-radius);
+    padding      : 22px 20px;
+    display      : flex;
+    align-items  : center;
+    gap          : 14px;
+    cursor       : pointer;
+    border       : 1.5px solid var(--sd-border);
+    border-left  : 5px solid transparent;
+    box-shadow   : var(--sd-shadow-sm);
+    transition   : transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    text-align   : left;
+    width        : 100%;
+    /* reset button defaults */
+    background-color: var(--sd-surface);
+    font-family  : inherit;
+    font-size    : inherit;
+    color        : inherit;
+}
+
+.school-stat-card:hover {
+    transform  : translateY(-4px);
+    box-shadow : var(--sd-shadow-lg);
+}
+
+.school-stat-card:focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+}
+
+/* Brand colour variants */
+.stat-brand-red  { border-left-color: var(--brand-red);  }
+.stat-brand-navy { border-left-color: var(--brand-navy); }
+
+.stat-brand-red:hover  { border-color: var(--brand-red);  }
+.stat-brand-navy:hover { border-color: var(--brand-navy); }
+
+.stat-brand-red  .stat-icon { color: var(--brand-red);  background: var(--brand-red-soft);  }
+.stat-brand-navy .stat-icon { color: var(--brand-navy); background: var(--brand-navy-soft); }
+
+.stat-icon {
+    flex-shrink : 0;
+    display     : flex;
+    align-items : center;
+    justify-content: center;
+    width       : 2.5rem;
+    height      : 2.5rem;
+    border-radius: 8px;
+}
+
+.stat-icon .fa {
+    font-size: 1.15rem;
+}
+
+.stat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-number {
+    font-size  : 1.85rem;
+    font-weight: 800;
+    color      : var(--sd-text);
+    line-height: 1;
+}
+
+.stat-label {
+    color         : var(--sd-muted);
+    font-size     : 0.78rem;
+    font-weight   : 700;
+    margin-top    : 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+}
+
+.stat-sub {
+    color     : var(--sd-subtle);
+    font-size : 0.75rem;
+    margin-top: 2px;
+}
+
+.stat-arrow {
+    color    : var(--sd-subtle);
+    flex-shrink: 0;
+    transition : transform 0.2s ease, color 0.2s ease;
+}
+
+.stat-arrow .fa {
+    font-size: 0.85rem;
+}
+.school-stat-card:hover .stat-arrow {
+    transform: translateX(4px);
+    color    : var(--sd-text);
+}
+
+/* ============================================================
+   TWO-COLUMN MAIN GRID
+   ============================================================ */
+.school-main-grid {
+    display              : grid;
+    grid-template-columns: 380px 1fr;
+    gap                  : 22px;
+    align-items          : start;
+}
+
+/* ============================================================
+   SHARED PANEL STYLES
+   ============================================================ */
+.school-panel {
+    background   : var(--sd-surface);
+    border-radius: var(--sd-radius);
+    padding      : 26px 24px;
+    border       : 1.5px solid var(--sd-border);
+    box-shadow   : var(--sd-shadow-sm);
+}
+
+.school-announcements-panel {
+    margin-bottom: 28px;
+}
+
+.panel-title {
+    font-size     : 0.82rem;
+    font-weight   : 800;
+    color         : var(--sd-text);
+    margin        : 0 0 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display       : flex;
+    align-items   : center;
+    gap           : 8px;
+}
+
+.panel-title .fa {
+    font-size : 0.9rem;
+    color     : var(--sd-muted);
+    width     : 1.1rem;
+    text-align: center;
+}
+
+.panel-header-row {
+    display        : flex;
+    justify-content: space-between;
+    align-items    : center;
+    margin-bottom  : 20px;
+}
+
+.panel-header-row .panel-title {
+    margin-bottom: 0;
+}
+
+.btn-view-all {
+    background  : none;
+    border      : none;
+    color       : var(--brand-red);
+    cursor      : pointer;
+    font-size   : 0.82rem;
+    font-weight : 700;
+    padding     : 0;
+    font-family : inherit;
+    transition  : opacity 0.15s;
+    display     : inline-flex;
+    align-items : center;
+    gap         : 4px;
+}
+.btn-view-all .fa {
+    font-size: 0.7rem;
+}
+.btn-view-all:hover {
+    opacity: 0.75;
+    text-decoration: underline;
+}
+
+/* ============================================================
+   SHORTCUT BUTTONS
+   ============================================================ */
+.shortcuts-grid {
+    display              : grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap                  : 10px;
+}
+
+.shortcut-btn {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    justify-content: center;
+    gap            : 7px;
+    padding        : 15px 10px;
+    background     : var(--brand-cream);
+    border         : 1.5px solid var(--brand-cream-deep);
+    border-radius  : 12px;
+    cursor         : pointer;
+    font-size      : 0.78rem;
+    font-weight    : 700;
+    color          : var(--brand-navy);
+    font-family    : inherit;
+    transition     : background 0.2s, border-color 0.2s, color 0.2s,
+                     transform 0.2s, box-shadow 0.2s;
+}
+
+.shortcut-btn:hover {
+    transform : translateY(-2px);
+    box-shadow: var(--sd-shadow-md);
+}
+
+.shortcut-btn:focus-visible {
+    outline      : 3px solid var(--brand-red);
+    outline-offset: 2px;
+}
+
+.sc-icon {
+    display    : flex;
+    align-items: center;
+    justify-content: center;
+    width      : 2rem;
+    height     : 2rem;
+    color      : var(--brand-navy);
+    transition : color 0.2s;
+}
+
+.sc-icon .fa {
+    font-size: 1.1rem;
+}
+
+.shortcut-btn:hover .sc-icon {
+    color: inherit;
+}
+
+.sc-label {
+    white-space : nowrap;
+    overflow    : hidden;
+    text-overflow: ellipsis;
+    max-width   : 100%;
+}
+
+/* Brand hover accents */
+.sc-brand-red:hover {
+    background  : var(--brand-cream);
+    border-color: var(--brand-red);
+    color       : var(--brand-red);
+    box-shadow  : 0 4px 14px rgba(161, 29, 33, 0.14);
+}
+
+.sc-brand-navy:hover {
+    background  : #ffffff;
+    border-color: var(--brand-navy);
+    color       : var(--brand-navy);
+    box-shadow  : 0 4px 14px rgba(15, 16, 53, 0.12);
+}
+
+.sc-brand-cream:hover {
+    background  : #ffffff;
+    border-color: var(--brand-cream-deep);
+    color       : var(--brand-navy);
+    box-shadow  : 0 4px 14px rgba(15, 16, 53, 0.08);
+}
+
+/* ============================================================
+   ANNOUNCEMENT CARDS
+   ============================================================ */
+.ann-card {
+    padding      : 13px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left  : 4px solid var(--brand-cream-deep);
+    background   : var(--brand-cream);
+    transition   : background 0.18s, transform 0.18s, box-shadow 0.18s;
+    cursor       : pointer;
+    border       : 1.5px solid var(--sd-border);
+    width        : 100%;
+    text-align   : left;
+    font-family  : inherit;
+    font-size    : inherit;
+    color        : inherit;
+}
+
+.ann-card:last-child {
+    margin-bottom: 0;
+}
+
+.ann-card:hover {
+    background  : #ffffff;
+    transform   : translateY(-2px);
+    box-shadow  : var(--sd-shadow-md);
+    border-color: var(--brand-red);
+}
+
+.ann-card:focus-visible {
+    outline      : 3px solid var(--brand-red);
+    outline-offset: 2px;
+}
+
+.ann-priority-2 {
+    border-left-color: var(--brand-red);
+    background       : var(--brand-red-soft);
+}
+
+.ann-priority-2:hover {
+    background  : #ffffff;
+    border-color: var(--brand-red);
+}
+
+.ann-priority-1 {
+    border-left-color: var(--brand-navy);
+    background       : var(--brand-navy-soft);
+}
+
+.ann-priority-1:hover {
+    background  : #ffffff;
+    border-color: var(--brand-navy);
+}
+
+.ann-card-header {
+    display    : flex;
+    align-items: center;
+    gap        : 8px;
+    flex-wrap  : wrap;
+}
+
+.ann-card-title {
+    font-weight  : 700;
+    color        : var(--sd-text);
+    font-size    : 0.88rem;
+    flex         : 1;
+    min-width    : 0;
+    overflow     : hidden;
+    text-overflow: ellipsis;
+    white-space  : nowrap;
+}
+
+.ann-pill {
+    font-size     : 0.62rem;
+    font-weight   : 800;
+    padding       : 2px 8px;
+    border-radius : 20px;
+    letter-spacing: 0.6px;
+    white-space   : nowrap;
+    flex-shrink   : 0;
+}
+
+.ann-pill--urgent    { background: var(--brand-red);  color: var(--brand-cream); }
+.ann-pill--important { background: var(--brand-navy); color: var(--brand-cream); }
+
+.ann-card-meta {
+    color     : var(--sd-subtle);
+    font-size : 0.73rem;
+    margin-top: 4px;
+    display   : flex;
+    gap       : 5px;
+    align-items: center;
+}
+
+.ann-sep {
+    color: var(--sd-border);
+}
+
+/* Skeleton loader */
+.ann-skeleton {
+    display       : flex;
+    flex-direction: column;
+    gap           : 10px;
+    padding       : 4px 0;
+}
+
+.skeleton-row {
+    height       : 16px;
+    border-radius: 6px;
+    background   : linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation    : shimmer 1.4s infinite;
+}
+
+.skeleton-row.short {
+    width: 60%;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Empty state */
+.ann-empty {
+    text-align: center;
+    color     : var(--sd-subtle);
+    padding   : 36px 16px;
+    font-size : 0.88rem;
+}
+
+.ann-empty-icon {
+    margin-bottom: 10px;
+    color        : var(--sd-subtle);
+}
+
+.ann-empty-icon .fa {
+    font-size: 2rem;
+}
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+/* Large tablets / small desktops */
+@media (max-width: 1200px) {
+    .school-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .school-main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shortcuts-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Tablets */
+@media (max-width: 900px) {
+    .school-hero  { padding: 28px 28px; }
+    .school-body  { padding: 22px 28px 36px; }
+
+    .shortcuts-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .school-hero  { padding: 22px 18px; }
+    .school-body  { padding: 16px 14px 32px; }
+
+    .school-hero-content {
+        flex-direction: column;
+        align-items   : flex-start;
+        gap           : 16px;
+    }
+
+    .school-clock {
+        text-align: left;
+    }
+
+    .school-time {
+        font-size: 2rem;
+    }
+
+    .school-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .shortcuts-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+}
+
+/* ============================================================
+   ODOO INTEGRATION - Ensure scrolling works in Odoo container
+   ============================================================ */
+/* Odoo Action Container - Allow natural scrolling */
+.o_action {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+.o_content {
+    overflow: auto !important;
+}
+
+/* Ensure the action manager handles overflow properly */
+.o_action_manager {
+    overflow: auto !important;
+}
+
+.o_action_manager > .school-dashboard {
+    height: auto;
+    overflow: visible;
+}

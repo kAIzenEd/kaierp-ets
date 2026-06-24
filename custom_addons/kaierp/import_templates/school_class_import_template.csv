@@ -1,0 +1,6 @@
+id,name,code,academic_year,semester,teacher_id/id,room,schedule,credit_hours,max_students,state,start_date,end_date
+class_demo_01,Class 1 - Mathematics,MATH101,2026-2027,1,,Room 101,Mon/Wed/Fri 09:00-10:00,3,30,open,2026-06-10,2026-10-15
+class_demo_02,Class 2 - English,ENG101,2026-2027,1,,Room 102,Tue/Thu 10:00-11:30,3,30,open,2026-06-11,2026-10-16
+class_demo_03,Class 3 - Science,SCI101,2026-2027,1,,Lab 1,Mon/Wed 11:00-12:30,3,24,open,2026-06-12,2026-10-17
+class_demo_04,Class 4 - History,HIS101,2026-2027,2,,Room 201,Tue/Thu 09:00-10:30,3,35,draft,2026-11-05,2027-03-10
+class_demo_05,Class 5 - Computer Basics,2026-2027,2,,Lab 2,Fri 14:00-16:00,2,20,draft,2026-11-06,2027-03-11

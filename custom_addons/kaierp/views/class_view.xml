@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Class Form View ──────────────────────────────────────── -->
+    <record id="view_school_class_form" model="ir.ui.view">
+        <field name="name">school.class.form</field>
+        <field name="model">school.class</field>
+        <field name="arch" type="xml">
+            <form string="Class">
+                <header>
+                    <button name="action_open_enrollment" string="Open Enrollment" type="object"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_start"  string="Start Class"    type="object"
+                            invisible="state != 'open'" class="btn-primary"/>
+                    <button name="action_complete" string="Mark Completed" type="object"
+                            invisible="state != 'in_progress'" class="btn-secondary"/>
+                    <button name="action_cancel"   string="Cancel"         type="object"
+                            invisible="state in ('completed','cancelled')" class="btn-danger"/>
+                    <button name="action_enroll_students" string="Enroll Students" type="object"
+                            icon="fa-user-plus" invisible="state not in ('open','in_progress')" class="btn-success"/>
+                    <button name="action_take_attendance" string="Take Attendance" type="object"
+                            icon="fa-calendar-check-o" invisible="state not in ('open','in_progress')" class="btn-primary"/>
+                    <button name="action_add_to_calendar" string="Add to Calendar" type="object"
+                            icon="fa-calendar" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,open,in_progress,completed"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_grades" icon="fa-star">
+                            <div class="o_stat_info">
+                                <field name="enrolled_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Enrolled</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_attendance" icon="fa-calendar-check-o">
+                            <field string="Attendance" name="attendance_record_count"
+                                   widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-chair">
+                            <div class="o_stat_info">
+                                <field name="available_seats" class="o_stat_value"/>
+                                <span class="o_stat_text">Seats Left</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Class Name"/></h1>
+                        <div>
+                            <field name="code" placeholder="Code (e.g. UKG, 1, 2A)"/>
+                            <span class="mx-2">·</span>
+                            <field name="academic_year"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Class Details">
+                            <!-- <field name="subject"      required="1"/> -->
+                            <field name="teacher_id"/>
+                            <field name="room"/>
+                            <field name="schedule" placeholder="Mon/Wed 9:00–10:30"/>
+                            <field name="credit_hours"/>
+                            <field name="max_students"/>
+                            <field name="semester"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Enrolled Students" name="students">
+                            <field name="enrollment_ids" mode="list" nolabel="1">
+                                <list string="Students" editable="bottom"
+                                      decoration-danger="state in ('dropped','failed')"
+                                      decoration-success="state == 'completed'">
+                                    <field name="student_id" required="1"/>
+                                    <field name="enrollment_date"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'completed'"
+                                           decoration-warning="state == 'waitlisted'"
+                                           decoration-danger="state in ('dropped','failed')"/>
+                                    <!-- <field name="grade_id"/> -->
+                                    <field name="notes"/>
+                                    <button name="action_drop" string="Drop" type="object"
+                                            icon="fa-user-times" invisible="state != 'enrolled'"/>
+                                    <button name="action_complete" string="Complete" type="object"
+                                            icon="fa-check" invisible="state != 'enrolled'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Grades" name="grades">
+                            <button name="action_view_grades" string="Enter/View Grades"
+                                    type="object" icon="fa-bar-chart" class="btn-primary mb-3"/>
+                            <field name="grade_ids" mode="list" nolabel="1">
+                                <list string="Grades" create="0">
+                                    <field name="student_id"/>
+                                    <field name="assessment_type"/>
+                                    <field name="date"/>
+                                    <field name="score"/>
+                                    <field name="max_score"/>
+                                    <field name="percentage" widget="progressbar"/>
+                                    <field name="letter_grade"/>
+                                    <field name="is_published" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Attendance" name="attendance">
+                            <div class="d-flex gap-2 mb-3">
+                                <button name="action_take_attendance" string="Take attendance (today)"
+                                        type="object" icon="fa-calendar-check-o" class="btn-primary"
+                                        invisible="state not in ('open', 'in_progress')"/>
+                                <button name="action_pick_attendance_date" string="Other date…"
+                                        type="object" icon="fa-calendar" class="btn-secondary"
+                                        invisible="state not in ('open', 'in_progress')"/>
+                                <button name="action_view_attendance" string="Full log"
+                                        type="object" icon="fa-list-alt" class="btn-link"/>
+                            </div>
+                            <p class="text-muted">
+                                Use <strong>Take attendance (today)</strong> to mark every enrolled student
+                                in one editable list. Changes are saved on each row automatically.
+                            </p>
+                            <field name="attendance_ids" mode="list" nolabel="1">
+                                <list string="Attendance Records" create="0" delete="0">
+                                    <field name="date"/>
+                                    <field name="student_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'present'"
+                                           decoration-danger="state == 'absent'"
+                                           decoration-warning="state == 'late'"
+                                           decoration-info="state == 'excused'"/>
+                                    <field name="note"/>
+                                    <field name="teacher_id" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Syllabus" name="syllabus">
+                            <!-- <field name="description" placeholder="Class description..."/> -->
+                            <separator string="Syllabus"/>
+                            <field name="syllabus" placeholder="Enter syllabus content..."/>
+                        </page>
+
+                        <page string="Prerequisites" name="prereqs">
+                            <field name="prerequisites" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Class List View ──────────────────────────────────────── -->
+    <record id="view_school_class_list" model="ir.ui.view">
+        <field name="name">school.class.list</field>
+        <field name="model">school.class</field>
+        <field name="arch" type="xml">
+            <list string="Classes" decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'completed'">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="id"/>
+                <!-- <field name="subject"/> -->
+                <field name="teacher_id"/>
+                <field name="academic_year"/>
+                <field name="semester"/>
+                <field name="enrolled_count"/>
+                <field name="available_seats"/>
+                <field name="credit_hours"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state"
+                       widget="badge"
+                       decoration-info="state == 'open'"
+                       decoration-success="state == 'completed'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Class Kanban View ────────────────────────────────────── -->
+    <record id="view_school_class_kanban" model="ir.ui.view">
+        <field name="name">school.class.kanban</field>
+        <field name="model">school.class</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="state"/>
+                <field name="enrolled_count"/>
+                <field name="max_students"/>
+                <field name="teacher_id"/>
+                <!-- <field name="subject"/> -->
+                <templates>
+                    <t t-name="kanban-card">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="fw-bold fs-5">
+                                <field name="name"/>
+                            </div>
+                            <!-- <div class="text-muted"><field name="code"/> · <field name="subject"/></div> -->
+                            <div class="mt-2">
+                                <i class="fa fa-black-tie text-muted" title="Faculty"/> <field name="teacher_id"/>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span><i class="fa fa-users text-muted" title="Enrollment"/> <field name="enrolled_count"/>/<field name="max_students"/></span>
+                                <field name="state" widget="badge"
+                                       decoration-info="state == 'open'"
+                                       decoration-success="state == 'completed'"
+                                       decoration-warning="state == 'in_progress'"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+<!-- 
+    ─── Class Search View ──────────────────────────────────────
+    <record id="view_school_class_search" model="ir.ui.view">
+        <field name="name">school.class.search</field>
+        <field name="model">school.class</field>
+        <field name="arch" type="xml">
+            <search string="Search Classes">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="subject"/>
+                <field name="teacher_id"/>
+                <field name="academic_year"/>
+                <separator/>
+                <filter string="Open"        name="open"        domain="[('state','=','open')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state','=','in_progress')]"/>
+                <filter string="Completed"   name="completed"   domain="[('state','=','completed')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status"        name="by_state"   context="{'group_by':'state'}"/>
+                    <filter string="Academic Year" name="by_year"    context="{'group_by':'academic_year'}"/>
+                    <filter string="Teacher"       name="by_teacher" context="{'group_by':'teacher_id'}"/>
+                    <filter string="Subject"       name="by_subject" context="{'group_by':'subject'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+
+    <!-- ─── Action ───────────────────────────────────────────────── -->
+    <record id="action_school_class" model="ir.actions.act_window">
+        <field name="name">Classes</field>
+        <field name="res_model">school.class</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No classes yet. Create your first class!
+            </p>
+        </field>
+    </record>
+
+</odoo>

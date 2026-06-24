@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_kaierp" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.kaierp</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="kAI-ERP" string="kAI-ERP" name="kaierp" groups="kaierp.group_school_manager">
+                    <block title="Admissions" name="kaierp_admissions">
+                        <setting string="Registrar notification email"
+                                 help="An email is sent to this address whenever a new admission application is created (website or manual).">
+                            <field name="admission_registrar_email" placeholder="registrar@example.org"/>
+                        </setting>
+                    </block>
+                    <block title="Website Integration" name="kaierp_website_integration">
+                        <setting string="Admission webhook secret"
+                                 help="Use this value as ODOO_WEBHOOK_SECRET in Railway. Send it as the X-Webhook-Secret header when posting to /kaierp/api/admission/submit.">
+                            <field name="admission_webhook_secret" password="True"/>
+                        </setting>
+                        <div class="text-muted mt-2">
+                            <p><strong>API key alternative:</strong> click your avatar (top-right) →
+                            <em>My Profile</em> → <em>Security</em> tab → <em>Add API Key</em>.
+                            Use that key as <code>Authorization: Bearer …</code> in Railway.</p>
+                            <p>Endpoint: <code>/kaierp/api/admission/submit</code> ·
+                            Database header: <code>X-Odoo-Database: odoo_ets</code></p>
+                        </div>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_kaierp_configuration" model="ir.actions.act_window">
+        <field name="name">kAI-ERP Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="context">{'module': 'kaierp', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_kaierp_configuration"
+              name="Settings"
+              parent="menu_school_root"
+              action="action_kaierp_configuration"
+              sequence="99"
+              groups="kaierp.group_school_manager"/>
+
+</odoo>

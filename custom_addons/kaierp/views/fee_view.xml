@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_school_fee_list" model="ir.ui.view">
+        <field name="name">school.fee.list</field>
+        <field name="model">school.fee</field>
+        <field name="arch" type="xml">
+            <list string="Fees" editable="bottom"
+                  decoration-danger="state == 'overdue'"
+                  decoration-success="state == 'paid'">
+                <field name="student_id"/>
+                <field name="name"/>
+                <field name="fee_type"/>
+                <field name="academic_year"/>
+                <field name="school_establishment"/>
+                <field name="hostel_establishment"/>
+                <field name="textbooks_stationery"/>
+                <field name="total_fees"/>
+                <field name="total_concessions"/>
+                <field name="amount_due"/>
+                <field name="amount_paid"/>
+                <field name="amount_balance" readonly="1"/>
+                <field name="total_fees" readonly="1"/>
+                <field name="total_concessions" readonly="1"/>
+                <field name="total_concession_pct" readonly="1"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'paid'"
+                       decoration-warning="state == 'partial'"
+                       decoration-danger="state == 'overdue'"
+                       decoration-info="state == 'pending'"/>
+                <button name="action_mark_paid" string="Mark Paid" type="object"
+                        icon="fa-check" invisible="state == 'paid'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_fee_form" model="ir.ui.view">
+        <field name="name">school.fee.form</field>
+        <field name="model">school.fee</field>
+        <field name="arch" type="xml">
+            <form string="Fee">
+                <header>
+                    <button name="action_mark_paid" string="Mark as Paid" type="object"
+                            invisible="state == 'paid'" class="btn-success"/>
+                    <button name="action_waive" string="Waive Fee" type="object"
+                            invisible="state in ('paid','waived')" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="student_id" required="1"/>
+                            <field name="name" required="1"/>
+                            <field name="fee_type" required="1"/>
+                            <field name="academic_year"/>
+                        </group>
+                        <group>
+                            <field name="amount_due" required="1"/>
+                            <field name="amount_paid"/>
+                            <field name="amount_balance" readonly="1"/>
+                            <field name="due_date" required="1"/>
+                            <field name="payment_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Fee Breakdown">
+                            <group>
+                                <group string="School Related Fees">
+                                    <field name="school_establishment"/>
+                                    <field name="school_admission"/>
+                                    <field name="academic_fee"/>
+                                    <field name="total_school_related_fees" readonly="1"/>
+                                </group>
+                                <group string="Hostel Fees">
+                                    <field name="hostel_establishment"/>
+                                    <field name="hostel_admission"/>
+                                    <field name="monthly_hostel_fee"/>
+                                    <field name="total_hostel_fees" readonly="1"/>
+                                </group>
+                                <group string="Other Fees">
+                                    <field name="textbooks_stationery"/>
+                                    <field name="uniform_stationery"/>
+                                    <field name="afterschool_student_care"/>
+                                    <field name="fines_other_expenses"/>
+                                    <field name="total_other_fees" readonly="1"/>
+                                </group>
+                                <group string="Totals">
+                                    <field name="total_fees" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Concessions">
+                            <group>
+                                <group string="School Concessions">
+                                    <field name="villager"/>
+                                    <field name="large_family"/>
+                                    <field name="honour_roll_t1_school"/>
+                                    <field name="honour_roll_t2_school"/>
+                                    <field name="honour_roll_t3_school"/>
+                                    <field name="honour_roll_t4_school"/>
+                                    <field name="possible_other_charity"/>
+                                    <field name="lha_staff_child_school"/>
+                                    <field name="addl_school_charity"/>
+                                    <field name="total_school_concession" readonly="1"/>
+                                </group>
+                                <group string="Hostel Concessions">
+                                    <field name="honour_roll_t1_hostel"/>
+                                    <field name="honour_roll_t2_hostel"/>
+                                    <field name="honour_roll_t3_hostel"/>
+                                    <field name="honour_roll_t4_hostel"/>
+                                    <field name="lha_staff_child_hostel"/>
+                                    <field name="st_stipend_discount"/>
+                                    <field name="addl_hostel_charity"/>
+                                    <field name="total_hostel_concession" readonly="1"/>
+                                </group>
+                                <group string="Other / Totals">
+                                    <field name="total_other_concessions"/>
+                                    <field name="total_concessions" readonly="1"/>
+                                    <field name="total_concession_pct" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+
+                    <field name="notes" placeholder="Notes..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_fee" model="ir.actions.act_window">
+        <field name="name">Fees</field>
+        <field name="res_model">school.fee</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

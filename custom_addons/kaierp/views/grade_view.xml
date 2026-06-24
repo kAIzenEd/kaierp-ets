@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ─── Grade Form View ──────────────────────────────────────── -->
+    <record id="view_school_grade_form" model="ir.ui.view">
+        <field name="name">school.grade.form</field>
+        <field name="model">school.grade</field>
+        <field name="arch" type="xml">
+            <form string="Grade Entry">
+                <header>
+                    <button name="action_publish"   string="Publish"   type="object"
+                            icon="fa-bullhorn" invisible="is_published" class="btn-primary"/>
+                    <button name="action_unpublish" string="Unpublish" type="object"
+                            icon="fa-lock" invisible="not is_published" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="display_name_full" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Assessment">
+                            <field name="student_id"      required="1"/>
+                            <field name="class_id"        required="1"/>
+                            <field name="assessment_type" required="1"/>
+                            <field name="date"            required="1"/>
+                            <field name="weight"/>
+                        </group>
+                        <group string="Score">
+                            <field name="max_score"     required="1"/>
+                            <field name="score"         required="1"/>
+                            <field name="percentage"    readonly="1" widget="progressbar"/>
+                            <field name="letter_grade"  readonly="1"/>
+                            <field name="gpa_points"    readonly="1"/>
+                            <field name="is_published"  widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Teacher Remarks">
+                        <field name="remarks" nolabel="1" placeholder="Remarks / Feedback..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ─── Grade List View ──────────────────────────────────────── -->
+    <record id="view_school_grade_list" model="ir.ui.view">
+        <field name="name">school.grade.list</field>
+        <field name="model">school.grade</field>
+        <field name="arch" type="xml">
+            <list string="Grades" editable="bottom"
+                  decoration-success="gpa_points >= 3.5"
+                  decoration-danger="gpa_points &lt; 1.0">
+                <field name="student_id"/>
+                <field name="class_id"/>
+                <field name="academic_year" readonly="1"/>
+                <field name="assessment_type"/>
+                <field name="date"/>
+                <field name="score"/>
+                <field name="max_score"/>
+                <field name="percentage" readonly="1" widget="progressbar"/>
+                <field name="letter_grade" readonly="1"/>
+                <field name="gpa_points"  readonly="1"/>
+                <field name="is_published" widget="boolean_toggle"/>
+                <button name="action_publish" string="Publish" type="object"
+                        icon="fa-eye" invisible="is_published"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Grade Search ───────────────────────────────────────────
+    <record id="view_school_grade_search" model="ir.ui.view">
+        <field name="name">school.grade.search</field>
+        <field name="model">school.grade</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="class_id"/>
+                <field name="academic_year"/>
+                <separator/>
+                <filter string="Final Grades"  name="final"      domain="[('assessment_type','=','final_grade')]"/>
+                <filter string="Published"     name="published"  domain="[('is_published','=',True)]"/>
+                <filter string="Unpublished"   name="unpublished" domain="[('is_published','=',False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Student"     name="by_student" context="{'group_by':'student_id'}"/>
+                    <filter string="Class"       name="by_class"   context="{'group_by':'class_id'}"/>
+                    <filter string="Year"        name="by_year"    context="{'group_by':'academic_year'}"/>
+                    <filter string="Assessment"  name="by_type"    context="{'group_by':'assessment_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record> -->
+
+    <!-- ─── Grade Graph View (by class) ──────────────────────────── -->
+    <record id="view_school_grade_graph" model="ir.ui.view">
+        <field name="name">school.grade.graph</field>
+        <field name="model">school.grade</field>
+        <field name="arch" type="xml">
+            <graph string="Grade Distribution" type="bar">
+                <field name="class_id" type="row"/>
+                <field name="percentage" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ─── Grade Pivot View ─────────────────────────────────────── -->
+    <record id="view_school_grade_pivot" model="ir.ui.view">
+        <field name="name">school.grade.pivot</field>
+        <field name="model">school.grade</field>
+        <field name="arch" type="xml">
+            <pivot string="Grades Analysis">
+                <field name="student_id"      type="row"/>
+                <field name="class_id"        type="col"/>
+                <field name="gpa_points"      type="measure"/>
+                <field name="percentage"      type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ─── Grade Action ─────────────────────────────────────────── -->
+    <record id="action_school_grade" model="ir.actions.act_window">
+        <field name="name">Grades</field>
+        <field name="res_model">school.grade</field>
+        <field name="view_mode">list,form,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No grades recorded yet.</p>
+        </field>
+    </record>
+
+    <!-- ─── Transcript List View ─────────────────────────────────── -->
+    <record id="view_school_transcript_list" model="ir.ui.view">
+        <field name="name">school.transcript.list</field>
+        <field name="model">school.transcript</field>
+        <field name="arch" type="xml">
+            <list string="Transcripts" create="0" delete="0" edit="0">
+                <field name="student_id"/>
+                <field name="academic_year"/>
+                <field name="class_id"/>
+                <!-- <field name="subject"/> -->
+                <field name="credit_hours"/>
+                <field name="letter_grade"/>
+                <field name="gpa_points"/>
+                <field name="weighted_points"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ─── Transcript Pivot ─────────────────────────────────────── -->
+    <record id="view_school_transcript_pivot" model="ir.ui.view">
+        <field name="name">school.transcript.pivot</field>
+        <field name="model">school.transcript</field>
+        <field name="arch" type="xml">
+            <pivot string="Transcript Analysis">
+                <field name="student_id"    type="row"/>
+                <field name="academic_year" type="col"/>
+                <field name="weighted_points" type="measure"/>
+                <field name="credit_hours"    type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_school_transcript" model="ir.actions.act_window">
+        <field name="name">Transcripts</field>
+        <field name="res_model">school.transcript</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No transcript data available.</p>
+        </field>
+    </record>
+
+</odoo>
