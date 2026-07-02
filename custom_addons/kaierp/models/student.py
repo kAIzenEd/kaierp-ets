@@ -148,11 +148,6 @@ class SchoolStudent(models.Model):
     personal_reference_3 = fields.Text(string='Personal Reference 3')
 
     # ── Academic / professional qualification (mirrors admission)
-    applicant_type = fields.Selection([
-        ('international', 'International Applicants'),
-        ('indian', 'Indian Applicants'),
-    ], string='Applicant Type')
-    marksheet_name = fields.Char(string='Name (as on Class X Mark-sheet)')
     class_x_year = fields.Char(string='Class X (Year of Completion)')
     diploma_after_class_x = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')],

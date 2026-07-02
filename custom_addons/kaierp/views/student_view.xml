@@ -175,8 +175,6 @@
                         <page string="Qualifications" name="qualifications">
                             <group>
                                 <group string="Academic Background">
-                                    <field name="applicant_type"/>
-                                    <field name="marksheet_name"/>
                                     <field name="class_x_year"/>
                                     <field name="diploma_after_class_x"/>
                                     <field name="class_xii_diploma_year"/>

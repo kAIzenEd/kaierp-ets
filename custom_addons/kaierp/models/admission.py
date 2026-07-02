@@ -66,6 +66,10 @@ class SchoolAdmission(models.Model):
     application_date = fields.Date(
         string='Application Date', default=fields.Date.today, tracking=True,
     )
+    registration_number = fields.Char(
+        string='Registration #', copy=False, index=True, readonly=True,
+        help='ETS registration number assigned when the application is received (e.g. 2026MDIV001).',
+    )
 
     # ── Academic choice ───────────────────────────────────────
     course = fields.Selection([
@@ -200,13 +204,6 @@ class SchoolAdmission(models.Model):
     personal_reference_3 = fields.Text(string='Personal Reference 3')
 
     # ── Academic / professional qualification ─────────────────
-    applicant_type = fields.Selection([
-        ('international', 'International Applicants'),
-        ('indian', 'Indian Applicants'),
-    ], string='Applicant Type')
-    marksheet_name = fields.Char(string='Name (as on Class X Mark-sheet)')
-    indian_state = fields.Char(string='Indian State / Union Territory')
-    academic_country = fields.Char(string='Academic Country')
     class_x_month_year = fields.Char(string='Class X Month & Year of Completion')
     class_x_year = fields.Char(string='Class X (Year of Completion)')
     diploma_after_class_x = fields.Selection(
@@ -500,6 +497,35 @@ class SchoolAdmission(models.Model):
         ('fail', 'Fail'),
     ], string='Exam Result', default='pending', tracking=True)
 
+    # ── Exam visit accommodation (Razorpay) ─────────────────
+    needs_exam_accommodation = fields.Boolean(string='Needs Exam Accommodation')
+    exam_accommodation_nights = fields.Selection([
+        ('1', '1 Night'),
+        ('2', '2 Nights'),
+        ('3', '3 Nights'),
+    ], string='Accommodation Nights')
+    exam_accommodation_amount = fields.Float(
+        string='Accommodation Amount (INR)', digits=(12, 2),
+    )
+    exam_accommodation_payment_link_id = fields.Char(
+        string='Accommodation Payment Link ID', copy=False,
+    )
+    exam_accommodation_payment_link_url = fields.Char(
+        string='Accommodation Payment Link URL', copy=False,
+    )
+    exam_accommodation_payment_id = fields.Char(
+        string='Accommodation Payment ID', copy=False,
+    )
+    exam_accommodation_payment_status = fields.Char(
+        string='Accommodation Payment Status',
+    )
+    exam_accommodation_paid = fields.Boolean(
+        string='Accommodation Paid', copy=False,
+    )
+    exam_accommodation_invoice_id = fields.Many2one(
+        'account.move', string='Accommodation Invoice', copy=False, readonly=True,
+    )
+
     priority = fields.Selection(
         [('0', 'Normal'), ('1', 'Important'), ('2', 'Urgent')],
         string='Priority', default='0', tracking=True,
@@ -578,6 +604,66 @@ class SchoolAdmission(models.Model):
         labels = dict(field._description_selection(self.env))
         return labels.get(self[field_name], self[field_name] or '')
 
+    COURSE_REG_CODES = {
+        'macs': 'MACS',
+        'pgdbs': 'PGDBS',
+        'mabs': 'MABS',
+        'mdiv': 'MDIV',
+        'macc': 'MACC',
+        'mth': 'MTH',
+    }
+
+    @api.model
+    def _registration_year_from_vals(self, vals, record=None):
+        record = record or self
+        app_date = vals.get('application_date')
+        if app_date:
+            if isinstance(app_date, str):
+                return int(app_date[:4])
+            return app_date.year
+        if record.application_date:
+            return record.application_date.year
+        return fields.Date.today().year
+
+    @api.model
+    def _next_registration_number(self, course, year, counters):
+        code = self.COURSE_REG_CODES.get(course, (course or '').upper())
+        prefix = f'{year}{code}'
+        if prefix not in counters:
+            existing = self.search([('registration_number', '=like', f'{prefix}%')])
+            max_seq = 0
+            for rec in existing:
+                suffix = (rec.registration_number or '')[len(prefix):]
+                if suffix.isdigit():
+                    max_seq = max(max_seq, int(suffix))
+            counters[prefix] = max_seq
+        counters[prefix] += 1
+        return f'{prefix}{counters[prefix]:03d}'
+
+    def _assign_registration_number(self):
+        for rec in self:
+            if rec.registration_number or not rec.course:
+                continue
+            year = rec._registration_year_from_vals({}, record=rec)
+            rec.registration_number = rec._next_registration_number(
+                rec.course, year, {},
+            )
+
+    def _register_exam_accommodation_payment(self, payment_link, payment):
+        for admission in self:
+            amount_inr = admission.exam_accommodation_amount
+            if payment.get('amount'):
+                amount_inr = payment['amount'] / 100.0
+            admission.write({
+                'exam_accommodation_paid': True,
+                'exam_accommodation_payment_id': payment.get('id') or '',
+                'exam_accommodation_payment_status': payment.get('status') or 'captured',
+                'exam_accommodation_payment_link_id': payment_link.get('id') or '',
+            })
+            admission.message_post(
+                body=_('Exam accommodation payment received (₹%s).') % amount_inr,
+            )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -586,6 +672,7 @@ class SchoolAdmission(models.Model):
                     'school.admission',
                 ) or _('New')
         records = super().create(vals_list)
+        records._assign_registration_number()
         records._ensure_document_reviews()
         records._send_new_admission_emails()
         records._send_whatsapp_application_received()
@@ -827,12 +914,14 @@ class SchoolAdmission(models.Model):
             ))
         if self.student_id:
             raise ValidationError(_('A student record already exists for this applicant.'))
+        if not self.registration_number:
+            self._assign_registration_number()
 
         first_name = self.first_name or ''
         if self.middle_name:
             first_name = f'{first_name} {self.middle_name}'.strip()
 
-        student = self.env['school.student'].create({
+        student_vals = {
             'first_name': first_name,
             'last_name': self.last_name,
             'gender': self.gender,
@@ -857,7 +946,10 @@ class SchoolAdmission(models.Model):
             'academic_year': str(self.application_date.year) if self.application_date else str(fields.Date.today().year),
             'admission_date': fields.Date.today(),
             'state': 'active',
-        })
+        }
+        if self.registration_number:
+            student_vals['student_id'] = self.registration_number
+        student = self.env['school.student'].create(student_vals)
 
         self.write({
             'student_id': student.id,

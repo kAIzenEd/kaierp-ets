@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.3.6',
+    'version': '19.0.1.3.8',
     'category': 'Education',
     'summary': 'Complete school management: students, classes, admissions, grades & transcripts',
     'description': """

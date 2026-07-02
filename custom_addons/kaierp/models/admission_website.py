@@ -69,10 +69,6 @@ class SchoolAdmissionWebsite(models.Model):
         'reference1': 'personal_reference_1',
         'reference2': 'personal_reference_2',
         'reference3': 'personal_reference_3',
-        'applicant_type': 'applicant_type',
-        'marksheet_name': 'marksheet_name',
-        'indian_state': 'indian_state',
-        'academic_country': 'academic_country',
         'class_x_month_year': 'class_x_month_year',
         'class_x_year': 'class_x_year',
         'diploma_after_class_x': 'diploma_after_class_x',
@@ -217,8 +213,6 @@ class SchoolAdmissionWebsite(models.Model):
         'diplomaProgramDuration': 'diploma_program_duration',
         'classXiiOrDiplomaYear': 'class_xii_diploma_year',
         'classXIIMonthYear': 'class_xii_month_year',
-        'indianState': 'indian_state',
-        'academicCountry': 'academic_country',
         'ugDegreeType': 'ug_degree_type',
         'ugTheoDiplomaBibleCollege': 'ug_theo_diploma_bible_college',
         'ugTheoDiplomaEnrollYear': 'ug_theo_diploma_enroll_year',
@@ -282,8 +276,6 @@ class SchoolAdmissionWebsite(models.Model):
         'churchMinistryType': 'church_ministry_type',
         'isOrdained': 'is_ordained',
         'churchFinancialSupport': 'church_financial_support',
-        # Academic (camelCase)
-        'applicantType': 'applicant_type',
         # Financial (camelCase)
         'financialSupporterName': 'financial_supporter_name',
         'financialSupporterEmail': 'financial_supporter_email',
@@ -658,8 +650,6 @@ class SchoolAdmissionWebsite(models.Model):
             return self._normalize_gender(value)
         if field_name in ('date_of_birth', 'spouse_dob'):
             return self._normalize_date(value)
-        if field_name == 'applicant_type':
-            return self._normalize_applicant_type(value)
         if field_name in ('ug_degree_type', 'pg_degree_type'):
             return self._normalize_degree_type(value)
         if field_name in ('title', 'emergency_title'):
@@ -748,17 +738,6 @@ class SchoolAdmissionWebsite(models.Model):
         if text in ('female', 'f'):
             return 'female'
         raise ValidationError(_('Unknown gender: %s') % value)
-
-    @api.model
-    def _normalize_applicant_type(self, value):
-        text = str(value).strip().lower()
-        if 'indian' in text:
-            return 'indian'
-        if 'international' in text:
-            return 'international'
-        if text in ('indian', 'international'):
-            return text
-        raise ValidationError(_('Unknown applicant type: %s') % value)
 
     @api.model
     def _normalize_degree_type(self, value):

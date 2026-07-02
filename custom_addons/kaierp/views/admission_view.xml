@@ -185,11 +185,6 @@
 
                         <page string="Academic" name="academic">
                             <group>
-                                <group string="Applicant">
-                                    <field name="applicant_type"/>
-                                    <field name="indian_state"/>
-                                    <field name="academic_country"/>
-                                </group>
                                 <group string="X / High School">
                                     <field name="class_x_month_year"/>
                                     <field name="diploma_after_class_x"/>
