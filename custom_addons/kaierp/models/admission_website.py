@@ -529,6 +529,9 @@ class SchoolAdmissionWebsite(models.Model):
             if phone:
                 data['whatsappNumber'] = phone
 
+        if not data.get('appliedTerm') and not data.get('applied_term'):
+            data['appliedTerm'] = '2026-SUMMER'
+
         for char_field in ('classXYear', 'class_x_year', 'classXiiOrDiplomaYear',
                            'class_xii_diploma_year'):
             if char_field in data and data[char_field] is not None:
@@ -740,21 +743,15 @@ class SchoolAdmissionWebsite(models.Model):
 
     @api.model
     def _normalize_applied_term(self, value):
-        text = re.sub(r'\s+', ' ', str(value).strip().lower())
+        text = str(value).strip().lower()
+        # Accept 2026-SUMMER, 2026_summer, 2026 - Summer, etc.
+        text = re.sub(r'[\s_\-]+', ' ', text)
+        text = re.sub(r'\s+', ' ', text).strip()
         mapping = {
-            '2026 - summer': '2026_summer',
             '2026 summer': '2026_summer',
-            '2026_summer': '2026_summer',
-            '2026-summer': '2026_summer',
-            '2026 - fall': '2026_fall',
             '2026 fall': '2026_fall',
-            '2026_fall': '2026_fall',
-            '2026 - spring': '2026_spring',
             '2026 spring': '2026_spring',
-            '2026_spring': '2026_spring',
-            '2027 - fall': '2027_fall',
             '2027 fall': '2027_fall',
-            '2027_fall': '2027_fall',
         }
         if text in mapping:
             return mapping[text]
@@ -766,6 +763,9 @@ class SchoolAdmissionWebsite(models.Model):
             return '2027_fall'
         if '2026' in text and 'fall' in text:
             return '2026_fall'
+        # All incoming ETS website applicants begin Summer 2026.
+        if not text:
+            return '2026_summer'
         raise ValidationError(_('Unknown applied term: %s') % value)
 
     @api.model
