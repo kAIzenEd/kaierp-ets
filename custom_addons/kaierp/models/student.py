@@ -42,11 +42,6 @@ class SchoolStudent(models.Model):
         ('macc', 'Master of Arts in Christian Counselling (MACC)'),
         ('mth', 'Master of Theology (MTH)'),
     ], string='Course', tracking=True)
-    applied_term = fields.Selection([
-        ('2026_fall', '2026 - Fall'),
-        ('2026_spring', '2026 - Spring'),
-        ('2027_fall', '2027 - Fall'),
-    ], string='Applied Term', tracking=True)
     study_mode = fields.Selection([
         ('online', 'Online'),
         ('residential', 'Residential'),

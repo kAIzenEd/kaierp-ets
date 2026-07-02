@@ -1,1 +1,1 @@
-id,student_id,first_name,middle_name,last_name,gender,date_of_birth,email,mobile_number,phone_number,postal_address,city,state_name,country_id/id,zip_code,course,applied_term,study_mode,admission_date,academic_year,state,class_id,nationality
+id,student_id,first_name,middle_name,last_name,gender,date_of_birth,email,mobile_number,phone_number,postal_address,city,state_name,country_id/id,zip_code,course,study_mode,admission_date,academic_year,state,class_id,nationality

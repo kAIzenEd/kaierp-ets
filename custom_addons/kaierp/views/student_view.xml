@@ -66,8 +66,6 @@
                             <span class="mx-2">·</span>
                             <field name="course"/>
                             <span class="mx-2">·</span>
-                            <field name="applied_term"/>
-                            <span class="mx-2">·</span>
                             <field name="state" widget="badge"
                                    decoration-success="state == 'active'"
                                    decoration-warning="state == 'on_hold'"
@@ -79,7 +77,6 @@
                     <group>
                         <group string="Academic Choice">
                             <field name="course"/>
-                            <field name="applied_term"/>
                             <field name="study_mode"/>
                             <field name="ata_number"/>
                             <field name="class_id" string="Academic Class"/>
@@ -379,7 +376,6 @@
                 <field name="student_id"/>
                 <field name="name"/>
                 <field name="course"/>
-                <field name="applied_term"/>
                 <field name="study_mode"/>
                 <field name="gender"/>
                 <field name="age"/>

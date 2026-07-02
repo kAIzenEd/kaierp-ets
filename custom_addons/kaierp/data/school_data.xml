@@ -12,7 +12,6 @@
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Application #</td><td><t t-out="object.reference or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Applicant</td><td><t t-out="object.name or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Course</td><td><t t-out="object.format_selection('course')"/></td></tr>
-    <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Term</td><td><t t-out="object.format_selection('applied_term')"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Study mode</td><td><t t-out="object.format_selection('study_mode')"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Email</td><td><t t-out="object.email or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">WhatsApp</td><td><t t-out="object.whatsapp_number or ''"/></td></tr>
@@ -47,7 +46,6 @@ We have received it and our admissions team will review it shortly.</p>
 <table style="border-collapse:collapse;width:100%;max-width:560px;margin:16px 0;">
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Application #</td><td><t t-out="object.reference or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Course</td><td><t t-out="object.format_selection('course')"/></td></tr>
-    <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Term</td><td><t t-out="object.format_selection('applied_term')"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Study mode</td><td><t t-out="object.format_selection('study_mode')"/></td></tr>
 </table>
 <p>If we need any additional information, we will contact you at this email address
@@ -68,7 +66,7 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
 <p>Dear <t t-out="object.name or ''"/>,</p>
 <p>We are delighted to inform you that your application
 (<strong t-out="object.reference or ''"/>) for
-<strong t-out="object.format_selection('course')"/> — <t t-out="object.format_selection('applied_term')"/> has been <strong>accepted</strong>.</p>
+<strong t-out="object.format_selection('course')"/> has been <strong>accepted</strong>.</p>
 <p>Please contact our admissions office at etsadmissions@acaindia.org to complete your enrolment.</p>
 <p>Welcome to Evangelical Theological Seminary!</p>
             </field>

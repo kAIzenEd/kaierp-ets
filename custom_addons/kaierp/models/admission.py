@@ -76,12 +76,6 @@ class SchoolAdmission(models.Model):
         ('macc', 'Master of Arts in Christian Counselling (MACC)'),
         ('mth', 'Master of Theology (MTH)'),
     ], string='Course', required=True, tracking=True)
-    applied_term = fields.Selection([
-        ('2026_summer', '2026 - Summer'),
-        ('2026_fall', '2026 - Fall'),
-        ('2026_spring', '2026 - Spring'),
-        ('2027_fall', '2027 - Fall'),
-    ], string='Applied Term', required=True, tracking=True)
     study_mode = fields.Selection([
         ('online', 'Online'),
         ('residential', 'Residential'),
@@ -860,7 +854,7 @@ class SchoolAdmission(models.Model):
             'other_contact_name': self.emergency_name,
             'other_contact_relation': self.emergency_relationship,
             'other_contact_mobile': self.emergency_mobile,
-            'academic_year': dict(self._fields['applied_term'].selection).get(self.applied_term, ''),
+            'academic_year': str(self.application_date.year) if self.application_date else str(fields.Date.today().year),
             'admission_date': fields.Date.today(),
             'state': 'active',
         })

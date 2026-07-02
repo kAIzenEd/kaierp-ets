@@ -14,8 +14,6 @@ class SchoolAdmissionWebsite(models.Model):
         'submission_id': 'website_submission_id',
         'website_submission_id': 'website_submission_id',
         'course': 'course',
-        'applied_term': 'applied_term',
-        'term': 'applied_term',
         'study_mode': 'study_mode',
         'title': 'title',
         'first_name': 'first_name',
@@ -190,7 +188,6 @@ class SchoolAdmissionWebsite(models.Model):
         'middleName': 'middle_name',
         'dateOfBirth': 'date_of_birth',
         'appliedProgram': 'course',
-        'appliedTerm': 'applied_term',
         'studyMode': 'study_mode',
         'addressLine1': 'postal_address',
         'whatsappNumber': 'whatsapp_number',
@@ -473,7 +470,7 @@ class SchoolAdmissionWebsite(models.Model):
             vals['notes'] = extra_notes
 
         missing = [
-            field for field in ('course', 'applied_term', 'study_mode', 'first_name',
+            field for field in ('course', 'study_mode', 'first_name',
                                 'last_name', 'whatsapp_number', 'date_of_birth', 'gender',
                                 'email', 'postal_address', 'city', 'country_id')
             if not vals.get(field)
@@ -528,9 +525,6 @@ class SchoolAdmissionWebsite(models.Model):
             phone = data.get('phone') or data.get('phoneLandline')
             if phone:
                 data['whatsappNumber'] = phone
-
-        if not data.get('appliedTerm') and not data.get('applied_term'):
-            data['appliedTerm'] = '2026-SUMMER'
 
         for char_field in ('classXYear', 'class_x_year', 'classXiiOrDiplomaYear',
                            'class_xii_diploma_year'):
@@ -658,8 +652,6 @@ class SchoolAdmissionWebsite(models.Model):
 
         if field_name == 'course':
             return self._normalize_course(value)
-        if field_name == 'applied_term':
-            return self._normalize_applied_term(value)
         if field_name == 'study_mode':
             return self._normalize_study_mode(value)
         if field_name == 'gender':
@@ -740,33 +732,6 @@ class SchoolAdmissionWebsite(models.Model):
         if 'theology' in text:
             return 'mth'
         raise ValidationError(_('Unknown course: %s') % value)
-
-    @api.model
-    def _normalize_applied_term(self, value):
-        text = str(value).strip().lower()
-        # Accept 2026-SUMMER, 2026_summer, 2026 - Summer, etc.
-        text = re.sub(r'[\s_\-]+', ' ', text)
-        text = re.sub(r'\s+', ' ', text).strip()
-        mapping = {
-            '2026 summer': '2026_summer',
-            '2026 fall': '2026_fall',
-            '2026 spring': '2026_spring',
-            '2027 fall': '2027_fall',
-        }
-        if text in mapping:
-            return mapping[text]
-        if '2026' in text and 'summer' in text:
-            return '2026_summer'
-        if '2026' in text and 'spring' in text:
-            return '2026_spring'
-        if '2027' in text and 'fall' in text:
-            return '2027_fall'
-        if '2026' in text and 'fall' in text:
-            return '2026_fall'
-        # All incoming ETS website applicants begin Summer 2026.
-        if not text:
-            return '2026_summer'
-        raise ValidationError(_('Unknown applied term: %s') % value)
 
     @api.model
     def _normalize_study_mode(self, value):

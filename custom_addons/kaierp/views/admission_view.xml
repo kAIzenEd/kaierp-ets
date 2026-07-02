@@ -62,15 +62,12 @@
                             <field name="reference" readonly="1"/>
                             <span class="mx-2">·</span>
                             <field name="course"/>
-                            <span class="mx-2">·</span>
-                            <field name="applied_term"/>
                         </div>
                     </div>
 
                     <group>
                         <group string="Academic Choice">
                             <field name="course" required="1"/>
-                            <field name="applied_term" required="1"/>
                             <field name="study_mode" required="1"/>
                             <field name="application_date"/>
                             <field name="website_submission_id" readonly="1"/>
@@ -517,7 +514,6 @@
                 <field name="reference"/>
                 <field name="name"/>
                 <field name="course"/>
-                <field name="applied_term"/>
                 <field name="study_mode"/>
                 <field name="email"/>
                 <field name="whatsapp_number"/>
@@ -550,7 +546,6 @@
                 <field name="state"/>
                 <field name="color"/>
                 <field name="course"/>
-                <field name="applied_term"/>
                 <field name="priority"/>
                 <field name="email"/>
                 <field name="interview_date"/>
@@ -563,9 +558,6 @@
                             </div>
                             <div class="text-muted small">
                                 <field name="reference"/> · <field name="course"/>
-                            </div>
-                            <div class="text-muted small">
-                                <field name="applied_term"/>
                             </div>
                             <div class="mt-1"><i class="fa fa-envelope-o text-muted"/> <field name="email"/></div>
                             <div t-if="record.interview_date.raw_value" class="mt-1">
