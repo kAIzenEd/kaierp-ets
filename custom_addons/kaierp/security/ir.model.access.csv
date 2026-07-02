@@ -50,9 +50,19 @@ access_school_announcement_student,school.announcement.student,model_school_anno
 
 access_school_fee_manager,school.fee.manager,model_school_fee,group_school_manager,1,1,1,1
 access_school_fee_teacher,school.fee.teacher,model_school_fee,group_school_teacher,1,0,0,0
-access_school_fee_registrar,school.fee.registrar,model_school_fee,group_school_registrar,1,0,0,0
+access_school_fee_registrar,school.fee.registrar,model_school_fee,group_school_registrar,1,1,1,0
+
+access_school_assign_fee_wizard_manager,school.assign.fee.wizard.manager,model_school_assign_fee_wizard,group_school_manager,1,1,1,1
+access_school_assign_fee_wizard_registrar,school.assign.fee.wizard.registrar,model_school_assign_fee_wizard,group_school_registrar,1,1,1,1
+access_school_assign_fee_wizard_line_manager,school.assign.fee.wizard.line.manager,model_school_assign_fee_wizard_line,group_school_manager,1,1,1,1
+access_school_assign_fee_wizard_line_registrar,school.assign.fee.wizard.line.registrar,model_school_assign_fee_wizard_line,group_school_registrar,1,1,1,1
 
 access_school_enroll_wizard_manager,school.enroll.wizard.manager,model_school_enroll_student_wizard,group_school_manager,1,1,1,1
+access_school_whatsapp_reply_wizard_manager,school.whatsapp.reply.wizard.manager,model_school_whatsapp_reply_wizard,group_school_manager,1,1,1,1
+access_school_whatsapp_reply_wizard_registrar,school.whatsapp.reply.wizard.registrar,model_school_whatsapp_reply_wizard,group_school_registrar,1,1,1,1
 access_school_bulk_grade_wizard,school.bulk.grade.wizard,model_school_bulk_grade_wizard,group_school_teacher,1,1,1,1
 access_school_take_attendance_wizard,school.take.attendance.wizard,model_school_take_attendance_wizard,group_school_teacher,1,1,1,1
 access_school_take_attendance_wizard_manager,school.take.attendance.wizard.manager,model_school_take_attendance_wizard,group_school_manager,1,1,1,1
+
+access_school_whatsapp_message_manager,school.whatsapp.message.manager,model_school_whatsapp_message,group_school_manager,1,1,0,0
+access_school_whatsapp_message_registrar,school.whatsapp.message.registrar,model_school_whatsapp_message,group_school_registrar,1,1,0,0

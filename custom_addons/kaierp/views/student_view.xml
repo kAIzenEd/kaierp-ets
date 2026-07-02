@@ -25,6 +25,14 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" type="object"
+                                name="action_view_admission" icon="fa-folder-open-o"
+                                invisible="not admission_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">View</span>
+                                <span class="o_stat_text">Application</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object"
                                 name="action_view_enrollments" icon="fa-book">
                             <field string="Classes"  name="enrollment_count" widget="statinfo"/>
                         </button>
@@ -46,11 +54,19 @@
                            options="{'preview_image': 'photo'}"/>
 
                     <div class="oe_title">
-                        <label for="name"/>
-                        <h1><field name="name" readonly="1" placeholder="Auto from First + Last Name"/></h1>
+                        <label for="first_name"/>
+                        <h1>
+                            <field name="first_name" placeholder="First Name" class="oe_inline"/>
+                            <field name="middle_name" placeholder="Middle" class="oe_inline"/>
+                            <field name="last_name" placeholder="Last Name" class="oe_inline"/>
+                        </h1>
+                        <field name="name" invisible="1"/>
                         <div>
-                            <field name="student_id" 
-                                   help="Auto-generated when creating via form. Use import with Student ID column for bulk updates."/>
+                            <field name="student_id" readonly="student_id"/>
+                            <span class="mx-2">·</span>
+                            <field name="course"/>
+                            <span class="mx-2">·</span>
+                            <field name="applied_term"/>
                             <span class="mx-2">·</span>
                             <field name="state" widget="badge"
                                    decoration-success="state == 'active'"
@@ -61,72 +77,201 @@
                     </div>
 
                     <group>
-                        <group string="Student Details">
+                        <group string="Academic Choice">
+                            <field name="course"/>
+                            <field name="applied_term"/>
+                            <field name="study_mode"/>
+                            <field name="ata_number"/>
                             <field name="class_id" string="Academic Class"/>
-                            <!-- <field name="grade_label"/> -->
                             <field name="roll_number"/>
-                            <field name="first_name"/>
-                            <field name="last_name"/>
-                            <field name="student_type"/>
-                            <field name="id_status"/>
-                            <field name="aadhaar_number"/>
-                            <field name="central_pen"/>
-                            <field name="aapaar_id"/>
-                            <field name="enrollment_year"/>
-                            <field name="previous_school"/>
+                            <field name="admission_id" readonly="1"/>
                         </group>
-                        <group string="Personal Information">
-                            <field name="gender" required="1"/>
-                            <field name="date_of_birth" required="1"/>
-                            <field name="dob_udise_aadhaar"/>
-                            <field name="birthday" readonly="1"/>
-                            <field name="age"/>
-                            <field name="age_exact" readonly="1"/>
-                            <field name="birth_month" readonly="1"/>
-                            <field name="birth_day" readonly="1"/>
-                            <field name="blood_group"/>
-                            <field name="caste"/>
-                            <field name="tribe"/>
-                            <field name="mother_tongue"/>
-                            <field name="religious_community"/>
-                            <field name="apl_bpl"/>
-                            <field name="house"/>
-                            <field name="siblings_at_htrs"/>
-                            <field name="family_id"/>
-                            <field name="village_of_family"/>
-                        </group>
-                    </group>
-                    <group>
-                        <group string="Contact">
-                            <field name="email" widget="email"/>
-                            <field name="phone" widget="phone"/>
-                            <field name="mobile" widget="phone"/>
-                            <field name="street"/>
-                            <field name="city"/>
-                            <field name="state_id"/>
-                            <field name="country_id"/>
-                            <field name="permanent_state_id"/>
-                            <field name="zip"/>
+                        <group string="Enrollment Info">
+                            <field name="academic_year"/>
+                            <field name="admission_date"/>
+                            <field name="graduation_date"/>
+                            <field name="gpa" readonly="1"/>
+                            <field name="attendance_percentage" readonly="1" widget="progressbar"/>
+                            <field name="total_fees_due" readonly="1"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <!-- Tab 1: Academic -->
-                        <page string="Academic" name="academic">
+                        <page string="Personal" name="personal">
                             <group>
-                                <group string="Enrollment Info">
-                                    <field name="academic_year"/>
-                                    <field name="admission_date"/>
-                                    <field name="graduation_date"/>
+                                <group string="Personal Information">
+                                    <field name="title"/>
+                                    <field name="first_name"/>
+                                    <field name="middle_name"/>
+                                    <field name="last_name"/>
+                                    <field name="whatsapp_number" widget="phone"/>
+                                    <field name="date_of_birth" required="1"/>
+                                    <field name="gender" required="1"/>
+                                    <field name="nationality"/>
+                                    <field name="age"/>
+                                    <field name="marital_status"/>
+                                    <field name="plan_married_during_study"/>
                                 </group>
-                                <group string="Performance">
-                                    <field name="gpa" readonly="1"/>
-                                    <field name="attendance_percentage" readonly="1"
-                                           widget="progressbar"/>
-                                    <field name="total_fees_due" readonly="1"/>
+                                <group string="Other Personal">
+                                    <field name="has_children"/>
                                 </group>
                             </group>
+                        </page>
 
+                        <page string="Contact" name="contact">
+                            <group>
+                                <group string="Contact Information">
+                                    <field name="email" widget="email"/>
+                                    <field name="mobile_number" widget="phone"/>
+                                    <field name="phone_number" widget="phone"/>
+                                    <field name="postal_address"/>
+                                    <field name="city"/>
+                                    <field name="state_name"/>
+                                    <field name="zip_code"/>
+                                    <field name="country_id"/>
+                                </group>
+                                <group string="Physical Address">
+                                    <field name="has_different_physical_address"/>
+                                    <field name="physical_address"
+                                           invisible="not has_different_physical_address"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Emergency Contact" name="emergency">
+                            <group>
+                                <group>
+                                    <field name="emergency_title"/>
+                                    <field name="emergency_name"/>
+                                    <field name="emergency_relationship"/>
+                                    <field name="emergency_mobile" widget="phone"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Church" name="church">
+                            <group>
+                                <group>
+                                    <field name="church_name"/>
+                                    <field name="church_location"/>
+                                    <field name="church_denomination"/>
+                                    <field name="church_ministry_type"/>
+                                    <field name="is_ordained"/>
+                                    <field name="church_financial_support"/>
+                                    <field name="graduated_seminary_last_two_years"/>
+                                    <field name="working_for_organisation"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="References" name="references">
+                            <group>
+                                <field name="personal_reference_1"
+                                       placeholder="Name, address, phone"/>
+                                <field name="personal_reference_2"
+                                       placeholder="Name, address, phone"/>
+                                <field name="personal_reference_3"
+                                       placeholder="Name, address, phone"/>
+                            </group>
+                        </page>
+
+                        <page string="Qualifications" name="qualifications">
+                            <group>
+                                <group string="Academic Background">
+                                    <field name="applicant_type"/>
+                                    <field name="marksheet_name"/>
+                                    <field name="class_x_year"/>
+                                    <field name="diploma_after_class_x"/>
+                                    <field name="class_xii_diploma_year"/>
+                                    <field name="has_undergraduate_theology"/>
+                                    <field name="has_undergraduate_non_theology"/>
+                                    <field name="has_postgraduate_theology"/>
+                                    <field name="has_postgraduate_non_theology"/>
+                                    <field name="has_doctoral_non_theology"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Financial" name="financial">
+                            <group>
+                                <group>
+                                    <field name="monthly_support_inr"/>
+                                    <field name="monthly_support_usd"/>
+                                    <field name="has_financial_sponsor"/>
+                                    <field name="financial_supporter_role"/>
+                                    <field name="financial_supporter_name"/>
+                                    <field name="financial_supporter_relation"/>
+                                </group>
+                                <group>
+                                    <field name="financial_supporter_email" widget="email"/>
+                                    <field name="financial_supporter_phone" widget="phone"/>
+                                    <field name="financial_supporter_address"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Family" name="family">
+                            <group>
+                                <group>
+                                    <field name="father_name"/>
+                                    <field name="father_occupation"/>
+                                    <field name="mother_name"/>
+                                    <field name="mother_occupation"/>
+                                    <field name="parents_born_again"/>
+                                    <field name="parents_believers"/>
+                                </group>
+                                <group>
+                                    <field name="family_postal_addresses"/>
+                                    <field name="family_email_addresses"/>
+                                    <field name="family_contact_details"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Spiritual" name="spiritual">
+                            <group>
+                                <group>
+                                    <field name="religious_background_birth"/>
+                                    <field name="believers_baptism"/>
+                                    <field name="called_to_ministry"/>
+                                    <field name="read_doctrinal_statement"/>
+                                    <field name="agree_doctrinal_statement"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Work" name="work">
+                            <group>
+                                <group>
+                                    <field name="currently_employed"/>
+                                    <field name="active_christian_ministry"/>
+                                    <field name="how_knew_seminary"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Health" name="health">
+                            <group>
+                                <group>
+                                    <field name="blood_group"/>
+                                    <field name="height_cm"/>
+                                    <field name="weight_kg"/>
+                                    <field name="allergies"/>
+                                    <field name="chronic_illness"/>
+                                    <field name="prolonged_medication"/>
+                                    <field name="vision_hearing_problem"/>
+                                </group>
+                                <group>
+                                    <field name="uses_tobacco"/>
+                                    <field name="uses_intoxicants"/>
+                                    <field name="suffers_sleeplessness"/>
+                                    <field name="psychiatric_care_history"/>
+                                    <field name="other_medical_problems"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Classes &amp; Grades" name="academic_records">
                             <separator string="Enrolled Classes"/>
                             <field name="enrollment_ids" mode="list" nolabel="1">
                                 <list string="Enrollments" editable="bottom">
@@ -160,85 +305,35 @@
                             </field>
                         </page>
 
-                        <!-- Tab 2: Guardian -->
-                        <page string="Guardian / Family" name="guardian">
-                            <group string="Primary Guardian">
-                                <group>
-                                    <field name="guardian_name"/>
-                                    <field name="guardian_relation"/>
-                                    <field name="guardian_phone" widget="phone"/>
-                                    <field name="guardian_email" widget="email"/>
-                                    <field name="guardian_occupation"/>
-                                    <field name="guardian_whatsapp"/>
-                                </group>
-                                <group string="WhatsApp Groups">
-                                    <field name="guardian_school_whatsapp_group" string="Guardian - In SCHOOL WhatsApp Group"/>
-                                    <field name="guardian_hostel_whatsapp_group" string="Guardian - In HOSTEL WhatsApp Group"/>
-                                    <field name="guardian_class_whatsapp_group" string="Guardian - In CLASS WhatsApp Group"/>
-                                </group>
-                            </group>
-                            <group string="Father">
-                                <group>
-                                    <field name="father_name"/>
-                                    <field name="father_mobile" widget="phone"/>
-                                    <field name="father_occupation"/>
-                                    <field name="father_education"/>
-                                    <field name="father_whatsapp"/>
-                                </group>
-                                <group string="WhatsApp Groups">
-                                    <field name="father_school_whatsapp_group" string="Father - In SCHOOL WhatsApp Group"/>
-                                    <field name="father_hostel_whatsapp_group" string="Father - In HOSTEL WhatsApp Group"/>
-                                    <field name="father_class_whatsapp_group" string="Father - In CLASS WhatsApp Group"/>
-                                </group>
-                            </group>
-                            <group string="Mother">
-                                <group>
-                                    <field name="mother_name"/>
-                                    <field name="mother_mobile" widget="phone"/>
-                                    <field name="mother_occupation"/>
-                                    <field name="mother_education"/>
-                                    <field name="mother_whatsapp"/>
-                                </group>
-                                <group string="WhatsApp Groups">
-                                    <field name="mother_school_whatsapp_group" string="Mother - In SCHOOL WhatsApp Group"/>
-                                    <field name="mother_hostel_whatsapp_group" string="Mother - In HOSTEL WhatsApp Group"/>
-                                    <field name="mother_class_whatsapp_group" string="Mother - In CLASS WhatsApp Group"/>
-                                </group>
-                            </group>
-                            <group string="Other Contact">
-                                <group>
-                                    <field name="other_contact_name"/>
-                                    <field name="other_contact_relation"/>
-                                    <field name="other_contact_mobile" widget="phone"/>
-                                    <field name="other_contact_whatsapp"/>
-                                </group>
-                                <group string="WhatsApp Groups">
-                                    <field name="other_contact_school_whatsapp_group" string="Other - In SCHOOL WhatsApp Group"/>
-                                    <field name="other_contact_hostel_whatsapp_group" string="Other - In HOSTEL WhatsApp Group"/>
-                                    <field name="other_contact_class_whatsapp_group" string="Other - In CLASS WhatsApp Group"/>
-                                </group>
-                            </group>
-                            <group>
-                                <field name="family_income"/>
-                            </group>
-                        </page>
-
-                        <!-- Tab 3: Fees -->
                         <page string="Fees" name="fees">
+                            <div class="mb-2">
+                                <button name="action_assign_fees" type="object"
+                                        string="Assign Fees" class="btn-primary"
+                                        groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
+                                <button name="action_create_combined_invoice" type="object"
+                                        string="Create Combined Invoice" class="btn-secondary"
+                                        icon="fa-file-text-o"
+                                        groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
+                            </div>
+                            <field name="partner_id" invisible="1"/>
                             <field name="fee_ids" mode="list" nolabel="1">
                                 <list string="Fees" editable="bottom">
-                                    <field name="name"/>
-                                    <field name="fee_type"/>
-                                    <field name="academic_year"/>
-                                    <field name="amount_due"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount_due" readonly="1"/>
                                     <field name="amount_paid"/>
                                     <field name="amount_balance" readonly="1"/>
                                     <field name="due_date"/>
+                                    <field name="invoice_id" optional="show"/>
                                     <field name="state"
                                            widget="badge"
                                            decoration-success="state == 'paid'"
-                                           decoration-warning="state == 'partial'"
+                                           decoration-warning="state in ('partial', 'invoiced')"
                                            decoration-danger="state == 'overdue'"/>
+                                    <button name="action_create_invoice" string="Invoice"
+                                            type="object" icon="fa-file-text-o"
+                                            invisible="invoice_id"/>
                                     <button name="action_mark_paid" string="Mark Paid"
                                             type="object" icon="fa-check"
                                             invisible="state == 'paid'"/>
@@ -246,7 +341,6 @@
                             </field>
                         </page>
 
-                        <!-- Tab 4: Attendance -->
                         <page string="Attendance" name="attendance">
                             <field name="attendance_ids" mode="list" nolabel="1">
                                 <list string="Attendance" editable="bottom" decoration-danger="state == 'absent'">
@@ -263,22 +357,6 @@
                             </field>
                         </page>
 
-                        <!-- Tab 5: Medical -->
-                        <page string="Medical" name="medical">
-                            <group>
-                                <group>
-                                    <field name="blood_group"/>
-                                    <field name="medical_conditions"/>
-                                    <field name="allergies"/>
-                                </group>
-                                <group>
-                                    <field name="doctor_name"/>
-                                    <field name="doctor_phone" widget="phone"/>
-                                </group>
-                            </group>
-                        </page>
-
-                        <!-- Tab 6: Notes -->
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Internal notes..."/>
                         </page>
@@ -300,8 +378,9 @@
                 <field name="photo"       widget="image" options="{'size': [40, 40]}"/>
                 <field name="student_id"/>
                 <field name="name"/>
-                <!-- <field name="grade_label"/> -->
-                <field name="roll_number"/>
+                <field name="course"/>
+                <field name="applied_term"/>
+                <field name="study_mode"/>
                 <field name="gender"/>
                 <field name="age"/>
                 <field name="academic_year"/>
@@ -327,6 +406,7 @@
                 <field name="name"/>
                 <field name="photo"/>
                 <field name="student_id"/>
+                <field name="course"/>
                 <field name="state"/>
                 <field name="gpa"/>
                 <field name="enrollment_count"/>
@@ -341,7 +421,7 @@
                                 <strong class="o_kanban_record_title">
                                     <field name="name"/>
                                 </strong>
-                                <div><field name="student_id"/></div>
+                                <div><field name="student_id"/> · <field name="course"/></div>
                                 <div>
                                     <span>GPA: </span><field name="gpa"/>
                                     <span class="ms-2">Classes: </span><field name="enrollment_count"/>
@@ -358,32 +438,6 @@
             </kanban>
         </field>
     </record>
-
-    <!-- ─── Student Search View ────────────────────────────────────
-    <record id="view_school_student_search" model="ir.ui.view">
-        <field name="name">school.student.search</field>
-        <field name="model">school.student</field>
-        <field name="arch" type="xml">
-            <search string="Search Students">
-                <field name="name" string="Student Name"/>
-                <field name="student_id" string="Student ID"/>
-                <field name="email"/>
-                <field name="academic_year"/>
-                <separator/>
-                <filter string="Active"     name="active"     domain="[('state','=','active')]"/>
-                <filter string="Graduated"  name="graduated"  domain="[('state','=','graduated')]"/>
-                <filter string="On Hold"    name="on_hold"    domain="[('state','=','on_hold')]"/>
-                <separator/>
-                <filter string="Male"   name="male"   domain="[('gender','=','male')]"/>
-                <filter string="Female" name="female" domain="[('gender','=','female')]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Status"        name="by_state"   context="{'group_by':'state'}"/>
-                    <filter string="Academic Year" name="by_year"    context="{'group_by':'academic_year'}"/>
-                    <filter string="Gender"        name="by_gender"  context="{'group_by':'gender'}"/>
-                </group>
-            </search>
-        </field>
-    </record> -->
 
     <!-- ─── Action ───────────────────────────────────────────────── -->
     <record id="action_school_student" model="ir.actions.act_window">

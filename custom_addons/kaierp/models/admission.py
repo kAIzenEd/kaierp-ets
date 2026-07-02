@@ -52,7 +52,6 @@ class SchoolAdmission(models.Model):
         ('doc_pg_diploma_certificate', 'PG Diploma Certificate'),
         ('doc_other_degrees', 'Other Diplomas/Degrees'),
         ('doc_yet_to_graduate', 'Yet-to-Graduate Pending Documents'),
-        ('doc_application_fee', 'Application Fee / Bank Transaction'),
     ]
 
     # ── Reference & integration ─────────────────────────────────
@@ -78,6 +77,7 @@ class SchoolAdmission(models.Model):
         ('mth', 'Master of Theology (MTH)'),
     ], string='Course', required=True, tracking=True)
     applied_term = fields.Selection([
+        ('2026_summer', '2026 - Summer'),
         ('2026_fall', '2026 - Fall'),
         ('2026_spring', '2026 - Spring'),
         ('2027_fall', '2027 - Fall'),
@@ -92,6 +92,7 @@ class SchoolAdmission(models.Model):
         ('doctor', 'Doctor'),
         ('madam', 'Madam'),
         ('miss', 'Miss'),
+        ('mrs', 'Mrs.'),
         ('mister', 'Mister'),
         ('mr', 'Mr'),
         ('professor', 'Professor'),
@@ -123,6 +124,14 @@ class SchoolAdmission(models.Model):
         ('yes', 'Yes'),
         ('no', 'No'),
     ], string='Plan to Marry During Study Period?')
+    agree_inform_marital_status = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string='Agree to Inform ETS of Marital Status Changes?',
+    )
+    bring_family = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string='Plan to Bring Family if Admitted?',
+    )
 
     # ── Contact information ───────────────────────────────────
     email = fields.Char(string='Email', required=True, tracking=True)
@@ -135,12 +144,16 @@ class SchoolAdmission(models.Model):
     country_id = fields.Many2one('res.country', string='Country', required=True)
     has_different_physical_address = fields.Boolean(string='Different Physical Address')
     physical_address = fields.Text(string='Physical Address')
+    physical_city = fields.Char(string='Physical City')
+    physical_zip = fields.Char(string='Physical Zip / Postal Code')
+    physical_country_id = fields.Many2one('res.country', string='Physical Country')
 
     # ── Emergency contact ─────────────────────────────────────
     emergency_title = fields.Selection([
         ('doctor', 'Doctor'),
         ('madam', 'Madam'),
         ('miss', 'Miss'),
+        ('mrs', 'Mrs.'),
         ('mister', 'Mister'),
         ('mr', 'Mr'),
         ('professor', 'Professor'),
@@ -198,12 +211,63 @@ class SchoolAdmission(models.Model):
         ('indian', 'Indian Applicants'),
     ], string='Applicant Type')
     marksheet_name = fields.Char(string='Name (as on Class X Mark-sheet)')
+    indian_state = fields.Char(string='Indian State / Union Territory')
+    academic_country = fields.Char(string='Academic Country')
+    class_x_month_year = fields.Char(string='Class X Month & Year of Completion')
     class_x_year = fields.Char(string='Class X (Year of Completion)')
     diploma_after_class_x = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')],
         string='Diploma After Class X Instead of Class XII?',
     )
+    diploma_subject = fields.Char(string='Diploma Course Name')
+    diploma_enroll_year = fields.Char(string='Diploma Year of Enrolment')
+    diploma_complete_month_year = fields.Char(string='Diploma Month & Year of Completion')
+    diploma_program_duration = fields.Char(string='Diploma Program Duration')
+    class_xii_month_year = fields.Char(string='Class XII Month & Year of Completion')
     class_xii_diploma_year = fields.Char(string='Diploma / Class XII (Year of Completion)')
+    ug_degree_type = fields.Selection([
+        ('theological', 'Theological Degree'),
+        ('non_theological', 'Non-theological Degree'),
+        ('both', 'Both Degrees'),
+    ], string='Type of Undergraduate Degree')
+    ug_theo_diploma_bible_college = fields.Char(string='UG Theo Diploma — Bible College')
+    ug_theo_diploma_enroll_year = fields.Char(string='UG Theo Diploma — Year of Enrolment')
+    ug_theo_diploma_grad_month_year = fields.Char(string='UG Theo Diploma — Month & Year of Graduation')
+    ug_theo_diploma_duration = fields.Char(string='UG Theo Diploma — Duration of Study')
+    ug_theo_diploma_grade = fields.Char(string='UG Theo Diploma — Grade / GPA')
+    ug_theo_bth_bible_college = fields.Char(string='B Th — Bible College')
+    ug_theo_bth_enroll_year = fields.Char(string='B Th — Year of Enrolment')
+    ug_theo_bth_grad_month_year = fields.Char(string='B Th — Month & Year of Graduation')
+    ug_theo_bth_duration = fields.Char(string='B Th — Duration of Study')
+    ug_theo_bth_grade = fields.Char(string='B Th — Grade / GPA')
+    ug_non_theo_college = fields.Char(string='UG Non-Theo — College')
+    ug_non_theo_university = fields.Char(string='UG Non-Theo — University')
+    ug_non_theo_enroll_year = fields.Char(string='UG Non-Theo — Year of Enrolment')
+    ug_non_theo_grad_month_year = fields.Char(string='UG Non-Theo — Month & Year of Graduation')
+    ug_non_theo_duration = fields.Char(string='UG Non-Theo — Duration of Study')
+    ug_non_theo_grade = fields.Char(string='UG Non-Theo — Grade / Class / GPA')
+    pg_degree_type = fields.Selection([
+        ('theological', 'Theological Degree'),
+        ('non_theological', 'Non-theological Degree'),
+        ('both', 'Both Degrees'),
+    ], string='Type of Postgraduate Degree')
+    pg_theo_mdiv_seminary = fields.Char(string='MDiv — Seminary')
+    pg_theo_mdiv_enroll_year = fields.Char(string='MDiv — Year of Enrolment')
+    pg_theo_mdiv_grad_month_year = fields.Char(string='MDiv — Month & Year of Graduation')
+    pg_theo_mdiv_duration = fields.Char(string='MDiv — Duration of Study')
+    pg_theo_mdiv_grade = fields.Char(string='MDiv — Grade / GPA')
+    pg_non_theo_masters_college = fields.Char(string='PG Masters — College')
+    pg_non_theo_masters_university = fields.Char(string='PG Masters — University')
+    pg_non_theo_masters_enroll_year = fields.Char(string='PG Masters — Year of Enrolment')
+    pg_non_theo_masters_grad_month_year = fields.Char(string='PG Masters — Month & Year of Graduation')
+    pg_non_theo_masters_duration = fields.Char(string='PG Masters — Duration of Study')
+    pg_non_theo_masters_grade = fields.Char(string='PG Masters — Grade / Class / GPA')
+    pg_non_theo_doctorate_college = fields.Char(string='PG Doctorate — College')
+    pg_non_theo_doctorate_university = fields.Char(string='PG Doctorate — University')
+    pg_non_theo_doctorate_enroll_year = fields.Char(string='PG Doctorate — Year of Enrolment')
+    pg_non_theo_doctorate_grad_month_year = fields.Char(string='PG Doctorate — Month & Year of Graduation')
+    pg_non_theo_doctorate_duration = fields.Char(string='PG Doctorate — Duration of Study')
+    pg_non_theo_doctorate_grade = fields.Char(string='PG Doctorate — Grade / Class / GPA')
     has_undergraduate_theology = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')], string='Undergraduate Degree in Theology?',
     )
@@ -244,8 +308,38 @@ class SchoolAdmission(models.Model):
     family_email_addresses = fields.Text(string='Family Email Addresses')
     family_contact_details = fields.Text(string='Family Contact Details')
 
+    # ── Spouse ────────────────────────────────────────────────
+    spouse_name = fields.Char(string='Spouse Name')
+    spouse_dob = fields.Date(string='Spouse Date of Birth')
+    spouse_nationality = fields.Many2one('res.country', string='Spouse Nationality')
+    spouse_state = fields.Char(string='Spouse State')
+    spouse_occupation = fields.Char(string='Spouse Occupation')
+    spouse_place_of_work = fields.Char(string='Spouse Place of Work')
+    spouse_mother_tongue = fields.Char(string='Spouse Mother Tongue')
+    spouse_qualification = fields.Char(string='Spouse Academic / Professional Qualification')
+    spouse_supportive = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string='Spouse Supportive of Theological Study?',
+    )
+    spouse_applying_ets = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string='Spouse Applying to ETS?',
+    )
+    family_accommodation = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string='Requires Family Accommodation at ETS?',
+    )
+
     # ── Children ──────────────────────────────────────────────
     has_children = fields.Selection([('yes', 'Yes'), ('no', 'No')], string='Has Children?')
+    children_count = fields.Char(string='Number of Children')
+    children_names = fields.Char(string='Children Name/s')
+    children_ages = fields.Char(string='Children Age/s')
+    children_genders = fields.Char(string='Children Gender/s')
+    children_at_aca = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string='Children Admission at Asian Christian High School?',
+    )
+    child1_class = fields.Char(string='1st Child Class')
+    child2_class = fields.Char(string='2nd Child Class')
+    child3_class = fields.Char(string='3rd Child Class')
 
     # ── Spiritual identity ────────────────────────────────────
     religious_background_birth = fields.Selection([
@@ -430,6 +524,9 @@ class SchoolAdmission(models.Model):
     student_id = fields.Many2one(
         'school.student', string='Created Student', readonly=True, copy=False,
     )
+    whatsapp_message_ids = fields.One2many(
+        'school.whatsapp.message', 'admission_id', string='WhatsApp Messages',
+    )
     notes = fields.Html(string='Internal Notes')
     color = fields.Integer(string='Color Index', compute='_compute_color')
 
@@ -497,7 +594,19 @@ class SchoolAdmission(models.Model):
         records = super().create(vals_list)
         records._ensure_document_reviews()
         records._send_new_admission_emails()
+        records._send_whatsapp_application_received()
         return records
+
+    def write(self, vals):
+        track_state = 'state' in vals
+        old_states = {rec.id: rec.state for rec in self} if track_state else {}
+        result = super().write(vals)
+        if track_state:
+            for rec in self:
+                previous = old_states.get(rec.id)
+                if previous and previous != rec.state:
+                    rec._send_whatsapp_on_state_change(previous, rec.state)
+        return result
 
     def _send_new_admission_emails(self):
         self._notify_registrar_new_admission()
@@ -591,6 +700,62 @@ class SchoolAdmission(models.Model):
             if not admission.email:
                 continue
             template.send_mail(admission.id, force_send=True)
+
+    def _send_whatsapp_application_received(self):
+        self._send_whatsapp_notification('received')
+
+    def _send_whatsapp_on_state_change(self, old_state, new_state):
+        template_key_map = {
+            'pending_applicant': 'pending_applicant',
+            'pending_exam_interview': 'exam_interview',
+            'accepted': 'accepted',
+            'admission_denied': 'denied',
+        }
+        key = template_key_map.get(new_state)
+        if key:
+            self._send_whatsapp_notification(key)
+
+    def _send_whatsapp_notification(self, event_key):
+        """Send a WhatsApp template for the given admission event."""
+        Whatsapp = self.env['school.whatsapp.message']
+        if not Whatsapp.is_enabled():
+            return
+
+        config_keys = {
+            'received': 'kaierp.whatsapp_template_received',
+            'pending_applicant': 'kaierp.whatsapp_template_pending_applicant',
+            'exam_interview': 'kaierp.whatsapp_template_exam_interview',
+            'accepted': 'kaierp.whatsapp_template_accepted',
+            'denied': 'kaierp.whatsapp_template_denied',
+        }
+        param_key = config_keys.get(event_key)
+        if not param_key:
+            return
+
+        template_name = self.env['ir.config_parameter'].sudo().get_param(param_key, '').strip()
+        if not template_name:
+            return
+
+        for admission in self:
+            if not admission.whatsapp_number:
+                continue
+            params_map = {
+                'received': [
+                    admission.name,
+                    admission.reference,
+                    admission.format_selection('course'),
+                ],
+                'pending_applicant': [admission.name, admission.reference],
+                'exam_interview': [admission.name, admission.reference],
+                'accepted': [admission.name, admission.format_selection('course')],
+                'denied': [admission.name, admission.reference],
+            }
+            Whatsapp.send_template(
+                admission.whatsapp_number,
+                template_name,
+                body_parameters=params_map.get(event_key, []),
+                admission=admission,
+            )
 
     def action_view_student(self):
         self.ensure_one()

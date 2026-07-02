@@ -11,4 +11,8 @@ from . import teacher
 from . import registrar
 from . import announcement
 from . import fee
+from . import product_template
+from . import razorpay_payment
 from . import res_config_settings
+from . import res_users
+from . import whatsapp_message

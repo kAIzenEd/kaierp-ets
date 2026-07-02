@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <!-- Replace default company logo on /web/login with kAI-ERP branding -->
+  <template id="login_layout_kailogo" inherit_id="web.login_layout" name="kAI-ERP Login Logo">
+    <xpath expr="//div[hasclass('text-center')]/img" position="replace">
+      <img src="/kaierp/static/src/image/kailogo.png"
+           alt="kAI-ERP"
+           style="max-height:120px; max-width:100%; width:auto"/>
+    </xpath>
+  </template>
+
+</odoo>

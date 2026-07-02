@@ -31,6 +31,8 @@ class SchoolAdmissionWebsite(models.Model):
         'marital_status': 'marital_status',
         'mother_tongue': 'mother_tongue',
         'plan_married_during_study': 'plan_married_during_study',
+        'agree_inform_marital_status': 'agree_inform_marital_status',
+        'bring_family': 'bring_family',
         'email': 'email',
         'mobile_number': 'mobile_number',
         'mobile': 'mobile_number',
@@ -48,6 +50,9 @@ class SchoolAdmissionWebsite(models.Model):
         'country_id': 'country_id',
         'has_different_physical_address': 'has_different_physical_address',
         'physical_address': 'physical_address',
+        'physical_city': 'physical_city',
+        'physical_zip': 'physical_zip',
+        'physical_country_id': 'physical_country_id',
         'emergency_title': 'emergency_title',
         'emergency_name': 'emergency_name',
         'emergency_relationship': 'emergency_relationship',
@@ -63,11 +68,57 @@ class SchoolAdmissionWebsite(models.Model):
         'personal_reference_1': 'personal_reference_1',
         'personal_reference_2': 'personal_reference_2',
         'personal_reference_3': 'personal_reference_3',
+        'reference1': 'personal_reference_1',
+        'reference2': 'personal_reference_2',
+        'reference3': 'personal_reference_3',
         'applicant_type': 'applicant_type',
         'marksheet_name': 'marksheet_name',
+        'indian_state': 'indian_state',
+        'academic_country': 'academic_country',
+        'class_x_month_year': 'class_x_month_year',
         'class_x_year': 'class_x_year',
         'diploma_after_class_x': 'diploma_after_class_x',
+        'diploma_subject': 'diploma_subject',
+        'diploma_enroll_year': 'diploma_enroll_year',
+        'diploma_complete_month_year': 'diploma_complete_month_year',
+        'diploma_program_duration': 'diploma_program_duration',
+        'class_xii_month_year': 'class_xii_month_year',
         'class_xii_diploma_year': 'class_xii_diploma_year',
+        'ug_degree_type': 'ug_degree_type',
+        'ug_theo_diploma_bible_college': 'ug_theo_diploma_bible_college',
+        'ug_theo_diploma_enroll_year': 'ug_theo_diploma_enroll_year',
+        'ug_theo_diploma_grad_month_year': 'ug_theo_diploma_grad_month_year',
+        'ug_theo_diploma_duration': 'ug_theo_diploma_duration',
+        'ug_theo_diploma_grade': 'ug_theo_diploma_grade',
+        'ug_theo_bth_bible_college': 'ug_theo_bth_bible_college',
+        'ug_theo_bth_enroll_year': 'ug_theo_bth_enroll_year',
+        'ug_theo_bth_grad_month_year': 'ug_theo_bth_grad_month_year',
+        'ug_theo_bth_duration': 'ug_theo_bth_duration',
+        'ug_theo_bth_grade': 'ug_theo_bth_grade',
+        'ug_non_theo_college': 'ug_non_theo_college',
+        'ug_non_theo_university': 'ug_non_theo_university',
+        'ug_non_theo_enroll_year': 'ug_non_theo_enroll_year',
+        'ug_non_theo_grad_month_year': 'ug_non_theo_grad_month_year',
+        'ug_non_theo_duration': 'ug_non_theo_duration',
+        'ug_non_theo_grade': 'ug_non_theo_grade',
+        'pg_degree_type': 'pg_degree_type',
+        'pg_theo_mdiv_seminary': 'pg_theo_mdiv_seminary',
+        'pg_theo_mdiv_enroll_year': 'pg_theo_mdiv_enroll_year',
+        'pg_theo_mdiv_grad_month_year': 'pg_theo_mdiv_grad_month_year',
+        'pg_theo_mdiv_duration': 'pg_theo_mdiv_duration',
+        'pg_theo_mdiv_grade': 'pg_theo_mdiv_grade',
+        'pg_non_theo_masters_college': 'pg_non_theo_masters_college',
+        'pg_non_theo_masters_university': 'pg_non_theo_masters_university',
+        'pg_non_theo_masters_enroll_year': 'pg_non_theo_masters_enroll_year',
+        'pg_non_theo_masters_grad_month_year': 'pg_non_theo_masters_grad_month_year',
+        'pg_non_theo_masters_duration': 'pg_non_theo_masters_duration',
+        'pg_non_theo_masters_grade': 'pg_non_theo_masters_grade',
+        'pg_non_theo_doctorate_college': 'pg_non_theo_doctorate_college',
+        'pg_non_theo_doctorate_university': 'pg_non_theo_doctorate_university',
+        'pg_non_theo_doctorate_enroll_year': 'pg_non_theo_doctorate_enroll_year',
+        'pg_non_theo_doctorate_grad_month_year': 'pg_non_theo_doctorate_grad_month_year',
+        'pg_non_theo_doctorate_duration': 'pg_non_theo_doctorate_duration',
+        'pg_non_theo_doctorate_grade': 'pg_non_theo_doctorate_grade',
         'has_undergraduate_theology': 'has_undergraduate_theology',
         'has_undergraduate_non_theology': 'has_undergraduate_non_theology',
         'has_postgraduate_theology': 'has_postgraduate_theology',
@@ -92,6 +143,25 @@ class SchoolAdmissionWebsite(models.Model):
         'family_email_addresses': 'family_email_addresses',
         'family_contact_details': 'family_contact_details',
         'has_children': 'has_children',
+        'children_count': 'children_count',
+        'children_names': 'children_names',
+        'children_ages': 'children_ages',
+        'children_genders': 'children_genders',
+        'children_at_aca': 'children_at_aca',
+        'child1_class': 'child1_class',
+        'child2_class': 'child2_class',
+        'child3_class': 'child3_class',
+        'spouse_name': 'spouse_name',
+        'spouse_dob': 'spouse_dob',
+        'spouse_nationality': 'spouse_nationality',
+        'spouse_state': 'spouse_state',
+        'spouse_occupation': 'spouse_occupation',
+        'spouse_place_of_work': 'spouse_place_of_work',
+        'spouse_mother_tongue': 'spouse_mother_tongue',
+        'spouse_qualification': 'spouse_qualification',
+        'spouse_supportive': 'spouse_supportive',
+        'spouse_applying_ets': 'spouse_applying_ets',
+        'family_accommodation': 'family_accommodation',
         'religious_background_birth': 'religious_background_birth',
         'believers_baptism': 'believers_baptism',
         'called_to_ministry': 'called_to_ministry',
@@ -129,16 +199,64 @@ class SchoolAdmissionWebsite(models.Model):
         'postalCode': 'zip_code',
         'hasDifferentPhysicalAddress': 'has_different_physical_address',
         'physicalAddressLine1': 'physical_address',
+        'physicalCity': 'physical_city',
+        'physicalPostalCode': 'physical_zip',
+        'physicalCountry': 'physical_country_id',
         'emergencyContactTitle': 'emergency_title',
         'emergencyContactName': 'emergency_name',
         'emergencyContactRelationship': 'emergency_relationship',
         'emergencyContactMobile': 'emergency_mobile',
         'planToMarryDuringStudy': 'plan_married_during_study',
+        'agreeInformMarital': 'agree_inform_marital_status',
+        'bringFamily': 'bring_family',
         'recentSeminaryGraduate': 'graduated_seminary_last_two_years',
         'currentlyWorkingForOrg': 'working_for_organisation',
         'classXYear': 'class_x_year',
+        'classXMonthYear': 'class_x_month_year',
         'diplomaAfterClassX': 'diploma_after_class_x',
+        'diplomaSubject': 'diploma_subject',
+        'diplomaEnrollYear': 'diploma_enroll_year',
+        'diplomaCompleteMonthYear': 'diploma_complete_month_year',
+        'diplomaProgramDuration': 'diploma_program_duration',
         'classXiiOrDiplomaYear': 'class_xii_diploma_year',
+        'classXIIMonthYear': 'class_xii_month_year',
+        'indianState': 'indian_state',
+        'academicCountry': 'academic_country',
+        'ugDegreeType': 'ug_degree_type',
+        'ugTheoDiplomaBibleCollege': 'ug_theo_diploma_bible_college',
+        'ugTheoDiplomaEnrollYear': 'ug_theo_diploma_enroll_year',
+        'ugTheoDiplomaGradMonthYear': 'ug_theo_diploma_grad_month_year',
+        'ugTheoDiplomaDuration': 'ug_theo_diploma_duration',
+        'ugTheoDiplomaGrade': 'ug_theo_diploma_grade',
+        'ugTheoBThBibleCollege': 'ug_theo_bth_bible_college',
+        'ugTheoBThEnrollYear': 'ug_theo_bth_enroll_year',
+        'ugTheoBThGradMonthYear': 'ug_theo_bth_grad_month_year',
+        'ugTheoBThDuration': 'ug_theo_bth_duration',
+        'ugTheoBThGrade': 'ug_theo_bth_grade',
+        'ugNonTheoCollege': 'ug_non_theo_college',
+        'ugNonTheoUniversity': 'ug_non_theo_university',
+        'ugNonTheoEnrollYear': 'ug_non_theo_enroll_year',
+        'ugNonTheoGradMonthYear': 'ug_non_theo_grad_month_year',
+        'ugNonTheoDuration': 'ug_non_theo_duration',
+        'ugNonTheoGrade': 'ug_non_theo_grade',
+        'pgDegreeType': 'pg_degree_type',
+        'pgTheoMDivSeminary': 'pg_theo_mdiv_seminary',
+        'pgTheoMDivEnrollYear': 'pg_theo_mdiv_enroll_year',
+        'pgTheoMDivGradMonthYear': 'pg_theo_mdiv_grad_month_year',
+        'pgTheoMDivDuration': 'pg_theo_mdiv_duration',
+        'pgTheoMDivGrade': 'pg_theo_mdiv_grade',
+        'pgNonTheoMastersCollege': 'pg_non_theo_masters_college',
+        'pgNonTheoMastersUniversity': 'pg_non_theo_masters_university',
+        'pgNonTheoMastersEnrollYear': 'pg_non_theo_masters_enroll_year',
+        'pgNonTheoMastersGradMonthYear': 'pg_non_theo_masters_grad_month_year',
+        'pgNonTheoMastersDuration': 'pg_non_theo_masters_duration',
+        'pgNonTheoMastersGrade': 'pg_non_theo_masters_grade',
+        'pgNonTheoDoctorateCollege': 'pg_non_theo_doctorate_college',
+        'pgNonTheoDoctorateUniversity': 'pg_non_theo_doctorate_university',
+        'pgNonTheoDoctorateEnrollYear': 'pg_non_theo_doctorate_enroll_year',
+        'pgNonTheoDoctorateGradMonthYear': 'pg_non_theo_doctorate_grad_month_year',
+        'pgNonTheoDoctorateDuration': 'pg_non_theo_doctorate_duration',
+        'pgNonTheoDoctorateGrade': 'pg_non_theo_doctorate_grade',
         'hasUgTheology': 'has_undergraduate_theology',
         'hasUgNonTheology': 'has_undergraduate_non_theology',
         'hasPgTheology': 'has_postgraduate_theology',
@@ -184,6 +302,28 @@ class SchoolAdmissionWebsite(models.Model):
         'familyEmailAddresses': 'family_email_addresses',
         'familyContactDetails': 'family_contact_details',
         'hasChildren': 'has_children',
+        'childrenCount': 'children_count',
+        'childrenNames': 'children_names',
+        'childrenAges': 'children_ages',
+        'childrenGenders': 'children_genders',
+        'childrenAtACA': 'children_at_aca',
+        'child1Class': 'child1_class',
+        'child2Class': 'child2_class',
+        'child3Class': 'child3_class',
+        'personalReference1': 'personal_reference_1',
+        'personalReference2': 'personal_reference_2',
+        'personalReference3': 'personal_reference_3',
+        'spouseName': 'spouse_name',
+        'spouseDob': 'spouse_dob',
+        'spouseNationality': 'spouse_nationality',
+        'spouseState': 'spouse_state',
+        'spouseOccupation': 'spouse_occupation',
+        'spousePlaceOfWork': 'spouse_place_of_work',
+        'spouseMotherTongue': 'spouse_mother_tongue',
+        'spouseQualification': 'spouse_qualification',
+        'spouseSupportive': 'spouse_supportive',
+        'spouseApplyingETS': 'spouse_applying_ets',
+        'familyAccommodation': 'family_accommodation',
         # Spiritual & work (camelCase)
         'believersBaptism': 'believers_baptism',
         'calledToMinistry': 'called_to_ministry',
@@ -298,7 +438,6 @@ class SchoolAdmissionWebsite(models.Model):
         'doc_other_diplomas': 'doc_other_degrees',
         'doc_yet_to_graduate': 'doc_yet_to_graduate',
         'doc_pending': 'doc_yet_to_graduate',
-        'doc_application_fee': 'doc_application_fee',
     }
 
     @api.model
@@ -402,8 +541,7 @@ class SchoolAdmissionWebsite(models.Model):
         """Pull unmapped gateway fields into notes and document list."""
         notes_parts = []
         note_keys = (
-            'priorDegreeSummary', 'statementOfPurpose', 'childrenDetails',
-            'physicalCity', 'physicalPostalCode', 'physicalCountry',
+            'priorDegreeSummary', 'statementOfPurpose',
             'chronicIllnessDetails', 'prolongedMedicationDetails',
             'visionHearingDetails', 'psychiatricCareDetails',
             'otherMedicalDetails',
@@ -491,8 +629,7 @@ class SchoolAdmissionWebsite(models.Model):
         flat.pop('files', None)
         flat.pop('references', None)
         for note_key in (
-            'priorDegreeSummary', 'statementOfPurpose', 'childrenDetails',
-            'physicalCity', 'physicalPostalCode', 'physicalCountry',
+            'priorDegreeSummary', 'statementOfPurpose',
             'chronicIllnessDetails', 'prolongedMedicationDetails',
             'visionHearingDetails', 'psychiatricCareDetails',
             'otherMedicalDetails',
@@ -513,7 +650,7 @@ class SchoolAdmissionWebsite(models.Model):
     def _coerce_payload_value(self, field_name, value):
         field = self._fields[field_name]
 
-        if field_name in ('country_id', 'nationality'):
+        if field_name in ('country_id', 'nationality', 'physical_country_id', 'spouse_nationality'):
             return self._resolve_country(value)
 
         if field_name == 'course':
@@ -524,8 +661,14 @@ class SchoolAdmissionWebsite(models.Model):
             return self._normalize_study_mode(value)
         if field_name == 'gender':
             return self._normalize_gender(value)
-        if field_name == 'date_of_birth':
+        if field_name in ('date_of_birth', 'spouse_dob'):
             return self._normalize_date(value)
+        if field_name == 'applicant_type':
+            return self._normalize_applicant_type(value)
+        if field_name in ('ug_degree_type', 'pg_degree_type'):
+            return self._normalize_degree_type(value)
+        if field_name in ('title', 'emergency_title'):
+            return self._normalize_title(value)
         if field_name == 'has_different_physical_address':
             return self._normalize_bool(value)
         if field_name == 'self_declaration_agreed':
@@ -599,6 +742,10 @@ class SchoolAdmissionWebsite(models.Model):
     def _normalize_applied_term(self, value):
         text = re.sub(r'\s+', ' ', str(value).strip().lower())
         mapping = {
+            '2026 - summer': '2026_summer',
+            '2026 summer': '2026_summer',
+            '2026_summer': '2026_summer',
+            '2026-summer': '2026_summer',
             '2026 - fall': '2026_fall',
             '2026 fall': '2026_fall',
             '2026_fall': '2026_fall',
@@ -611,6 +758,8 @@ class SchoolAdmissionWebsite(models.Model):
         }
         if text in mapping:
             return mapping[text]
+        if '2026' in text and 'summer' in text:
+            return '2026_summer'
         if '2026' in text and 'spring' in text:
             return '2026_spring'
         if '2027' in text and 'fall' in text:
@@ -636,6 +785,49 @@ class SchoolAdmissionWebsite(models.Model):
         raise ValidationError(_('Unknown gender: %s') % value)
 
     @api.model
+    def _normalize_applicant_type(self, value):
+        text = str(value).strip().lower()
+        if 'indian' in text:
+            return 'indian'
+        if 'international' in text:
+            return 'international'
+        if text in ('indian', 'international'):
+            return text
+        raise ValidationError(_('Unknown applicant type: %s') % value)
+
+    @api.model
+    def _normalize_degree_type(self, value):
+        text = str(value).strip().lower()
+        if 'both' in text:
+            return 'both'
+        if 'non' in text and 'theo' in text:
+            return 'non_theological'
+        if 'theo' in text:
+            return 'theological'
+        if text in ('theological', 'non_theological', 'both'):
+            return text
+        raise ValidationError(_('Unknown degree type: %s') % value)
+
+    @api.model
+    def _normalize_title(self, value):
+        text = str(value).strip().lower().replace('.', '')
+        mapping = {
+            'doctor': 'doctor',
+            'madam': 'madam',
+            'miss': 'miss',
+            'mrs': 'mrs',
+            'mister': 'mister',
+            'mr': 'mr',
+            'professor': 'professor',
+        }
+        if text in mapping:
+            return mapping[text]
+        for key, code in mapping.items():
+            if key in text:
+                return code
+        raise ValidationError(_('Unknown title: %s') % value)
+
+    @api.model
     def _normalize_date(self, value):
         if isinstance(value, str):
             return fields.Date.to_date(value[:10])
@@ -654,16 +846,18 @@ class SchoolAdmissionWebsite(models.Model):
         text = str(value).strip().lower()
 
         yes_no_fields = {
-            'plan_married_during_study', 'is_ordained', 'church_financial_support',
+            'plan_married_during_study', 'agree_inform_marital_status', 'bring_family',
+            'is_ordained', 'church_financial_support',
             'graduated_seminary_last_two_years', 'working_for_organisation',
             'diploma_after_class_x', 'has_undergraduate_theology',
             'has_undergraduate_non_theology', 'has_postgraduate_theology',
             'has_postgraduate_non_theology', 'has_doctoral_non_theology',
-            'has_financial_sponsor', 'has_children', 'believers_baptism',
-            'read_doctrinal_statement', 'currently_employed', 'active_christian_ministry',
-            'chronic_illness', 'prolonged_medication', 'vision_hearing_problem',
-            'uses_tobacco', 'uses_intoxicants', 'suffers_sleeplessness',
-            'psychiatric_care_history', 'other_medical_problems',
+            'has_financial_sponsor', 'has_children', 'children_at_aca',
+            'believers_baptism', 'read_doctrinal_statement', 'currently_employed',
+            'active_christian_ministry', 'chronic_illness', 'prolonged_medication',
+            'vision_hearing_problem', 'uses_tobacco', 'uses_intoxicants',
+            'suffers_sleeplessness', 'psychiatric_care_history', 'other_medical_problems',
+            'spouse_supportive', 'spouse_applying_ets', 'family_accommodation',
         }
         if field_name in yes_no_fields:
             if text in ('yes', 'y', 'true', '1'):

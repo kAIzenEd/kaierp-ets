@@ -27,6 +27,139 @@
                             Database header: <code>X-Odoo-Database: odoo_ets</code></p>
                         </div>
                     </block>
+                    <block title="Razorpay (Payment Links)" name="kaierp_razorpay">
+                        <setting string="API credentials"
+                                 help="Same Razorpay account as your website. Used for exam accommodation payment links.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="razorpay_key_id" class="col-lg-3 o_light_label">Key ID</label>
+                                    <field name="razorpay_key_id" placeholder="rzp_live_… or rzp_test_…"/>
+                                </div>
+                                <div class="row">
+                                    <label for="razorpay_key_secret" class="col-lg-3 o_light_label">Key Secret</label>
+                                    <field name="razorpay_key_secret" password="True"/>
+                                </div>
+                                <div class="row">
+                                    <label for="razorpay_webhook_secret" class="col-lg-3 o_light_label">Webhook Secret</label>
+                                    <field name="razorpay_webhook_secret" password="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="razorpay_webhook_url" class="col-lg-3 o_light_label">Webhook URL</label>
+                                    <field name="razorpay_webhook_url" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <p>In Razorpay Dashboard → <strong>Webhooks</strong>, add the URL above and subscribe to
+                                    <code>payment_link.paid</code>. Paste the webhook secret here.</p>
+                                    <p>Requires public HTTPS (ngrok for local dev).</p>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="WhatsApp (Meta Cloud API)" name="kaierp_whatsapp">
+                        <setting string="Enable WhatsApp notifications"
+                                 help="Send admission status updates to applicants via WhatsApp templates.">
+                            <field name="whatsapp_enabled"/>
+                        </setting>
+                        <setting string="API credentials"
+                                 help="From Meta Developer Console → WhatsApp → API Setup.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_phone_number_id" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_phone_number_id" placeholder="Phone Number ID"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_access_token" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_access_token" password="True" placeholder="Permanent access token"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_app_secret" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_app_secret" password="True" placeholder="App Secret (for webhook signature)"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_api_version" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_api_version"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_default_country_code" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_default_country_code"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Webhook (incoming messages)"
+                                 help="Odoo already exposes the webhook URL below — paste it into Meta. Choose any verify token string, save it here, then enter the exact same string in Meta.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_webhook_url" class="col-lg-3 o_light_label">Callback URL</label>
+                                    <field name="whatsapp_webhook_url" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_webhook_verify_token" class="col-lg-3 o_light_label">Verify Token</label>
+                                    <field name="whatsapp_webhook_verify_token"
+                                           placeholder="e.g. my-secret-verify-token-123"/>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <p><strong>How it works:</strong> You do not create a separate webhook in Odoo.
+                                    The endpoint <code>/kaierp/whatsapp/webhook</code> is built in. Copy the
+                                    <em>Callback URL</em> above into Meta → WhatsApp → Configuration → Webhook.</p>
+                                    <p>Type any secret phrase you choose as the <em>Verify Token</em>, click
+                                    <strong>Save</strong> in Odoo, then paste the <strong>same phrase</strong> into
+                                    Meta’s Verify Token field and click Verify.</p>
+                                    <p>Default (if unchanged): <code>change-me-ets-whatsapp-webhook</code></p>
+                                    <p>Subscribe to: <code>messages</code>,
+                                    <code>message_template_status_update</code>.
+                                    Requires public HTTPS (ngrok for local dev).</p>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Admission message templates"
+                                 help="Enter the exact template names approved in Meta Business Manager.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_template_language" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_template_language"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_received" class="col-lg-3 o_light_label">Received</label>
+                                    <field name="whatsapp_template_received" placeholder="ets_admission_received"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_pending_applicant" class="col-lg-3 o_light_label">Pending response</label>
+                                    <field name="whatsapp_template_pending_applicant" placeholder="ets_pending_documents"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_exam_interview" class="col-lg-3 o_light_label">Exam / interview</label>
+                                    <field name="whatsapp_template_exam_interview" placeholder="ets_exam_interview"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_accepted" class="col-lg-3 o_light_label">Accepted</label>
+                                    <field name="whatsapp_template_accepted" placeholder="ets_admission_accepted"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_denied" class="col-lg-3 o_light_label">Denied</label>
+                                    <field name="whatsapp_template_denied" placeholder="ets_admission_denied"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Test connection">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_test_phone" class="col-lg-3 o_light_label">Test number</label>
+                                    <field name="whatsapp_test_phone" placeholder="+91XXXXXXXXXX"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_test" class="col-lg-3 o_light_label">Test template</label>
+                                    <field name="whatsapp_template_test"/>
+                                </div>
+                                <div class="row mt8">
+                                    <button name="action_whatsapp_test_connection"
+                                            type="object"
+                                            string="Send Test Message"
+                                            class="btn-primary"
+                                            icon="fa-whatsapp"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

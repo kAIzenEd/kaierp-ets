@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.1.2',
+    'version': '19.0.1.3.4',
     'category': 'Education',
     'summary': 'Complete school management: students, classes, admissions, grades & transcripts',
     'description': """
@@ -27,6 +27,7 @@
         'project',         # For To-Do integration
         'web',
         'portal',
+        'product',
         'account',         # For fee invoicing
     ],
     'data': [
@@ -38,9 +39,12 @@
         'data/school_sequence.xml',
         'data/school_data.xml',
         'data/api_integration.xml',
+        'data/whatsapp_data.xml',
+        'data/school_fee_products.xml',
 
         # Views
         'views/school_dashboard_view.xml',
+        'views/login_templates.xml',
         'views/student_view.xml',
         'views/class_view.xml',
         'views/admission_view.xml',
@@ -52,11 +56,14 @@
         'views/fee_view.xml',
         'views/school_menu.xml',
         'views/res_config_settings_views.xml',
+        'views/whatsapp_message_view.xml',
 
         # Wizards
         'wizard/enroll_student_wizard_view.xml',
         'wizard/bulk_grade_wizard_view.xml',
         'wizard/take_attendance_wizard_view.xml',
+        'wizard/whatsapp_reply_wizard_view.xml',
+        'wizard/assign_fee_wizard_view.xml',
         # Reports
         'report/transcript_report.xml',
         'report/report_templates.xml',

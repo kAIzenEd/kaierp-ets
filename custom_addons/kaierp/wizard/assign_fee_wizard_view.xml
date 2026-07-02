@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_assign_fee_wizard_form" model="ir.ui.view">
+        <field name="name">school.assign.fee.wizard.form</field>
+        <field name="model">school.assign.fee.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Fees">
+                <group>
+                    <field name="student_id" readonly="1"/>
+                    <field name="academic_year"/>
+                    <field name="due_date"/>
+                </group>
+                <div class="mb-2">
+                    <button name="action_load_standard_fees" type="object"
+                            string="Load ETS Fee Catalog" class="btn-secondary"/>
+                </div>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="selected"/>
+                        <field name="product_id"/>
+                        <field name="billing_unit"/>
+                        <field name="quantity"/>
+                        <field name="unit_price"/>
+                        <field name="is_refundable"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_assign_fees" type="object"
+                            string="Assign Selected Fees" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_assign_fee_wizard" model="ir.actions.act_window">
+        <field name="name">Assign Fees</field>
+        <field name="res_model">school.assign.fee.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

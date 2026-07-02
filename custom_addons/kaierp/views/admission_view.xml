@@ -106,9 +106,19 @@
                                     <field name="marital_status"/>
                                     <field name="mother_tongue"/>
                                     <field name="plan_married_during_study"/>
+                                    <field name="agree_inform_marital_status"/>
+                                    <field name="bring_family"/>
                                 </group>
-                                <group string="Other Personal">
+                                <group string="Children">
                                     <field name="has_children"/>
+                                    <field name="children_count"/>
+                                    <field name="children_names"/>
+                                    <field name="children_ages"/>
+                                    <field name="children_genders"/>
+                                    <field name="children_at_aca"/>
+                                    <field name="child1_class"/>
+                                    <field name="child2_class"/>
+                                    <field name="child3_class"/>
                                 </group>
                             </group>
                         </page>
@@ -128,6 +138,12 @@
                                 <group string="Physical Address">
                                     <field name="has_different_physical_address"/>
                                     <field name="physical_address"
+                                           invisible="not has_different_physical_address"/>
+                                    <field name="physical_city"
+                                           invisible="not has_different_physical_address"/>
+                                    <field name="physical_zip"
+                                           invisible="not has_different_physical_address"/>
+                                    <field name="physical_country_id"
                                            invisible="not has_different_physical_address"/>
                                 </group>
                             </group>
@@ -172,17 +188,64 @@
 
                         <page string="Academic" name="academic">
                             <group>
-                                <group string="Qualifications">
+                                <group string="Applicant">
                                     <field name="applicant_type"/>
-                                    <field name="marksheet_name"/>
-                                    <field name="class_x_year"/>
+                                    <field name="indian_state"/>
+                                    <field name="academic_country"/>
+                                </group>
+                                <group string="X / High School">
+                                    <field name="class_x_month_year"/>
                                     <field name="diploma_after_class_x"/>
-                                    <field name="class_xii_diploma_year"/>
-                                    <field name="has_undergraduate_theology"/>
-                                    <field name="has_undergraduate_non_theology"/>
-                                    <field name="has_postgraduate_theology"/>
-                                    <field name="has_postgraduate_non_theology"/>
-                                    <field name="has_doctoral_non_theology"/>
+                                    <field name="diploma_subject"/>
+                                    <field name="diploma_enroll_year"/>
+                                    <field name="diploma_complete_month_year"/>
+                                    <field name="diploma_program_duration"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="XII / Higher Secondary">
+                                    <field name="class_xii_month_year"/>
+                                </group>
+                                <group string="Undergraduate">
+                                    <field name="ug_degree_type"/>
+                                    <field name="ug_theo_diploma_bible_college"/>
+                                    <field name="ug_theo_diploma_enroll_year"/>
+                                    <field name="ug_theo_diploma_grad_month_year"/>
+                                    <field name="ug_theo_diploma_duration"/>
+                                    <field name="ug_theo_diploma_grade"/>
+                                    <field name="ug_theo_bth_bible_college"/>
+                                    <field name="ug_theo_bth_enroll_year"/>
+                                    <field name="ug_theo_bth_grad_month_year"/>
+                                    <field name="ug_theo_bth_duration"/>
+                                    <field name="ug_theo_bth_grade"/>
+                                    <field name="ug_non_theo_college"/>
+                                    <field name="ug_non_theo_university"/>
+                                    <field name="ug_non_theo_enroll_year"/>
+                                    <field name="ug_non_theo_grad_month_year"/>
+                                    <field name="ug_non_theo_duration"/>
+                                    <field name="ug_non_theo_grade"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Postgraduate">
+                                    <field name="pg_degree_type"/>
+                                    <field name="pg_theo_mdiv_seminary"/>
+                                    <field name="pg_theo_mdiv_enroll_year"/>
+                                    <field name="pg_theo_mdiv_grad_month_year"/>
+                                    <field name="pg_theo_mdiv_duration"/>
+                                    <field name="pg_theo_mdiv_grade"/>
+                                    <field name="pg_non_theo_masters_college"/>
+                                    <field name="pg_non_theo_masters_university"/>
+                                    <field name="pg_non_theo_masters_enroll_year"/>
+                                    <field name="pg_non_theo_masters_grad_month_year"/>
+                                    <field name="pg_non_theo_masters_duration"/>
+                                    <field name="pg_non_theo_masters_grade"/>
+                                    <field name="pg_non_theo_doctorate_college"/>
+                                    <field name="pg_non_theo_doctorate_university"/>
+                                    <field name="pg_non_theo_doctorate_enroll_year"/>
+                                    <field name="pg_non_theo_doctorate_grad_month_year"/>
+                                    <field name="pg_non_theo_doctorate_duration"/>
+                                    <field name="pg_non_theo_doctorate_grade"/>
                                 </group>
                             </group>
                         </page>
@@ -219,6 +282,23 @@
                                     <field name="family_postal_addresses"/>
                                     <field name="family_email_addresses"/>
                                     <field name="family_contact_details"/>
+                                </group>
+                            </group>
+                            <group string="Spouse">
+                                <group>
+                                    <field name="spouse_name"/>
+                                    <field name="spouse_dob"/>
+                                    <field name="spouse_nationality"/>
+                                    <field name="spouse_state"/>
+                                    <field name="spouse_occupation"/>
+                                    <field name="spouse_place_of_work"/>
+                                </group>
+                                <group>
+                                    <field name="spouse_mother_tongue"/>
+                                    <field name="spouse_qualification"/>
+                                    <field name="spouse_supportive"/>
+                                    <field name="spouse_applying_ets"/>
+                                    <field name="family_accommodation"/>
                                 </group>
                             </group>
                         </page>
@@ -400,6 +480,19 @@
                                 <field name="student_id" readonly="1"
                                        invisible="state != 'accepted'"/>
                             </group>
+                        </page>
+
+                        <page string="WhatsApp" name="whatsapp">
+                            <field name="whatsapp_message_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0">
+                                    <field name="create_date" string="Date"/>
+                                    <field name="direction"/>
+                                    <field name="phone"/>
+                                    <field name="template_name"/>
+                                    <field name="body"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
                         </page>
 
                         <page string="Notes" name="notes">

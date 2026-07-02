@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="product_category_ets_fees" model="product.category">
+            <field name="name">ETS Fees</field>
+        </record>
+
+        <record id="product_application_fee" model="product.template">
+            <field name="name">Application Fee</field>
+            <field name="default_code">ETS-APP-FEE</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">1500.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">application_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="is_application_fee" eval="True"/>
+            <field name="description">Non-refundable application processing fee (website / Razorpay).</field>
+        </record>
+
+        <record id="product_exam_accommodation" model="product.template">
+            <field name="name">Exam Visit Accommodation</field>
+            <field name="default_code">ETS-EXAM-ACC</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">500.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">exam_accommodation</field>
+            <field name="billing_unit">night</field>
+            <field name="default_quantity">1</field>
+            <field name="description">On-campus accommodation for exam visit (₹500 per night, max 3 nights).</field>
+        </record>
+
+        <record id="product_admission_fee" model="product.template">
+            <field name="name">Admission Fee</field>
+            <field name="default_code">ETS-ADM-FEE</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">6500.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">admission_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">One-time admission fee upon enrolment.</field>
+        </record>
+
+        <record id="product_tuition" model="product.template">
+            <field name="name">Tuition</field>
+            <field name="default_code">ETS-TUITION</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">800.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">tuition</field>
+            <field name="billing_unit">credit_hour</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Tuition charged per credit hour.</field>
+        </record>
+
+        <record id="product_accommodation" model="product.template">
+            <field name="name">Accommodation</field>
+            <field name="default_code">ETS-ACCOMM</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">2100.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">accommodation</field>
+            <field name="billing_unit">month</field>
+            <field name="default_quantity">10</field>
+            <field name="description">Residential accommodation (10 months).</field>
+        </record>
+
+        <record id="product_food" model="product.template">
+            <field name="name">Food</field>
+            <field name="default_code">ETS-FOOD</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">4500.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">food</field>
+            <field name="billing_unit">month</field>
+            <field name="default_quantity">10</field>
+            <field name="description">Food plan (10 months, July–April).</field>
+        </record>
+
+        <record id="product_family_quarters" model="product.template">
+            <field name="name">Family Quarters</field>
+            <field name="default_code">ETS-FAM-QTR</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">3700.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">family_quarters</field>
+            <field name="billing_unit">month</field>
+            <field name="default_quantity">10</field>
+            <field name="description">Family quarters housing. Adjust price per unit (₹3,700–₹7,500/month).</field>
+        </record>
+
+        <record id="product_library_deposit" model="product.template">
+            <field name="name">Library Caution Deposit</field>
+            <field name="default_code">ETS-LIB-DEP</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">4000.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">library_deposit</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="is_refundable" eval="True"/>
+            <field name="description">Refundable library caution deposit.</field>
+        </record>
+
+        <record id="product_library_user_fee" model="product.template">
+            <field name="name">Library User Fee</field>
+            <field name="default_code">ETS-LIB-FEE</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">2750.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">library_user_fee</field>
+            <field name="billing_unit">annual</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Annual library user fee.</field>
+        </record>
+
+        <record id="product_sports_fee" model="product.template">
+            <field name="name">Sports Fee</field>
+            <field name="default_code">ETS-SPORTS</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">1100.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">sports_fee</field>
+            <field name="billing_unit">annual</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Annual sports fee.</field>
+        </record>
+
+        <record id="product_technology_fee" model="product.template">
+            <field name="name">Technology Fee</field>
+            <field name="default_code">ETS-TECH</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">4200.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">technology_fee</field>
+            <field name="billing_unit">annual</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Annual technology fee.</field>
+        </record>
+
+        <record id="product_medical_single" model="product.template">
+            <field name="name">Medical Fee - Single</field>
+            <field name="default_code">ETS-MED-S</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">1250.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">medical_single</field>
+            <field name="billing_unit">annual</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Annual medical fee for single students.</field>
+        </record>
+
+        <record id="product_medical_family" model="product.template">
+            <field name="name">Medical Fee - Family</field>
+            <field name="default_code">ETS-MED-F</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">1800.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">medical_family</field>
+            <field name="billing_unit">annual</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Annual medical fee for family students.</field>
+        </record>
+
+        <record id="product_caution_single" model="product.template">
+            <field name="name">General Caution Deposit - Single</field>
+            <field name="default_code">ETS-CAU-S</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">2500.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">caution_single</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="is_refundable" eval="True"/>
+            <field name="description">Refundable general caution deposit for single students.</field>
+        </record>
+
+        <record id="product_caution_family" model="product.template">
+            <field name="name">General Caution Deposit - Family</field>
+            <field name="default_code">ETS-CAU-F</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">5000.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">caution_family</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="is_refundable" eval="True"/>
+            <field name="description">Refundable general caution deposit for family students.</field>
+        </record>
+
+    </data>
+</odoo>

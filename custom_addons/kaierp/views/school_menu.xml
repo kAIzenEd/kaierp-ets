@@ -93,10 +93,18 @@
               groups="kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_fees"
-              name="Fees"
+              name="Student Fees"
               parent="menu_school_finance"
               action="action_school_fee"
-              sequence="1"/>
+              sequence="1"
+              groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
+
+    <menuitem id="menu_school_fee_products"
+              name="ETS Fee Catalog"
+              parent="menu_school_finance"
+              action="action_ets_fee_products"
+              sequence="2"
+              groups="kaierp.group_school_manager"/>
 
     <!-- ─── Communication ─────────────────────────────────────────── -->
     <menuitem id="menu_school_comms"
