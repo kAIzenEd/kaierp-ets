@@ -316,6 +316,7 @@ class SchoolAdmissionWebsite(models.Model):
         # Spiritual & work (camelCase)
         'believersBaptism': 'believers_baptism',
         'calledToMinistry': 'called_to_ministry',
+        'calledToService': 'called_to_ministry',
         'currentlyEmployed': 'currently_employed',
         # Health (camelCase)
         'bloodGroup': 'blood_group',
@@ -490,7 +491,7 @@ class SchoolAdmissionWebsite(models.Model):
     def _format_api_response(self, admission, duplicate=False, correlation_id=None,
                              documents_attached=0):
         """Shape response for the ACA ERPNext Railway gateway."""
-        reference = admission.reference
+        reference = admission.reference or ''
         cid = correlation_id or admission.website_submission_id
         return {
             'ok': True,
@@ -688,9 +689,31 @@ class SchoolAdmissionWebsite(models.Model):
         text = str(value).strip()
         if not text:
             return False
-        country = Country.search([('code', '=', text.upper())], limit=1)
+
+        aliases = {
+            'swaziland': 'Eswatini',
+            'eswatini': 'Eswatini',
+            'burma': 'Myanmar',
+            'myanmar': 'Myanmar',
+            'czechia': 'Czech Republic',
+            'cape verde': 'Cabo Verde',
+            'east timor': 'Timor-Leste',
+            'timor leste': 'Timor-Leste',
+            'ivory coast': "Côte d'Ivoire",
+            'cote divoire': "Côte d'Ivoire",
+            'usa': 'United States',
+            'u.s.a.': 'United States',
+            'u.s.a': 'United States',
+            'uk': 'United Kingdom',
+            'u.k.': 'United Kingdom',
+        }
+        lookup = aliases.get(text.lower(), text)
+
+        country = Country.search([('code', '=', lookup.upper())], limit=1)
         if not country:
-            country = Country.search([('name', '=ilike', text)], limit=1)
+            country = Country.search([('name', '=ilike', lookup)], limit=1)
+        if not country:
+            country = Country.search([('name', 'ilike', lookup)], limit=1)
         if not country:
             raise ValidationError(_('Unknown country: %s') % text)
         return country.id
@@ -824,6 +847,17 @@ class SchoolAdmissionWebsite(models.Model):
                 return 'not_formed'
             if text in ('no', 'n', 'false', '0'):
                 return 'no'
+
+        if field_name == 'blood_group':
+            upper = str(value).strip().upper()
+            valid = {key for key, _label in field.selection}
+            if upper in valid:
+                return upper
+
+        if field_name in ('church_denomination', 'religious_background_birth'):
+            raw = str(value).strip()
+            if raw.lower().startswith('other'):
+                return 'other'
 
         valid = {key for key, _label in field.selection}
         if text in valid:
