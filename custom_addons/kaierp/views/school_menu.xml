@@ -36,7 +36,7 @@
               groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_data_export"
-              name="Data Export"
+              name="Report Builder"
               parent="menu_school_reports"
               action="kaisight.action_kai_view_report_builder_client"
               sequence="3"
