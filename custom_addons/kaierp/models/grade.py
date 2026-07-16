@@ -62,12 +62,18 @@ class SchoolGrade(models.Model):
         string='Published to Student', default=False, tracking=True
     )
 
-    # ── GPA Scale (US standard 4.0) ───────────────────────────
+    # ── GPA Scale (ETS — see ETS Grading System + transcript legend) ──
     GPA_SCALE = [
-        (93, 4.0, 'A'),  (90, 3.7, 'A-'),
-        (87, 3.3, 'B+'), (83, 3.0, 'B'),   (80, 2.7, 'B-'),
-        (77, 2.3, 'C+'), (73, 2.0, 'C'),   (70, 1.7, 'C-'),
-        (67, 1.3, 'D+'), (63, 1.0, 'D'),   (60, 0.7, 'D-'),
+        # (min %, grade points per credit hour, letter)
+        (98, 4.0, 'A+'),
+        (94, 3.75, 'A'),
+        (90, 3.5, 'A-'),
+        (86, 3.25, 'B+'),
+        (83, 3.0, 'B'),
+        (80, 2.75, 'B-'),
+        (77, 2.5, 'C+'),
+        (74, 2.25, 'C'),
+        (70, 2.0, 'C-'),
         (0,  0.0, 'F'),
     ]
 

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-from markupsafe import Markup
+import base64
+import secrets
+from datetime import timedelta
+
+from markupsafe import Markup, escape
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
@@ -369,10 +373,10 @@ class SchoolAdmission(models.Model):
 
     # ── Health information ────────────────────────────────────
     blood_group = fields.Selection([
-        ('A+', 'A+'), ('A-', 'A-'),
-        ('B+', 'B+'), ('B-', 'B-'),
-        ('O+', 'O+'), ('O-', 'O-'),
-        ('AB+', 'AB+'), ('AB-', 'AB-'),
+        ('A', 'A'), ('A+', 'A+'), ('A-', 'A-'),
+        ('B', 'B'), ('B+', 'B+'), ('B-', 'B-'),
+        ('AB', 'AB'), ('AB+', 'AB+'), ('AB-', 'AB-'),
+        ('O', 'O'), ('O+', 'O+'), ('O-', 'O-'),
     ], string='Blood Group')
     height_cm = fields.Float(string='Height (cm)', digits=(6, 1))
     weight_kg = fields.Float(string='Weight (kg)', digits=(6, 1))
@@ -462,6 +466,9 @@ class SchoolAdmission(models.Model):
     payment_amount = fields.Float(string='Payment Amount (INR)', digits=(12, 2))
     payment_amount_paise = fields.Integer(string='Payment Amount (paise)')
     payment_currency = fields.Char(string='Payment Currency', default='INR')
+    application_fee_invoice_id = fields.Many2one(
+        'account.move', string='Application Fee Invoice', copy=False, readonly=True,
+    )
 
     # ── Self declaration ──────────────────────────────────────
     self_declaration_agreed = fields.Boolean(string='Self Declaration Agreed')
@@ -476,6 +483,16 @@ class SchoolAdmission(models.Model):
     )
     documents_pending_review = fields.Integer(
         compute='_compute_document_review_counts', string='Documents Pending Review',
+    )
+    document_upload_token = fields.Char(
+        string='Document Upload Token', copy=False, index=True, readonly=True,
+    )
+    document_upload_token_expiry = fields.Datetime(
+        string='Upload Link Expires', copy=False, readonly=True,
+    )
+    document_upload_url = fields.Char(
+        string='Document Upload Link',
+        compute='_compute_document_upload_url',
     )
 
     # ── Interview / evaluation (internal) ─────────────────────
@@ -497,33 +514,46 @@ class SchoolAdmission(models.Model):
         ('fail', 'Fail'),
     ], string='Exam Result', default='pending', tracking=True)
 
-    # ── Exam visit accommodation (Razorpay) ─────────────────
-    needs_exam_accommodation = fields.Boolean(string='Needs Exam Accommodation')
+    # ── Exam visit accommodation (optional, paid before arrival) ──
+    EXAM_ACCOMMODATION_RATE_INR = 500.0
+    EXAM_ACCOMMODATION_MAX_NIGHTS = 3
+
+    partner_id = fields.Many2one(
+        'res.partner', string='Applicant Contact', copy=False, readonly=True,
+    )
+    needs_exam_accommodation = fields.Boolean(
+        string='Needs Exam Visit Accommodation',
+        tracking=True,
+        help='Check if the applicant needs on-campus accommodation when coming for the exam.',
+    )
     exam_accommodation_nights = fields.Selection([
-        ('1', '1 Night'),
-        ('2', '2 Nights'),
-        ('3', '3 Nights'),
-    ], string='Accommodation Nights')
+        ('1', '1 night'),
+        ('2', '2 nights'),
+        ('3', '3 nights'),
+    ], string='Accommodation Nights', tracking=True)
     exam_accommodation_amount = fields.Float(
-        string='Accommodation Amount (INR)', digits=(12, 2),
+        string='Accommodation Amount (INR)',
+        compute='_compute_exam_accommodation_amount',
+        store=True,
+        digits=(12, 2),
     )
     exam_accommodation_payment_link_id = fields.Char(
-        string='Accommodation Payment Link ID', copy=False,
+        string='Accommodation Payment Link ID', copy=False, readonly=True,
     )
     exam_accommodation_payment_link_url = fields.Char(
-        string='Accommodation Payment Link URL', copy=False,
-    )
-    exam_accommodation_payment_id = fields.Char(
-        string='Accommodation Payment ID', copy=False,
-    )
-    exam_accommodation_payment_status = fields.Char(
-        string='Accommodation Payment Status',
+        string='Accommodation Payment Link', copy=False, readonly=True,
     )
     exam_accommodation_paid = fields.Boolean(
-        string='Accommodation Paid', copy=False,
+        string='Accommodation Fee Paid', default=False, tracking=True, copy=False,
+    )
+    exam_accommodation_payment_id = fields.Char(
+        string='Accommodation Razorpay Payment ID', copy=False, readonly=True,
+    )
+    exam_accommodation_payment_status = fields.Char(
+        string='Accommodation Payment Status', copy=False, readonly=True,
     )
     exam_accommodation_invoice_id = fields.Many2one(
-        'account.move', string='Accommodation Invoice', copy=False, readonly=True,
+        'account.move', string='Accommodation Fee Invoice', copy=False, readonly=True,
     )
 
     priority = fields.Selection(
@@ -550,6 +580,29 @@ class SchoolAdmission(models.Model):
     notes = fields.Html(string='Internal Notes')
     color = fields.Integer(string='Color Index', compute='_compute_color')
 
+    @api.depends('needs_exam_accommodation', 'exam_accommodation_nights')
+    def _compute_exam_accommodation_amount(self):
+        for rec in self:
+            if rec.needs_exam_accommodation and rec.exam_accommodation_nights:
+                nights = int(rec.exam_accommodation_nights)
+                rec.exam_accommodation_amount = nights * self.EXAM_ACCOMMODATION_RATE_INR
+            else:
+                rec.exam_accommodation_amount = 0.0
+
+    @api.constrains('needs_exam_accommodation', 'exam_accommodation_nights')
+    def _check_exam_accommodation_nights(self):
+        for rec in self:
+            if rec.needs_exam_accommodation and not rec.exam_accommodation_nights:
+                raise ValidationError(_(
+                    'Select the number of accommodation nights (1–3) for %s.',
+                ) % rec.name)
+            if rec.exam_accommodation_nights:
+                nights = int(rec.exam_accommodation_nights)
+                if nights < 1 or nights > self.EXAM_ACCOMMODATION_MAX_NIGHTS:
+                    raise ValidationError(_(
+                        'Exam accommodation is limited to %s nights maximum.',
+                    ) % self.EXAM_ACCOMMODATION_MAX_NIGHTS)
+
     @api.depends('first_name', 'middle_name', 'last_name')
     def _compute_name(self):
         for rec in self:
@@ -567,6 +620,17 @@ class SchoolAdmission(models.Model):
                     lambda d: not d.is_verified and not d.has_issue,
                 ),
             )
+
+    @api.depends('document_upload_token')
+    def _compute_document_upload_url(self):
+        base = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '').rstrip('/')
+        for rec in self:
+            if rec.document_upload_token and base:
+                rec.document_upload_url = '%s/admission/upload/%s' % (
+                    base, rec.document_upload_token,
+                )
+            else:
+                rec.document_upload_url = False
 
     @api.depends('state')
     def _compute_color(self):
@@ -648,20 +712,280 @@ class SchoolAdmission(models.Model):
             rec.registration_number = rec._next_registration_number(
                 rec.course, year, {},
             )
+        self._ensure_applicant_partner()
 
-    def _register_exam_accommodation_payment(self, payment_link, payment):
+    def _ensure_applicant_partner(self):
+        """Create or link a billing contact for this applicant."""
+        Partner = self.env['res.partner']
         for admission in self:
+            if not admission.email:
+                continue
+            partner = Partner.find_or_create_school_billing_partner(
+                record_ref=admission.registration_number,
+                name=admission.name or admission.email,
+                email=admission.email,
+                phone=(
+                    admission.mobile_number
+                    or admission.whatsapp_number
+                    or admission.phone_number
+                ),
+                current_partner=admission.partner_id,
+            )
+            admission.partner_id = partner.id
+
+    def _application_fee_is_paid(self):
+        self.ensure_one()
+        return bool(self.application_fee_paid or self.payment_successful)
+
+    def _get_application_fee_product(self):
+        product = self.env.ref('kaierp.product_application_fee', raise_if_not_found=False)
+        if product:
+            return product.product_variant_id
+        return self.env['product.product'].search([
+            ('product_tmpl_id.ets_fee_code', '=', 'application_fee'),
+        ], limit=1)
+
+    def _post_invoice_and_register_payment(self, invoice):
+        """Post a customer invoice and register full payment in Accounting."""
+        invoice = invoice.sudo()
+        if invoice.payment_state == 'paid':
+            return
+        if invoice.state == 'draft':
+            invoice.action_post()
+        if invoice.payment_state == 'paid':
+            return
+        wizard = self.env['account.payment.register'].sudo().with_context(
+            active_model='account.move',
+            active_ids=invoice.ids,
+        ).create({})
+        wizard.action_create_payments()
+
+    def _register_application_fee_accounting_if_paid(self):
+        paid = self.filtered(
+            lambda a: a._application_fee_is_paid() and not a.application_fee_invoice_id,
+        )
+        paid.sudo()._register_application_fee_accounting()
+
+    def _register_application_fee_accounting(self):
+        """Create a posted customer invoice and payment for the application fee."""
+        Move = self.env['account.move'].sudo()
+        for admission in self:
+            if admission.application_fee_invoice_id or not admission._application_fee_is_paid():
+                continue
+            admission.sudo()._ensure_applicant_partner()
+            if not admission.partner_id:
+                continue
+            product = admission._get_application_fee_product()
+            if not product:
+                continue
+            amount = admission.payment_amount or product.list_price
+            invoice = Move.create({
+                'move_type': 'out_invoice',
+                'partner_id': admission.partner_id.id,
+                'invoice_date': admission.application_date or fields.Date.today(),
+                'ref': '%s application fee' % (
+                    admission.registration_number or admission.reference,
+                ),
+                'invoice_line_ids': [(0, 0, {
+                    'product_id': product.id,
+                    'name': product.display_name,
+                    'quantity': 1,
+                    'price_unit': amount,
+                })],
+            })
+            if admission.payment_id:
+                invoice.payment_reference = admission.payment_id
+            elif admission.payment_receipt:
+                invoice.payment_reference = admission.payment_receipt
+            admission.sudo().write({'application_fee_invoice_id': invoice.id})
+            admission._post_invoice_and_register_payment(invoice)
+            admission.sudo().message_post(
+                body=_('Application fee invoice %s created and marked paid (₹%s).') % (
+                    invoice.name, amount,
+                ),
+            )
+
+    def action_view_application_fee_invoice(self):
+        self.ensure_one()
+        if not self.application_fee_invoice_id:
+            raise ValidationError(_('No application fee invoice linked to this application.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Application Fee Invoice'),
+            'res_model': 'account.move',
+            'res_id': self.application_fee_invoice_id.id,
+            'view_mode': 'form',
+        }
+
+    def _get_exam_accommodation_product(self):
+        product = self.env.ref('kaierp.product_exam_accommodation', raise_if_not_found=False)
+        if product:
+            return product.product_variant_id
+        return self.env['product.product'].search([
+            ('product_tmpl_id.ets_fee_code', '=', 'exam_accommodation'),
+        ], limit=1)
+
+    def action_send_exam_accommodation_payment_link(self):
+        """Create a Razorpay Payment Link and email it to the applicant."""
+        self.ensure_one()
+        if not self.needs_exam_accommodation:
+            raise ValidationError(_('Enable "Needs Exam Visit Accommodation" first.'))
+        if not self.exam_accommodation_nights:
+            raise ValidationError(_('Select how many nights (1–3) are required.'))
+        if self.exam_accommodation_paid:
+            raise ValidationError(_('Accommodation fee is already marked as paid.'))
+        if not self.email:
+            raise ValidationError(_('This application has no email address.'))
+
+        Razorpay = self.env['school.razorpay.payment']
+        nights = int(self.exam_accommodation_nights)
+        amount = self.exam_accommodation_amount
+        description = _('Exam visit accommodation — %s night(s)') % nights
+        reference_id = '%s-exam-acc-%s' % (
+            (self.registration_number or self.reference or str(self.id)).replace('/', '-'),
+            nights,
+        )
+
+        result = Razorpay.create_payment_link(
+            self, amount, description, reference_id,
+        )
+        self.write({
+            'exam_accommodation_payment_link_id': result.get('id', ''),
+            'exam_accommodation_payment_link_url': result.get('short_url', ''),
+            'exam_accommodation_payment_status': result.get('status', 'created'),
+        })
+
+        template = self.env.ref(
+            'kaierp.email_template_exam_accommodation_payment',
+            raise_if_not_found=False,
+        )
+        if template:
+            template.send_mail(self.id, force_send=True)
+        else:
+            self.message_post(
+                body=_(
+                    'Exam accommodation payment link sent manually: %s',
+                ) % self.exam_accommodation_payment_link_url,
+            )
+
+        self.message_post(
+            body=_(
+                'Exam accommodation payment link created (%s night(s), ₹%s): %s',
+            ) % (nights, amount, self.exam_accommodation_payment_link_url),
+        )
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Payment link sent'),
+                'message': _('An email with the Razorpay payment link was sent to %s.') % self.email,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def action_sync_exam_accommodation_payment(self):
+        """Check Razorpay for payment link status and update this application."""
+        self.ensure_one()
+        if not self.exam_accommodation_payment_link_id:
+            raise ValidationError(_('Send a payment link first.'))
+        if self.exam_accommodation_paid:
+            raise ValidationError(_('Accommodation fee is already marked as paid.'))
+
+        Razorpay = self.env['school.razorpay.payment']
+        status = Razorpay.sync_exam_accommodation_payment(self)
+        if status == 'paid':
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Payment received'),
+                    'message': _('Razorpay confirms payment. Accommodation fee marked as paid.'),
+                    'type': 'success',
+                    'sticky': False,
+                },
+            }
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Payment pending'),
+                'message': _('Razorpay status: %s') % (status or _('unknown')),
+                'type': 'warning',
+                'sticky': False,
+            },
+        }
+
+    def action_mark_exam_accommodation_paid(self):
+        """Mark accommodation as paid manually (e.g. bank transfer with receipt)."""
+        self.ensure_one()
+        if not self.needs_exam_accommodation:
+            raise ValidationError(_('This applicant does not need exam accommodation.'))
+        if self.exam_accommodation_paid:
+            raise ValidationError(_('Accommodation fee is already marked as paid.'))
+        self._register_exam_accommodation_payment(
+            payment_link={'status': 'paid'},
+            payment={},
+            manual=True,
+        )
+
+    def _register_exam_accommodation_payment(self, payment_link, payment, manual=False):
+        """Record accommodation payment and create invoice."""
+        for admission in self:
+            if admission.exam_accommodation_paid:
+                continue
+            vals = {
+                'exam_accommodation_paid': True,
+                'exam_accommodation_payment_status': payment_link.get('status', 'paid'),
+            }
+            if payment_link.get('id'):
+                vals['exam_accommodation_payment_link_id'] = payment_link['id']
+            if payment:
+                vals['exam_accommodation_payment_id'] = payment.get('id', '')
+            admission.write(vals)
+            admission._register_exam_accommodation_invoice(manual=manual)
             amount_inr = admission.exam_accommodation_amount
             if payment.get('amount'):
                 amount_inr = payment['amount'] / 100.0
-            admission.write({
-                'exam_accommodation_paid': True,
-                'exam_accommodation_payment_id': payment.get('id') or '',
-                'exam_accommodation_payment_status': payment.get('status') or 'captured',
-                'exam_accommodation_payment_link_id': payment_link.get('id') or '',
-            })
             admission.message_post(
-                body=_('Exam accommodation payment received (₹%s).') % amount_inr,
+                body=_('Exam visit accommodation fee marked as paid (₹%s).') % amount_inr,
+            )
+
+    def _register_exam_accommodation_invoice(self, manual=False):
+        Move = self.env['account.move'].sudo()
+        for admission in self:
+            if admission.exam_accommodation_invoice_id or not admission.exam_accommodation_paid:
+                continue
+            admission._ensure_applicant_partner()
+            if not admission.partner_id:
+                continue
+            product = admission._get_exam_accommodation_product()
+            if not product:
+                continue
+            nights = int(admission.exam_accommodation_nights or 1)
+            invoice = Move.create({
+                'move_type': 'out_invoice',
+                'partner_id': admission.partner_id.id,
+                'invoice_date': fields.Date.today(),
+                'ref': '%s exam accommodation' % (
+                    admission.registration_number or admission.reference,
+                ),
+                'invoice_line_ids': [(0, 0, {
+                    'product_id': product.id,
+                    'name': '%s (%s night(s))' % (product.display_name, nights),
+                    'quantity': nights,
+                    'price_unit': self.EXAM_ACCOMMODATION_RATE_INR,
+                })],
+            })
+            if admission.exam_accommodation_payment_id:
+                invoice.payment_reference = admission.exam_accommodation_payment_id
+            admission.exam_accommodation_invoice_id = invoice.id
+            admission._post_invoice_and_register_payment(invoice)
+            admission.message_post(
+                body=_('Exam accommodation invoice %s created%s.') % (
+                    invoice.name,
+                    _(' (manual)') if manual else '',
+                ),
             )
 
     @api.model_create_multi
@@ -674,6 +998,7 @@ class SchoolAdmission(models.Model):
         records = super().create(vals_list)
         records._assign_registration_number()
         records._ensure_document_reviews()
+        records._register_application_fee_accounting_if_paid()
         records._send_new_admission_emails()
         records._send_whatsapp_application_received()
         return records
@@ -681,7 +1006,15 @@ class SchoolAdmission(models.Model):
     def write(self, vals):
         track_state = 'state' in vals
         old_states = {rec.id: rec.state for rec in self} if track_state else {}
+        payment_trigger = any(
+            key in vals for key in (
+                'application_fee_paid', 'payment_successful',
+                'payment_amount', 'payment_id', 'payment_receipt',
+            )
+        )
         result = super().write(vals)
+        if payment_trigger:
+            self._register_application_fee_accounting_if_paid()
         if track_state:
             for rec in self:
                 previous = old_states.get(rec.id)
@@ -848,9 +1181,199 @@ class SchoolAdmission(models.Model):
             'view_mode': 'form',
         }
 
+    def action_whatsapp_open_conversation(self):
+        """Open the WhatsApp conversation thread for this applicant."""
+        self.ensure_one()
+        phone = self.whatsapp_number
+        if not phone and self.whatsapp_message_ids:
+            phone = self.whatsapp_message_ids[0].phone
+        if not phone:
+            raise ValidationError(_('This application has no WhatsApp number.'))
+        Whatsapp = self.env['school.whatsapp.message']
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('WhatsApp Conversation'),
+            'res_model': 'school.whatsapp.reply.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_admission_id': self.id,
+                'default_phone': Whatsapp.normalize_phone(
+                    phone, country=self.country_id,
+                ) or phone,
+            },
+        }
+
     def action_verify_all_documents(self):
         self.ensure_one()
         self.document_review_ids.write({'is_verified': True, 'has_issue': False})
+
+    def _document_upload_token_validity_days(self):
+        raw = self.env['ir.config_parameter'].sudo().get_param(
+            'kaierp.document_upload_token_days', '14',
+        )
+        try:
+            days = int(raw)
+        except (TypeError, ValueError):
+            days = 14
+        return max(1, min(days, 90))
+
+    def _generate_document_upload_token(self):
+        """Create or refresh a public upload token for this application."""
+        self.ensure_one()
+        days = self._document_upload_token_validity_days()
+        self.write({
+            'document_upload_token': secrets.token_urlsafe(32),
+            'document_upload_token_expiry': fields.Datetime.now() + timedelta(days=days),
+        })
+        return self.document_upload_url
+
+    def _invalidate_document_upload_token(self):
+        self.write({
+            'document_upload_token': False,
+            'document_upload_token_expiry': False,
+        })
+
+    def _get_documents_needing_upload(self):
+        self.ensure_one()
+        return self.document_review_ids.filtered('has_issue')
+
+    @api.model
+    def _find_by_document_upload_token(self, token):
+        """Return the admission for a valid public upload token, or empty recordset."""
+        token = (token or '').strip()
+        if not token:
+            return self.browse()
+        admission = self.sudo().search([
+            ('document_upload_token', '=', token),
+        ], limit=1)
+        if not admission:
+            return self.browse()
+        if admission.state != 'pending_applicant':
+            return self.browse()
+        expiry = admission.document_upload_token_expiry
+        if expiry and expiry < fields.Datetime.now():
+            return self.browse()
+        return admission
+
+    def _send_document_upload_request_email(self):
+        template = self.env.ref(
+            'kaierp.email_template_admission_document_upload',
+            raise_if_not_found=False,
+        )
+        if not template:
+            return
+        for admission in self:
+            if not admission.email:
+                continue
+            template.send_mail(admission.id, force_send=True)
+
+    def _notify_registrars_document_resubmitted(self, uploaded_labels):
+        """Inbox note for registrar users when applicant uploads documents."""
+        self.ensure_one()
+        registrar_users = self._get_registrar_users()
+        labels = ', '.join(uploaded_labels) if uploaded_labels else _('documents')
+        body = Markup(_(
+            'Applicant uploaded replacement file(s) via the secure link: '
+            '<strong>%(labels)s</strong>. Please re-verify on the Documents tab.',
+            labels=escape(labels),
+        ))
+        partner_ids = registrar_users.mapped('partner_id').ids if registrar_users else []
+        message = self.message_post(
+            body=body,
+            message_type='comment',
+            subtype_xmlid='mail.mt_note',
+            partner_ids=partner_ids or None,
+        )
+        if partner_ids and message:
+            self.env['mail.notification'].sudo().search([
+                ('mail_message_id', '=', message.id),
+            ]).unlink()
+            recipients_data = [{
+                'active': True,
+                'email_normalized': user.partner_id.email_normalized,
+                'id': user.partner_id.id,
+                'uid': user.id,
+                'notif': 'inbox',
+                'is_follower': True,
+                'lang': user.lang or self.env.lang,
+                'name': user.partner_id.name,
+                'groups': user.group_ids.ids,
+                'share': False,
+                'type': 'user',
+                'ushare': False,
+            } for user in registrar_users]
+            self._notify_thread_by_inbox(message, recipients_data)
+
+    def apply_public_document_uploads(self, uploads):
+        """
+        Apply files from the public upload page.
+
+        :param uploads: list of dicts with keys:
+            document_code, filename, content (bytes)
+        :return: list of document labels successfully stored
+        """
+        self.ensure_one()
+        if self.state != 'pending_applicant':
+            raise ValidationError(_('This upload link is no longer active.'))
+        expiry = self.document_upload_token_expiry
+        if expiry and expiry < fields.Datetime.now():
+            raise ValidationError(_('This upload link has expired.'))
+
+        issue_lines = {
+            line.document_code: line
+            for line in self._get_documents_needing_upload()
+        }
+        if not issue_lines:
+            raise ValidationError(_('There are no documents waiting for upload.'))
+
+        max_bytes = 10 * 1024 * 1024  # 10 MB per file
+        field_vals = {}
+        uploaded_labels = []
+        chatter_attachments = []
+
+        for item in uploads:
+            code = (item.get('document_code') or '').strip()
+            content = item.get('content') or b''
+            filename = (item.get('filename') or 'document').strip() or 'document'
+            if code not in issue_lines or not content:
+                continue
+            if code not in self._fields:
+                continue
+            if len(content) > max_bytes:
+                raise ValidationError(_(
+                    'File "%(name)s" is too large (max 10 MB).',
+                    name=filename,
+                ))
+            field_vals[code] = base64.b64encode(content)
+            label = issue_lines[code].document_label or code
+            uploaded_labels.append(label)
+            chatter_attachments.append((filename, content))
+
+        if not field_vals:
+            raise ValidationError(_('Please choose at least one file to upload.'))
+
+        self.write(field_vals)
+        for code in field_vals:
+            line = issue_lines[code]
+            note = (line.review_notes or '').strip()
+            resubmit_note = _('Resubmitted by applicant via upload link.')
+            line.write({
+                'has_issue': False,
+                'is_verified': False,
+                'review_notes': ('%s %s' % (note, resubmit_note)).strip() if note else resubmit_note,
+            })
+
+        self.message_post(
+            body=Markup(_(
+                'Applicant submitted document(s) via secure upload link: %s',
+            ) % escape(', '.join(uploaded_labels))),
+            message_type='comment',
+            subtype_xmlid='mail.mt_note',
+            attachments=chatter_attachments,
+        )
+        self._notify_registrars_document_resubmitted(uploaded_labels)
+        return uploaded_labels
 
     def action_request_applicant_response(self):
         self._check_state('initial_review')
@@ -858,10 +1381,57 @@ class SchoolAdmission(models.Model):
             raise ValidationError(_(
                 'Check "Issue" on at least one document before requesting a response.',
             ))
+        if not self.email:
+            raise ValidationError(_(
+                'This application has no email address. Add one before sending the upload link.',
+            ))
+        self._generate_document_upload_token()
         self.write({'state': 'pending_applicant'})
+        self._send_document_upload_request_email()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Upload link sent'),
+                'message': _(
+                    'An email with a secure document upload link was sent to %s.',
+                ) % self.email,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
+
+    def action_resend_document_upload_link(self):
+        """Refresh the token and email the applicant again."""
+        self.ensure_one()
+        self._check_state('pending_applicant')
+        if not self.document_review_ids.filtered('has_issue'):
+            raise ValidationError(_(
+                'There are no documents marked with Issue. Mark issues before resending the link.',
+            ))
+        if not self.email:
+            raise ValidationError(_('This application has no email address.'))
+        self._generate_document_upload_token()
+        self._send_document_upload_request_email()
+        self.message_post(
+            body=_('Document upload link resent to %s.') % self.email,
+            message_type='comment',
+            subtype_xmlid='mail.mt_note',
+        )
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Upload link resent'),
+                'message': _('A new secure upload link was emailed to %s.') % self.email,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     def action_resume_initial_review(self):
         self._check_state('pending_applicant')
+        self._invalidate_document_upload_token()
         self.write({'state': 'initial_review'})
 
     def action_move_to_exam_interview(self):
@@ -877,6 +1447,7 @@ class SchoolAdmission(models.Model):
             raise ValidationError(_(
                 'Resolve document issues or request applicant response before proceeding.',
             ))
+        self._invalidate_document_upload_token()
         self.write({'state': 'pending_exam_interview'})
 
     def action_schedule_interview(self):
@@ -902,7 +1473,94 @@ class SchoolAdmission(models.Model):
         self.write({
             'state': 'admission_denied',
             'decision_date': fields.Date.today(),
+            'document_upload_token': False,
+            'document_upload_token_expiry': False,
         })
+
+    # Fields copied from admission → student (excludes exam accommodation & workflow).
+    _ADMISSION_TO_STUDENT_FIELDS = (
+        'title', 'first_name', 'middle_name', 'last_name',
+        'course', 'study_mode',
+        'whatsapp_number', 'date_of_birth', 'gender', 'nationality', 'age',
+        'marital_status', 'plan_married_during_study',
+        'email', 'mobile_number', 'phone_number',
+        'postal_address', 'state_name', 'zip_code', 'city', 'country_id',
+        'has_different_physical_address', 'physical_address',
+        'emergency_title', 'emergency_name', 'emergency_relationship', 'emergency_mobile',
+        'church_name', 'church_location', 'church_denomination', 'church_ministry_type',
+        'is_ordained', 'church_financial_support', 'graduated_seminary_last_two_years',
+        'working_for_organisation',
+        'personal_reference_1', 'personal_reference_2', 'personal_reference_3',
+        'class_x_year', 'diploma_after_class_x', 'class_xii_diploma_year',
+        'has_undergraduate_theology', 'has_undergraduate_non_theology',
+        'has_postgraduate_theology', 'has_postgraduate_non_theology',
+        'has_doctoral_non_theology',
+        'monthly_support_inr', 'monthly_support_usd', 'has_financial_sponsor',
+        'financial_supporter_role', 'financial_supporter_name', 'financial_supporter_relation',
+        'financial_supporter_email', 'financial_supporter_phone', 'financial_supporter_address',
+        'father_name', 'father_occupation', 'mother_name', 'mother_occupation',
+        'parents_born_again', 'parents_believers',
+        'family_postal_addresses', 'family_email_addresses', 'family_contact_details',
+        'has_children',
+        'religious_background_birth', 'believers_baptism', 'called_to_ministry',
+        'read_doctrinal_statement', 'agree_doctrinal_statement',
+        'currently_employed', 'active_christian_ministry', 'how_knew_seminary',
+        'blood_group', 'height_cm', 'weight_kg', 'allergies',
+        'chronic_illness', 'prolonged_medication', 'vision_hearing_problem',
+        'uses_tobacco', 'uses_intoxicants', 'suffers_sleeplessness',
+        'psychiatric_care_history', 'other_medical_problems',
+        'photo',
+    )
+
+    def _safe_student_selection(self, field_name, value):
+        """Return a selection value only if it exists on school.student."""
+        if not value:
+            return value
+        field = self.env['school.student']._fields.get(field_name)
+        if field and field.type == 'selection':
+            valid = dict(field._description_selection(self.env))
+            return value if value in valid else False
+        return value
+
+    def _get_student_copy_vals(self, include_student_meta=False):
+        """Map mirrored admission fields onto school.student values."""
+        self.ensure_one()
+        Student = self.env['school.student']
+        vals = {}
+        for fname in self._ADMISSION_TO_STUDENT_FIELDS:
+            if fname not in Student._fields:
+                continue
+            student_field = Student._fields[fname]
+            value = self[fname]
+            if student_field.type == 'many2one':
+                vals[fname] = value.id if value else False
+            elif student_field.type == 'selection':
+                vals[fname] = self._safe_student_selection(fname, value)
+            else:
+                vals[fname] = value
+
+        if include_student_meta:
+            academic_year = (
+                str(self.application_date.year)
+                if self.application_date
+                else str(fields.Date.today().year)
+            )
+            vals.update({
+                'admission_id': self.id,
+                'academic_year': academic_year,
+                'admission_date': fields.Date.today(),
+                'state': 'active',
+            })
+            if self.registration_number:
+                vals['student_id'] = self.registration_number
+            if self.partner_id:
+                vals['partner_id'] = self.partner_id.id
+        return vals
+
+    def _prepare_student_vals(self):
+        """Map admission fields to the current school.student schema."""
+        self.ensure_one()
+        return self._get_student_copy_vals(include_student_meta=True)
 
     def action_accept_and_create_student(self):
         """Accept applicant and create the student profile in one step."""
@@ -917,44 +1575,14 @@ class SchoolAdmission(models.Model):
         if not self.registration_number:
             self._assign_registration_number()
 
-        first_name = self.first_name or ''
-        if self.middle_name:
-            first_name = f'{first_name} {self.middle_name}'.strip()
-
-        student_vals = {
-            'first_name': first_name,
-            'last_name': self.last_name,
-            'gender': self.gender,
-            'date_of_birth': self.date_of_birth,
-            'nationality': self.nationality.id if self.nationality else False,
-            'email': self.email,
-            'phone': self.phone_number,
-            'mobile': self.mobile_number or self.whatsapp_number,
-            'street': self.postal_address,
-            'city': self.city,
-            'country_id': self.country_id.id if self.country_id else False,
-            'zip': self.zip_code,
-            'mother_tongue': self.mother_tongue,
-            'blood_group': self.blood_group,
-            'father_name': self.father_name,
-            'father_occupation': self.father_occupation,
-            'mother_name': self.mother_name,
-            'mother_occupation': self.mother_occupation,
-            'other_contact_name': self.emergency_name,
-            'other_contact_relation': self.emergency_relationship,
-            'other_contact_mobile': self.emergency_mobile,
-            'academic_year': str(self.application_date.year) if self.application_date else str(fields.Date.today().year),
-            'admission_date': fields.Date.today(),
-            'state': 'active',
-        }
-        if self.registration_number:
-            student_vals['student_id'] = self.registration_number
-        student = self.env['school.student'].create(student_vals)
+        student = self.env['school.student'].create(self._prepare_student_vals())
 
         self.write({
             'student_id': student.id,
             'state': 'accepted',
             'decision_date': fields.Date.today(),
+            'document_upload_token': False,
+            'document_upload_token_expiry': False,
         })
 
         student.message_post(

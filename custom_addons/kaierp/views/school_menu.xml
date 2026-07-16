@@ -14,32 +14,61 @@
               action="action_school_dashboard"
               sequence="1"/>
 
+    <!-- ─── Reports ──────────────────────────────────────────────── -->
+    <menuitem id="menu_school_reports"
+              name="Reports"
+              parent="menu_school_root"
+              sequence="5"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_saved_reports"
+              name="Saved Reports"
+              parent="menu_school_reports"
+              action="kaisight.action_kai_view_reports"
+              sequence="1"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_scheduled_reports"
+              name="Scheduled Reports"
+              parent="menu_school_reports"
+              action="kaisight.action_kai_view_report_schedules"
+              sequence="2"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_data_export"
+              name="Data Export"
+              parent="menu_school_reports"
+              action="kaisight.action_kai_view_report_builder_client"
+              sequence="3"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
+
     <!-- ─── Students ─────────────────────────────────────────────── -->
     <menuitem id="menu_school_students"
               name="Students"
               parent="menu_school_root"
-              sequence="10"/>
+              sequence="10"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_teacher,kaierp.group_school_ta,kaierp.group_school_finance,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_chaplain,kaierp.group_school_dean_students,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_student_list"
               name="All Students"
               parent="menu_school_students"
               action="action_school_student"
               sequence="1"
-              groups="kaierp.group_school_registrar,kaierp.group_school_teacher,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_teacher,kaierp.group_school_ta,kaierp.group_school_finance,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_chaplain,kaierp.group_school_dean_students,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_admission_list"
               name="Admissions"
               parent="menu_school_students"
               action="action_school_admission"
               sequence="2"
-              groups="kaierp.group_school_registrar,kaierp.group_school_teacher,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_manager"/>
 
     <!-- ─── Academics ────────────────────────────────────────────── -->
     <menuitem id="menu_school_academics"
               name="Academics"
               parent="menu_school_root"
               sequence="20"
-              groups="kaierp.group_school_teacher,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_teacher,kaierp.group_school_ta,kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_class_list"
               name="Classes"
@@ -57,7 +86,8 @@
               name="Transcripts"
               parent="menu_school_academics"
               action="action_school_transcript"
-              sequence="3"/>
+              sequence="3"
+              groups="kaierp.group_school_secretary,kaierp.group_school_registrar,kaierp.group_school_teacher,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_attendance"
               name="Attendance"
@@ -70,7 +100,7 @@
               name="Staff"
               parent="menu_school_root"
               sequence="30"
-              groups="kaierp.group_school_teacher,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_teachers"
               name="Teachers"
@@ -83,35 +113,48 @@
               parent="menu_school_staff"
               action="action_school_registrar"
               sequence="2"
-              groups="kaierp.group_school_manager"/>
+              groups="kaierp.group_school_registrar,kaierp.group_school_manager"/>
 
     <!-- ─── Finance ───────────────────────────────────────────────── -->
     <menuitem id="menu_school_finance"
               name="Finance"
               parent="menu_school_root"
               sequence="40"
-              groups="kaierp.group_school_manager"/>
+              groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_registrar,kaierp.group_school_academic_dean,kaierp.group_school_president,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_invoices"
+              name="Invoices"
+              parent="menu_school_finance"
+              action="action_school_customer_invoices"
+              sequence="1"
+              groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_payments"
+              name="Payments"
+              parent="menu_school_finance"
+              action="action_school_customer_payments"
+              sequence="2"
+              groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_fees"
-              name="Student Fees"
+              name="Pending Fees"
               parent="menu_school_finance"
               action="action_school_fee"
-              sequence="1"
-              groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
+              sequence="3"/>
 
     <menuitem id="menu_school_fee_products"
               name="ETS Fee Catalog"
               parent="menu_school_finance"
               action="action_ets_fee_products"
-              sequence="2"
-              groups="kaierp.group_school_manager"/>
+              sequence="4"
+              groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
 
     <!-- ─── Communication ─────────────────────────────────────────── -->
     <menuitem id="menu_school_comms"
               name="Communication"
               parent="menu_school_root"
               sequence="50"
-              groups="kaierp.group_school_teacher,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_teacher,kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_ta,kaierp.group_school_manager"/>
 
     <menuitem id="menu_school_announcements"
               name="Announcements"

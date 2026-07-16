@@ -23,9 +23,10 @@ class SchoolClass(models.Model):
         default=lambda self: self._default_academic_year()
     )
     semester = fields.Selection([
-        ('1', 'Term 1'), ('2', 'Term 2'),
-        ('3', 'Term 3'), ('4', 'Term 4'),
-    ], string='Term', required=True, default='1')
+        ('summer', 'Summer Semester'),
+        ('fall', 'Fall Semester'),
+        ('spring', 'Spring Semester'),
+    ], string='Semester', required=True, default='fall')
 
     teacher_id = fields.Many2one(
         'school.teacher', string='Teacher', tracking=True

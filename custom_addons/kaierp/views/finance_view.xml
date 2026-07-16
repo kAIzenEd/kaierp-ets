@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Mirror Accounting customer invoices & payments inside kAI-ERP Finance. -->
+    <record id="action_school_customer_invoices" model="ir.actions.act_window">
+        <field name="name">Invoices</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">list,kanban,form,activity</field>
+        <field name="view_id" ref="account.view_out_invoice_tree"/>
+        <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+        <field name="domain">[('move_type', 'in', ['out_invoice', 'out_refund', 'out_receipt'])]</field>
+        <field name="context">{
+            'search_default_out_invoice': 1,
+            'search_default_out_receipt': 1,
+            'default_move_type': 'out_invoice',
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No customer invoices yet.
+            </p>
+            <p>
+                All ETS billing appears here: application fees, exam accommodation,
+                tuition, and other student charges once invoiced.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_school_customer_payments" model="ir.actions.act_window">
+        <field name="name">Payments</field>
+        <field name="res_model">account.payment</field>
+        <field name="view_mode">list,kanban,form,graph,activity</field>
+        <field name="view_id" ref="account.view_account_payment_tree"/>
+        <field name="context">{
+            'default_payment_type': 'inbound',
+            'default_partner_type': 'customer',
+            'search_default_inbound_filter': 1,
+            'default_move_journal_types': ('bank', 'cash'),
+            'display_account_trust': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No customer payments recorded yet.
+            </p>
+            <p>
+                Payments received against ETS invoices, including Razorpay application
+                fees and manually marked student fee payments.
+            </p>
+        </field>
+    </record>
+
+</odoo>

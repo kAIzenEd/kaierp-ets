@@ -23,6 +23,29 @@ class SchoolAdmissionDocumentReview(models.Model):
     )
     review_notes = fields.Char(string='Notes')
     has_file = fields.Boolean(string='Uploaded', compute='_compute_has_file')
+    document_file = fields.Binary(
+        string='File',
+        compute='_compute_document_file',
+        inverse='_inverse_document_file',
+        attachment=True,
+    )
+
+    @api.depends('admission_id', 'document_code')
+    def _compute_document_file(self):
+        for line in self:
+            file_value = False
+            admission = line.admission_id
+            code = line.document_code
+            if admission and code and code in admission._fields:
+                file_value = admission[code]
+            line.document_file = file_value
+
+    def _inverse_document_file(self):
+        for line in self:
+            admission = line.admission_id
+            code = line.document_code
+            if admission and code and code in admission._fields:
+                admission[code] = line.document_file
 
     @api.onchange('is_verified')
     def _onchange_is_verified(self):

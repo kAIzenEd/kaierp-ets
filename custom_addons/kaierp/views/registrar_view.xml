@@ -8,7 +8,7 @@
                 <header>
                     <button name="action_create_user" string="Create Login" type="object"
                             class="btn-primary" invisible="user_id"
-                            groups="kaierp.group_school_manager"/>
+                            groups="kaierp.group_school_registrar,kaierp.group_school_manager"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="active,on_leave,inactive"/>
                 </header>

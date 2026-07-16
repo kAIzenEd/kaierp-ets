@@ -4,22 +4,33 @@
         <field name="name">school.whatsapp.reply.wizard.form</field>
         <field name="model">school.whatsapp.reply.wizard</field>
         <field name="arch" type="xml">
-            <form string="WhatsApp Reply">
+            <form string="WhatsApp Conversation">
                 <group>
-                    <field name="admission_id" invisible="not admission_id"/>
-                    <field name="applicant_name"/>
-                    <field name="phone"/>
+                    <group>
+                        <field name="admission_id" invisible="not admission_id"/>
+                        <field name="applicant_name"/>
+                    </group>
+                    <group>
+                        <field name="phone"/>
+                    </group>
                 </group>
-                <label for="message"/>
+                <separator string="Conversation"/>
+                <field name="conversation_html" nolabel="1" colspan="2"/>
+                <separator string="Reply"/>
                 <field name="message" placeholder="Type your reply…" nolabel="1"/>
-                <div class="text-muted mt-2">
-                    Free-text replies only work within Meta's 24-hour window after the
+                <div class="alert alert-info mt-2 mb-0" role="status">
+                    Free-text replies work within Meta's 24-hour window after the
                     applicant last messaged you. Outside that window, use an approved template.
+                    <br/>
+                    If Meta still rejects the send with
+                    <em>“Recipient phone number not in allowed list”</em>, add that
+                    number under WhatsApp → API Setup → <strong>To</strong> (test numbers)
+                    until the business number is fully live for all recipients.
                 </div>
                 <footer>
                     <button name="action_send" string="Send WhatsApp" type="object"
                             class="btn-primary" icon="fa-whatsapp"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>

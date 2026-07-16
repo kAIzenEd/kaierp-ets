@@ -100,6 +100,37 @@ class SchoolRazorpayPayment(models.AbstractModel):
         return self._api_request('POST', '/payment_links', payload)
 
     @api.model
+    def fetch_payment_link(self, payment_link_id):
+        """Fetch current status from Razorpay for a payment link."""
+        if not payment_link_id:
+            raise UserError(_('No payment link ID provided.'))
+        return self._api_request('GET', f'/payment_links/{payment_link_id}')
+
+    @api.model
+    def sync_exam_accommodation_payment(self, admission):
+        """Poll Razorpay and update the admission if the link has been paid."""
+        admission.ensure_one()
+        link_id = admission.exam_accommodation_payment_link_id
+        if not link_id:
+            raise UserError(_('No Razorpay payment link exists for this application yet.'))
+
+        result = self.fetch_payment_link(link_id)
+        status = result.get('status') or ''
+        admission.write({'exam_accommodation_payment_status': status})
+
+        if status == 'paid' and not admission.exam_accommodation_paid:
+            payment = {}
+            payments = result.get('payments') or []
+            if payments:
+                payment = payments[0] if isinstance(payments[0], dict) else {}
+            admission._register_exam_accommodation_payment(result, payment)
+            return 'paid'
+
+        if admission.exam_accommodation_paid:
+            return 'paid'
+        return status
+
+    @api.model
     def verify_webhook_signature(self, body, signature):
         secret = self._config('kaierp.razorpay_webhook_secret')
         if not secret:

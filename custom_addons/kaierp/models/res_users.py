@@ -9,13 +9,23 @@ class ResUsers(models.Model):
     def _kaierp_school_group_ids(self):
         xmlids = (
             'kaierp.group_school_registrar',
+            'kaierp.group_school_secretary',
             'kaierp.group_school_teacher',
+            'kaierp.group_school_ta',
+            'kaierp.group_school_finance',
+            'kaierp.group_school_academic_dean',
+            'kaierp.group_school_president',
+            'kaierp.group_school_chaplain',
+            'kaierp.group_school_dean_students',
             'kaierp.group_school_manager',
+            'kaierp.group_school_it_admin',
         )
-        return {
-            self.env.ref(xmlid, raise_if_not_found=False).id
-            for xmlid in xmlids
-        } - {None, False}
+        group_ids = set()
+        for xmlid in xmlids:
+            group = self.env.ref(xmlid, raise_if_not_found=False)
+            if group:
+                group_ids.add(group.id)
+        return group_ids
 
     @api.model
     def _kaierp_home_action(self):

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="admission_document_upload_layout" name="Admission Document Upload Layout">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title t-esc="page_title or 'Document Upload'"/>
+                <style>
+                    :root {
+                        --ets-red: #a11d21;
+                        --ets-ink: #1f2328;
+                        --ets-muted: #5c6570;
+                        --ets-bg: #f6f3ef;
+                        --ets-card: #ffffff;
+                        --ets-border: #e2ddd6;
+                    }
+                    * { box-sizing: border-box; }
+                    body {
+                        margin: 0;
+                        font-family: "Source Sans 3", "Segoe UI", Helvetica, Arial, sans-serif;
+                        color: var(--ets-ink);
+                        background:
+                            radial-gradient(circle at top left, #fff7f0 0%, transparent 45%),
+                            linear-gradient(180deg, #efe8df 0%, var(--ets-bg) 40%, #ebe6df 100%);
+                        min-height: 100vh;
+                    }
+                    .wrap {
+                        max-width: 640px;
+                        margin: 0 auto;
+                        padding: 32px 20px 48px;
+                    }
+                    .brand {
+                        font-size: 0.85rem;
+                        letter-spacing: 0.08em;
+                        text-transform: uppercase;
+                        color: var(--ets-red);
+                        font-weight: 700;
+                        margin-bottom: 8px;
+                    }
+                    h1 {
+                        font-size: 1.75rem;
+                        margin: 0 0 8px;
+                        line-height: 1.25;
+                    }
+                    .lede {
+                        color: var(--ets-muted);
+                        margin: 0 0 24px;
+                        line-height: 1.5;
+                    }
+                    .card {
+                        background: var(--ets-card);
+                        border: 1px solid var(--ets-border);
+                        border-radius: 12px;
+                        padding: 24px;
+                        box-shadow: 0 10px 30px rgba(31, 35, 40, 0.06);
+                    }
+                    .meta {
+                        display: grid;
+                        gap: 6px;
+                        margin-bottom: 20px;
+                        font-size: 0.95rem;
+                    }
+                    .alert {
+                        border-radius: 8px;
+                        padding: 12px 14px;
+                        margin-bottom: 18px;
+                        line-height: 1.45;
+                    }
+                    .alert-success {
+                        background: #e8f6ec;
+                        color: #1e5c33;
+                        border: 1px solid #b7e0c2;
+                    }
+                    .alert-error {
+                        background: #fdeceb;
+                        color: #8a1f1f;
+                        border: 1px solid #f0c2c0;
+                    }
+                    .alert-info {
+                        background: #eef4fb;
+                        color: #1f4b7a;
+                        border: 1px solid #c6daf0;
+                    }
+                    .doc {
+                        border-top: 1px solid var(--ets-border);
+                        padding: 16px 0;
+                    }
+                    .doc:first-of-type { border-top: 0; padding-top: 0; }
+                    .doc-label {
+                        font-weight: 700;
+                        margin-bottom: 4px;
+                    }
+                    .doc-notes {
+                        color: var(--ets-muted);
+                        font-size: 0.92rem;
+                        margin-bottom: 10px;
+                    }
+                    input[type="file"] {
+                        width: 100%;
+                        font-size: 0.95rem;
+                    }
+                    .actions {
+                        margin-top: 20px;
+                        display: flex;
+                        gap: 12px;
+                        flex-wrap: wrap;
+                    }
+                    .btn {
+                        appearance: none;
+                        border: 0;
+                        border-radius: 6px;
+                        padding: 12px 18px;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                    }
+                    .btn-primary {
+                        background: var(--ets-red);
+                        color: #fff;
+                    }
+                    .foot {
+                        margin-top: 20px;
+                        color: var(--ets-muted);
+                        font-size: 0.88rem;
+                        line-height: 1.45;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="wrap">
+                    <div class="brand">ETS-ACA Admissions</div>
+                    <t t-out="0"/>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <template id="admission_document_upload_form" name="Admission Document Upload Form">
+        <t t-call="kaierp.admission_document_upload_layout">
+            <t t-set="page_title">Upload Documents</t>
+            <h1>Upload required documents</h1>
+            <p class="lede">
+                Use this secure page to send the documents requested for your application.
+                You do not need an Odoo account.
+            </p>
+            <div class="card">
+                <div class="meta">
+                    <div><strong>Applicant:</strong> <t t-esc="admission.name"/></div>
+                    <div><strong>Application #:</strong> <t t-esc="admission.reference"/></div>
+                    <t t-if="admission.document_upload_token_expiry">
+                        <div>
+                            <strong>Link expires:</strong>
+                            <t t-esc="admission.document_upload_token_expiry"/>
+                        </div>
+                    </t>
+                </div>
+
+                <t t-if="success">
+                    <div class="alert alert-success" role="status">
+                        Thank you — we received
+                        <t t-esc="uploaded_labels_text"/>.
+                        Our admissions team will review the file(s).
+                    </div>
+                </t>
+                <t t-if="error">
+                    <div class="alert alert-error" role="alert">
+                        <t t-esc="error"/>
+                    </div>
+                </t>
+
+                <t t-if="not issue_docs">
+                    <div class="alert alert-info">
+                        There are no documents waiting for upload on this link.
+                        If you were asked to send more files, please contact admissions.
+                    </div>
+                </t>
+                <t t-else="">
+                    <form t-att-action="'/admission/upload/%s' % token"
+                          method="post"
+                          enctype="multipart/form-data">
+                        <t t-foreach="issue_docs" t-as="doc">
+                            <div class="doc">
+                                <div class="doc-label" t-esc="doc.document_label"/>
+                                <t t-if="doc.review_notes">
+                                    <div class="doc-notes" t-esc="doc.review_notes"/>
+                                </t>
+                                <input type="file"
+                                       t-att-name="'file_%s' % doc.document_code"
+                                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,image/*,application/pdf"/>
+                            </div>
+                        </t>
+                        <div class="actions">
+                            <button type="submit" class="btn btn-primary">Submit documents</button>
+                        </div>
+                    </form>
+                    <p class="foot">
+                        Maximum 10 MB per file. Accepted formats: PDF, JPG, PNG, Word.
+                        Questions?
+                        <a href="mailto:etsadmissions@acaindia.org">etsadmissions@acaindia.org</a>
+                    </p>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="admission_document_upload_invalid" name="Admission Document Upload Invalid">
+        <t t-call="kaierp.admission_document_upload_layout">
+            <t t-set="page_title">Link Unavailable</t>
+            <h1 t-esc="error_title"/>
+            <div class="card">
+                <div class="alert alert-error" role="alert">
+                    <t t-esc="error_message"/>
+                </div>
+                <p class="foot" style="margin-top:0;">
+                    Contact
+                    <a href="mailto:etsadmissions@acaindia.org">etsadmissions@acaindia.org</a>
+                    and include your application number if you have it.
+                </p>
+            </div>
+        </t>
+    </template>
+
+</odoo>

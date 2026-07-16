@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Demo logins for role testing (password for all: demo)
+        faculty@demo.local, ta@demo.local, registrar@demo.local,
+        secretary@demo.local, finance@demo.local, president@demo.local,
+        academic.dean@demo.local, chaplain@demo.local, dean.students@demo.local,
+        it.admin@demo.local, student@demo.local
+    -->
+    <data noupdate="1">
+
+        <!-- ── Partners ─────────────────────────────────────────── -->
+        <record id="demo_partner_faculty" model="res.partner">
+            <field name="name">Demo Faculty</field>
+            <field name="email">faculty@demo.local</field>
+        </record>
+        <record id="demo_partner_ta" model="res.partner">
+            <field name="name">Demo Teaching Assistant</field>
+            <field name="email">ta@demo.local</field>
+        </record>
+        <record id="demo_partner_registrar" model="res.partner">
+            <field name="name">Demo Registrar</field>
+            <field name="email">registrar@demo.local</field>
+        </record>
+        <record id="demo_partner_secretary" model="res.partner">
+            <field name="name">Demo Secretary</field>
+            <field name="email">secretary@demo.local</field>
+        </record>
+        <record id="demo_partner_finance" model="res.partner">
+            <field name="name">Demo Finance</field>
+            <field name="email">finance@demo.local</field>
+        </record>
+        <record id="demo_partner_president" model="res.partner">
+            <field name="name">Demo President</field>
+            <field name="email">president@demo.local</field>
+        </record>
+        <record id="demo_partner_academic_dean" model="res.partner">
+            <field name="name">Demo Academic Dean</field>
+            <field name="email">academic.dean@demo.local</field>
+        </record>
+        <record id="demo_partner_chaplain" model="res.partner">
+            <field name="name">Demo Chaplain</field>
+            <field name="email">chaplain@demo.local</field>
+        </record>
+        <record id="demo_partner_dean_students" model="res.partner">
+            <field name="name">Demo Dean of Students</field>
+            <field name="email">dean.students@demo.local</field>
+        </record>
+        <record id="demo_partner_it_admin" model="res.partner">
+            <field name="name">Demo IT Admin</field>
+            <field name="email">it.admin@demo.local</field>
+        </record>
+        <record id="demo_partner_student" model="res.partner">
+            <field name="name">Demo Student</field>
+            <field name="email">student@demo.local</field>
+        </record>
+
+        <!-- ── Internal staff users ──────────────────────────────── -->
+        <record id="demo_user_faculty" model="res.users">
+            <field name="name">Demo Faculty</field>
+            <field name="login">faculty@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_faculty"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_teacher'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_ta" model="res.users">
+            <field name="name">Demo Teaching Assistant</field>
+            <field name="login">ta@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_ta"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_ta'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_registrar" model="res.users">
+            <field name="name">Demo Registrar</field>
+            <field name="login">registrar@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_registrar"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_registrar'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_secretary" model="res.users">
+            <field name="name">Demo Secretary</field>
+            <field name="login">secretary@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_secretary"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_secretary'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_finance" model="res.users">
+            <field name="name">Demo Finance</field>
+            <field name="login">finance@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_finance"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_finance'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_president" model="res.users">
+            <field name="name">Demo President</field>
+            <field name="login">president@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_president"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_president'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_academic_dean" model="res.users">
+            <field name="name">Demo Academic Dean</field>
+            <field name="login">academic.dean@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_academic_dean"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_academic_dean'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_chaplain" model="res.users">
+            <field name="name">Demo Chaplain</field>
+            <field name="login">chaplain@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_chaplain"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_chaplain'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_dean_students" model="res.users">
+            <field name="name">Demo Dean of Students</field>
+            <field name="login">dean.students@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_dean_students"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_dean_students'),
+            ])]"/>
+        </record>
+
+        <record id="demo_user_it_admin" model="res.users">
+            <field name="name">Demo IT Admin</field>
+            <field name="login">it.admin@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_it_admin"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_user'),
+                ref('kaierp.group_school_it_admin'),
+            ])]"/>
+        </record>
+
+        <!-- Portal student (Portal user type + Student group) -->
+        <record id="demo_user_student" model="res.users">
+            <field name="name">Demo Student</field>
+            <field name="login">student@demo.local</field>
+            <field name="password">demo</field>
+            <field name="partner_id" ref="demo_partner_student"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('base.group_portal'),
+                ref('kaierp.group_school_student'),
+            ])]"/>
+        </record>
+
+        <!-- Linked student profile for portal own-record rule -->
+        <record id="demo_school_student" model="school.student">
+            <field name="first_name">Demo</field>
+            <field name="last_name">Student</field>
+            <field name="student_id">DEMO-STU-001</field>
+            <field name="date_of_birth">2000-01-15</field>
+            <field name="gender">female</field>
+            <field name="email">student@demo.local</field>
+            <field name="phone_number">+91 90000 00001</field>
+            <field name="partner_id" ref="demo_partner_student"/>
+            <field name="state">active</field>
+            <field name="course">mdiv</field>
+            <field name="year_of_study">1st Year</field>
+        </record>
+
+    </data>
+</odoo>

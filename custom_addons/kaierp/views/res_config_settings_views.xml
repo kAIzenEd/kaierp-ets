@@ -7,11 +7,15 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="kAI-ERP" string="kAI-ERP" name="kaierp" groups="kaierp.group_school_manager">
+                <app data-string="kAI-ERP" string="kAI-ERP" name="kaierp" groups="kaierp.group_school_manager,kaierp.group_school_it_admin">
                     <block title="Admissions" name="kaierp_admissions">
                         <setting string="Registrar notification email"
                                  help="An email is sent to this address whenever a new admission application is created (website or manual).">
                             <field name="admission_registrar_email" placeholder="registrar@example.org"/>
+                        </setting>
+                        <setting string="Document upload link validity"
+                                 help="When staff request applicant response for document issues, a secure public upload link is emailed. This sets how many days the link stays valid.">
+                            <field name="document_upload_token_days"/>
                         </setting>
                     </block>
                     <block title="Website Integration" name="kaierp_website_integration">
@@ -60,14 +64,25 @@
                                  help="Send admission status updates to applicants via WhatsApp templates.">
                             <field name="whatsapp_enabled"/>
                         </setting>
-                        <setting string="API credentials"
-                                 help="From Meta Developer Console → WhatsApp → API Setup.">
+                        <setting string="Phone Number ID"
+                                 help="From Meta → WhatsApp → API Setup. Must be the LIVE number applicants message (not the Meta test +1 555… number). After editing, click Save.">
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label for="whatsapp_phone_number_id" class="col-lg-3 o_light_label"/>
-                                    <field name="whatsapp_phone_number_id" placeholder="Phone Number ID"/>
+                                    <label for="whatsapp_phone_number_id" class="col-lg-3 o_light_label">Phone Number ID</label>
+                                    <field name="whatsapp_phone_number_id"
+                                           placeholder="e.g. 1116619648208744"
+                                           class="oe_inline"/>
                                 </div>
                                 <div class="row">
+                                    <label for="whatsapp_phone_display" class="col-lg-3 o_light_label">Resolves to</label>
+                                    <field name="whatsapp_phone_display" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="API credentials"
+                                 help="From Meta Developer Console → WhatsApp → API Setup. Click Save after changes.">
+                            <div class="content-group">
+                                <div class="row mt16">
                                     <label for="whatsapp_access_token" class="col-lg-3 o_light_label"/>
                                     <field name="whatsapp_access_token" password="True" placeholder="Permanent access token"/>
                                 </div>
@@ -177,6 +192,6 @@
               parent="menu_school_root"
               action="action_kaierp_configuration"
               sequence="99"
-              groups="kaierp.group_school_manager"/>
+              groups="kaierp.group_school_manager,kaierp.group_school_it_admin"/>
 
 </odoo>

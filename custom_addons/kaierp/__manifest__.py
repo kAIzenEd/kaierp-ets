@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.3.23',
+    'version': '19.0.1.3.48',
     'category': 'Education',
     'summary': 'Complete school management: students, classes, admissions, grades & transcripts',
     'description': """
@@ -29,6 +29,7 @@
         'portal',
         'product',
         'account',         # For fee invoicing
+        'kaisight',        # Report builder for registrar exports
     ],
     'data': [
         # Security
@@ -41,19 +42,25 @@
         'data/api_integration.xml',
         'data/whatsapp_data.xml',
         'data/school_fee_products.xml',
+        'data/kaisight_report_sources.xml',
+        'data/kaisight_student_directory_report.xml',
+        'data/demo_school_users.xml',
 
         # Views
         'views/school_dashboard_view.xml',
         'views/login_templates.xml',
         'views/student_view.xml',
+        'views/student_care_views.xml',
         'views/class_view.xml',
         'views/admission_view.xml',
+        'views/admission_document_upload_templates.xml',
         'views/grade_view.xml',
         'views/attendance_view.xml',
         'views/teacher_view.xml',
         'views/registrar_view.xml',
         'views/announcement_view.xml',
         'views/fee_view.xml',
+        'views/finance_view.xml',
         'views/school_menu.xml',
         'views/res_config_settings_views.xml',
         'views/whatsapp_message_view.xml',

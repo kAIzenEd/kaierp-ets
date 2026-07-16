@@ -68,8 +68,9 @@ class WhatsappWebhookController(http.Controller):
         for status in value.get('statuses', []):
             meta_id = status.get('id')
             state = status.get('status')
+            errors = status.get('errors') or []
             if meta_id and state:
-                Whatsapp.update_delivery_status(meta_id, state)
+                Whatsapp.update_delivery_status(meta_id, state, errors=errors)
 
     def _process_inbound_messages(self, Whatsapp, value):
         for message in value.get('messages', []):
@@ -81,12 +82,13 @@ class WhatsappWebhookController(http.Controller):
             admission = Whatsapp.find_admission_by_phone(phone)
             log = Whatsapp.log_inbound(phone, body, meta_id, admission=admission)
             if admission:
+                # Internal note only — do not email followers / the applicant.
                 admission.message_post(
                     body=Markup(
                         '<p><strong>WhatsApp from applicant:</strong></p><p>%s</p>'
                     ) % escape(body),
                     message_type='comment',
-                    subtype_xmlid='mail.mt_comment',
+                    subtype_xmlid='mail.mt_note',
                 )
             _logger.info(
                 'WhatsApp inbound message %s from %s (admission=%s)',

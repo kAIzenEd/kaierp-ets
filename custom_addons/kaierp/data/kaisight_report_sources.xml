@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="report_source_students" model="kai.view.report.source">
+            <field name="name">Students</field>
+            <field name="description">Current student profiles and contact details</field>
+            <field name="sequence">10</field>
+            <field name="icon">fa-graduation-cap</field>
+            <field name="model_id" ref="model_school_student"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.student'), ('name', 'in', [
+                    'photo', 'student_id', 'name', 'gender', 'course', 'year_of_study',
+                    'ets_email', 'marital_status', 'current_residence',
+                    'ets_campus_location', 'family_quarters', 'father_name',
+                    'mother_name', 'church_denomination', 'state_name',
+                    'birth_day', 'birth_month', 'birth_year', 'email',
+                    'phone_number', 'whatsapp_number', 'blood_group',
+                    'emergency_name', 'emergency_relationship', 'emergency_mobile',
+                    'emergency_email', 'postal_address',
+                ])]"/>
+        </record>
+
+        <record id="report_source_admissions" model="kai.view.report.source">
+            <field name="name">Admissions</field>
+            <field name="description">Admission applications and pipeline status</field>
+            <field name="sequence">20</field>
+            <field name="icon">fa-file-text-o</field>
+            <field name="model_id" ref="model_school_admission"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.admission'), ('name', 'in', ['name', 'email', 'mobile_number', 'state', 'course', 'create_date'])]"/>
+        </record>
+
+        <record id="report_source_enrollments" model="kai.view.report.source">
+            <field name="name">Enrollments</field>
+            <field name="description">Class enrollments and academic year records</field>
+            <field name="sequence">30</field>
+            <field name="icon">fa-list-alt</field>
+            <field name="model_id" ref="model_school_enrollment"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.enrollment'), ('name', 'in', ['student_id', 'class_id', 'academic_year', 'state'])]"/>
+        </record>
+
+        <record id="report_source_classes" model="kai.view.report.source">
+            <field name="name">Classes</field>
+            <field name="description">Academic classes and schedules</field>
+            <field name="sequence">40</field>
+            <field name="icon">fa-university</field>
+            <field name="model_id" ref="model_school_class"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.class'), ('name', 'in', ['name', 'code', 'academic_year', 'teacher_id'])]"/>
+        </record>
+
+        <record id="report_source_fees" model="kai.view.report.source">
+            <field name="name">Fees</field>
+            <field name="description">Fee assignments and payment status</field>
+            <field name="sequence">50</field>
+            <field name="icon">fa-money</field>
+            <field name="model_id" ref="model_school_fee"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_finance'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.fee'), ('name', 'in', ['student_id', 'product_id', 'amount_due', 'state', 'due_date'])]"/>
+        </record>
+
+        <record id="report_source_attendance" model="kai.view.report.source">
+            <field name="name">Attendance</field>
+            <field name="description">Daily attendance records</field>
+            <field name="sequence">60</field>
+            <field name="icon">fa-calendar-check-o</field>
+            <field name="model_id" ref="model_school_attendance"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.attendance'), ('name', 'in', ['student_id', 'class_id', 'date', 'state'])]"/>
+        </record>
+
+        <record id="report_source_grades" model="kai.view.report.source">
+            <field name="name">Grades</field>
+            <field name="description">Student grades and assessments</field>
+            <field name="sequence">70</field>
+            <field name="icon">fa-bar-chart</field>
+            <field name="model_id" ref="model_school_grade"/>
+            <field name="group_ids" eval="[(6, 0, [
+                ref('kaierp.group_school_registrar'),
+                ref('kaierp.group_school_secretary'),
+                ref('kaierp.group_school_president'),
+                ref('kaierp.group_school_academic_dean'),
+                ref('kaierp.group_school_manager'),
+            ])]"/>
+            <field name="default_field_ids" model="ir.model.fields"
+                search="[('model', '=', 'school.grade'), ('name', 'in', ['student_id', 'class_id', 'assessment_type', 'letter_grade', 'academic_year'])]"/>
+        </record>
+
+    </data>
+</odoo>

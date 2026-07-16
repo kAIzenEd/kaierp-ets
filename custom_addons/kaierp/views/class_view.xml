@@ -204,7 +204,7 @@
                 <field name="teacher_id"/>
                 <!-- <field name="subject"/> -->
                 <templates>
-                    <t t-name="kanban-card">
+                    <t t-name="card">
                         <div class="oe_kanban_card oe_kanban_global_click">
                             <div class="fw-bold fs-5">
                                 <field name="name"/>

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import student
+from . import student_field_security
+from . import student_care
 from . import school_class
 from . import enrollment
 from . import admission
@@ -14,5 +16,6 @@ from . import fee
 from . import product_template
 from . import razorpay_payment
 from . import res_config_settings
+from . import res_partner
 from . import res_users
 from . import whatsapp_message

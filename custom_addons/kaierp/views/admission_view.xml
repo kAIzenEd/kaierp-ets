@@ -12,6 +12,11 @@
                             string="Request Applicant Response" type="object"
                             class="btn-warning"
                             invisible="state != 'initial_review'"/>
+                    <button name="action_resend_document_upload_link"
+                            string="Resend Upload Link" type="object"
+                            class="btn-warning"
+                            icon="fa-envelope"
+                            invisible="state != 'pending_applicant'"/>
                     <button name="action_resume_initial_review"
                             string="Resume Initial Review" type="object"
                             class="btn-secondary"
@@ -39,6 +44,15 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" type="object"
+                                name="action_view_application_fee_invoice"
+                                icon="fa-money"
+                                invisible="not application_fee_invoice_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value">Paid</span>
+                                <span class="o_stat_text">App. Fee</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object"
                                 name="action_view_student" icon="fa-graduation-cap"
                                 invisible="not student_id">
                             <div class="o_stat_info">
@@ -50,18 +64,30 @@
 
                     <field name="photo" widget="image" class="oe_avatar"/>
 
-                    <div class="oe_title">
-                        <label for="first_name"/>
-                        <h1>
-                            <field name="first_name" placeholder="First Name" class="oe_inline"/>
-                            <field name="middle_name" placeholder="Middle" class="oe_inline"/>
-                            <field name="last_name" placeholder="Last Name" class="oe_inline"/>
-                        </h1>
+                    <div class="oe_title o_admission_title">
+                        <div class="o_admission_name_row d-flex flex-wrap align-items-end mb-2">
+                            <div class="o_admission_name_field">
+                                <label for="first_name" string="First Name"/>
+                                <field name="first_name" placeholder="First" nolabel="1"/>
+                            </div>
+                            <div class="o_admission_name_field o_admission_name_field--middle">
+                                <label for="middle_name" string="Middle Name"/>
+                                <field name="middle_name" placeholder="Middle" nolabel="1"/>
+                            </div>
+                            <div class="o_admission_name_field">
+                                <label for="last_name" string="Last Name"/>
+                                <field name="last_name" placeholder="Last" nolabel="1"/>
+                            </div>
+                        </div>
                         <field name="name" invisible="1"/>
-                        <div>
-                            <field name="reference" readonly="1"/>
-                            <span class="mx-2">·</span>
-                            <field name="course"/>
+                        <div class="d-flex flex-wrap align-items-center gap-2 text-muted">
+                            <span>Application #</span>
+                            <field name="reference" readonly="1" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
+                            <label for="registration_number" string="Registration ID"/>
+                            <field name="registration_number" readonly="1" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
+                            <field name="course" nolabel="1" class="oe_inline"/>
                         </div>
                     </div>
 
@@ -70,7 +96,7 @@
                             <field name="course" required="1"/>
                             <field name="study_mode" required="1"/>
                             <field name="application_date"/>
-                            <field name="website_submission_id" readonly="1"/>
+                            <field name="registration_number" readonly="1"/>
                         </group>
                         <group string="Application Status">
                             <field name="priority" widget="priority"/>
@@ -79,6 +105,10 @@
                                    invisible="state not in ('initial_review', 'pending_applicant')"/>
                             <field name="documents_with_issues" readonly="1"
                                    invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            <field name="document_upload_url" widget="CopyClipboardChar"
+                                   invisible="state != 'pending_applicant' or not document_upload_url"/>
+                            <field name="document_upload_token_expiry" readonly="1"
+                                   invisible="state != 'pending_applicant' or not document_upload_token_expiry"/>
                             <field name="application_fee_paid" readonly="1"/>
                             <field name="payment_successful" readonly="1"/>
                             <field name="payment_amount" readonly="1"/>
@@ -124,7 +154,6 @@
                             <group>
                                 <group string="Contact Information">
                                     <field name="email" widget="email" required="1"/>
-                                    <field name="mobile_number" widget="phone"/>
                                     <field name="phone_number" widget="phone"/>
                                     <field name="postal_address" required="1"/>
                                     <field name="city" required="1"/>
@@ -338,87 +367,35 @@
                             </group>
                         </page>
 
-                        <page string="Document Review" name="document_review"
-                              invisible="state in ('admission_denied', 'accepted')">
-                            <div class="mb-2">
+                        <page string="Documents" name="documents">
+                            <div class="mb-2"
+                                 invisible="state in ('admission_denied', 'accepted')">
                                 <button name="action_verify_all_documents" type="object"
                                         string="Verify All Documents" class="btn-secondary"
                                         icon="fa-check-square-o"/>
                             </div>
-                            <p class="text-muted">
-                                Check <strong>Verified</strong> for each document you have reviewed
-                                (uploaded or not required). Check <strong>Issue</strong> only when
-                                something needs correction from the applicant.
+                            <p class="text-muted"
+                               invisible="state in ('admission_denied', 'accepted')">
+                                Upload or review each document below. Check <strong>Verified</strong>
+                                when acceptable (or not required). Check <strong>Issue</strong> when
+                                the applicant must correct something.
                             </p>
-                            <field name="document_review_ids" nolabel="1">
-                                <list editable="top" create="0" delete="0">
+                            <field name="document_review_ids" nolabel="1"
+                                   readonly="state in ('admission_denied', 'accepted')">
+                                <list editable="bottom" create="0" delete="0"
+                                      class="o_admission_document_review_list">
                                     <field name="sequence" column_invisible="1"/>
-                                    <field name="document_label" readonly="1"/>
-                                    <field name="has_file" readonly="1" string="Uploaded"/>
+                                    <field name="document_code" column_invisible="1"/>
+                                    <field name="document_label" readonly="1" string="Document"/>
+                                    <field name="document_file" widget="binary" string="File"/>
+                                    <field name="has_file" readonly="1" string="Uploaded"
+                                           column_invisible="1"/>
                                     <field name="is_verified" string="Verified"/>
                                     <field name="has_issue" string="Issue"/>
-                                    <field name="review_notes"
+                                    <field name="review_notes" string="Notes"
                                            placeholder="Notes (optional)"/>
                                 </list>
                             </field>
-                        </page>
-
-                        <page string="Documents" name="documents">
-                            <group string="Identity &amp; Personal">
-                                <group>
-                                    <field name="doc_aadhaar" widget="binary"/>
-                                    <field name="doc_passport" widget="binary"/>
-                                    <field name="doc_visa" widget="binary"/>
-                                    <field name="doc_change_of_name" widget="binary"/>
-                                    <field name="doc_marriage_certificate" widget="binary"/>
-                                    <field name="doc_personal_testimony" widget="binary"/>
-                                </group>
-                                <group string="References &amp; Conduct">
-                                    <field name="doc_church_recommendation" widget="binary"/>
-                                    <field name="doc_reference_form_1" widget="binary"/>
-                                    <field name="doc_reference_form_2" widget="binary"/>
-                                    <field name="doc_reference_form_3" widget="binary"/>
-                                    <field name="doc_reference_form_4_employer" widget="binary"/>
-                                    <field name="doc_conduct_seminary" widget="binary"/>
-                                    <field name="doc_conduct_employer" widget="binary"/>
-                                </group>
-                            </group>
-                            <group string="Financial &amp; Experience">
-                                <group>
-                                    <field name="doc_finance_assurance" widget="binary"/>
-                                    <field name="doc_financial_guarantee" widget="binary"/>
-                                    <field name="doc_christian_ministry_experience" widget="binary"/>
-                                    <field name="doc_work_experience" widget="binary"/>
-                                    <field name="doc_school_admission_children" widget="binary"/>
-                                </group>
-                                <group string="Health Documents">
-                                    <field name="doc_fitness_certificate" widget="binary"/>
-                                    <field name="doc_chronic_illness" widget="binary"/>
-                                    <field name="doc_prolonged_medication" widget="binary"/>
-                                    <field name="doc_vision_hearing" widget="binary"/>
-                                    <field name="doc_psychiatric_care" widget="binary"/>
-                                </group>
-                            </group>
-                            <group string="Academic Records">
-                                <group>
-                                    <field name="doc_class_x" widget="binary"/>
-                                    <field name="doc_class_xii_diploma" widget="binary"/>
-                                    <field name="doc_ug_degree_1_mark_sheet" widget="binary"/>
-                                    <field name="doc_ug_degree_1_certificate" widget="binary"/>
-                                    <field name="doc_ug_degree_2_mark_sheet" widget="binary"/>
-                                    <field name="doc_ug_degree_2_certificate" widget="binary"/>
-                                </group>
-                                <group>
-                                    <field name="doc_pg_degree_1_mark_sheet" widget="binary"/>
-                                    <field name="doc_pg_degree_1_certificate" widget="binary"/>
-                                    <field name="doc_pg_degree_2_mark_sheet" widget="binary"/>
-                                    <field name="doc_pg_degree_2_certificate" widget="binary"/>
-                                    <field name="doc_pg_diploma_mark_sheet" widget="binary"/>
-                                    <field name="doc_pg_diploma_certificate" widget="binary"/>
-                                    <field name="doc_other_degrees" widget="binary"/>
-                                    <field name="doc_yet_to_graduate" widget="binary"/>
-                                </group>
-                            </group>
                         </page>
 
                         <page string="Application Fee" name="application_fee">
@@ -437,11 +414,62 @@
                                     <field name="payment_receipt" readonly="1"/>
                                     <field name="payment_status" readonly="1"/>
                                     <field name="payment_method" readonly="1"/>
+                                    <field name="application_fee_invoice_id" readonly="1"/>
                                 </group>
                             </group>
                             <group string="Offline Payment Upload">
                                 <field name="doc_application_fee" widget="binary"/>
                             </group>
+                        </page>
+
+                        <page string="Exam Visit Accommodation" name="exam_accommodation">
+                            <div class="alert alert-warning mb-3" role="alert"
+                                 invisible="not needs_exam_accommodation or exam_accommodation_paid">
+                                <strong>Payment pending.</strong>
+                                Accommodation fee must be received before the applicant arrives on campus.
+                            </div>
+                            <div class="alert alert-success mb-3" role="alert"
+                                 invisible="not exam_accommodation_paid">
+                                Accommodation fee paid.
+                            </div>
+                            <group>
+                                <group>
+                                    <field name="needs_exam_accommodation"/>
+                                    <field name="exam_accommodation_nights"
+                                           invisible="not needs_exam_accommodation"
+                                           required="needs_exam_accommodation"/>
+                                    <field name="exam_accommodation_amount" readonly="1"
+                                           invisible="not needs_exam_accommodation"/>
+                                    <field name="exam_accommodation_paid" readonly="1"/>
+                                </group>
+                                <group string="Razorpay Payment Link"
+                                       invisible="not needs_exam_accommodation">
+                                    <field name="exam_accommodation_payment_link_url" readonly="1"
+                                           widget="url"/>
+                                    <field name="exam_accommodation_payment_status" readonly="1"/>
+                                    <field name="exam_accommodation_payment_id" readonly="1"/>
+                                    <field name="exam_accommodation_invoice_id" readonly="1"/>
+                                </group>
+                            </group>
+                            <div class="mb-2" invisible="not needs_exam_accommodation">
+                                <button name="action_send_exam_accommodation_payment_link"
+                                        type="object"
+                                        string="Send Payment Link by Email"
+                                        class="btn-primary"
+                                        icon="fa-envelope-o"
+                                        invisible="exam_accommodation_paid"/>
+                                <button name="action_sync_exam_accommodation_payment"
+                                        type="object"
+                                        string="Check Razorpay Status"
+                                        class="btn-secondary"
+                                        icon="fa-refresh"
+                                        invisible="exam_accommodation_paid or not exam_accommodation_payment_link_id"/>
+                                <button name="action_mark_exam_accommodation_paid"
+                                        type="object"
+                                        string="Mark Paid Manually"
+                                        class="btn-secondary"
+                                        invisible="exam_accommodation_paid"/>
+                            </div>
                         </page>
 
                         <page string="Exam &amp; Interview" name="exam_interview"
@@ -475,6 +503,13 @@
                         </page>
 
                         <page string="WhatsApp" name="whatsapp">
+                            <div class="mb-2">
+                                <button name="action_whatsapp_open_conversation" type="object"
+                                        string="Open conversation" class="btn-primary"
+                                        icon="fa-whatsapp"
+                                        invisible="not whatsapp_number"
+                                        groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
+                            </div>
                             <field name="whatsapp_message_ids" nolabel="1" readonly="1">
                                 <list create="0" edit="0">
                                     <field name="create_date" string="Date"/>
@@ -483,6 +518,8 @@
                                     <field name="template_name"/>
                                     <field name="body"/>
                                     <field name="state" widget="badge"/>
+                                    <button name="action_whatsapp_reply" type="object"
+                                            string="Open chat" icon="fa-whatsapp"/>
                                 </list>
                             </field>
                         </page>
@@ -507,6 +544,7 @@
                   decoration-danger="state == 'admission_denied'"
                   decoration-warning="state == 'pending_applicant'">
                 <field name="reference"/>
+                <field name="registration_number" optional="show"/>
                 <field name="name"/>
                 <field name="course"/>
                 <field name="study_mode"/>
@@ -516,7 +554,6 @@
                 <field name="application_date"/>
                 <field name="interview_date"/>
                 <field name="decision_date"/>
-                <field name="website_submission_id" optional="hide"/>
                 <field name="application_fee_paid" optional="show"/>
                 <field name="payment_id" optional="hide"/>
                 <field name="payment_amount" optional="hide"/>
@@ -596,7 +633,7 @@
         <field name="name">Admissions</field>
         <field name="res_model">school.admission</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{'search_default_initial_review': 1}</field>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No admission applications yet.

@@ -18,7 +18,7 @@
                        decoration-danger="state == 'failed'"
                        decoration-muted="state == 'pending'"/>
                 <field name="error_message" optional="hide"/>
-                <button name="action_whatsapp_reply" type="object" string="Reply"
+                <button name="action_whatsapp_reply" type="object" string="Open chat"
                         icon="fa-whatsapp" invisible="not phone"/>
             </list>
         </field>
@@ -30,7 +30,7 @@
         <field name="arch" type="xml">
             <form string="WhatsApp Message" create="0" edit="0">
                 <header>
-                    <button name="action_whatsapp_reply" string="Reply on WhatsApp" type="object"
+                    <button name="action_whatsapp_reply" string="Open conversation" type="object"
                             class="btn-primary" icon="fa-whatsapp" invisible="not phone"/>
                 </header>
                 <sheet>
@@ -108,6 +108,6 @@
               parent="menu_school_students"
               action="action_school_whatsapp_message_inbound"
               sequence="3"
-              groups="kaierp.group_school_registrar,kaierp.group_school_manager"/>
+              groups="kaierp.group_school_registrar,kaierp.group_school_manager,kaierp.group_school_secretary"/>
 
 </odoo>

@@ -14,8 +14,9 @@
                     <button name="action_set_graduated" string="Mark Graduated" type="object"
                             invisible="state != 'active'"
                             class="btn-secondary"/>
-                    <button name="action_print_transcript" string="Print Transcript" type="object"
-                            icon="fa-file-text-o" class="btn-secondary"/>
+                    <button name="action_print_transcript" string="Generate Transcript" type="object"
+                            icon="fa-file-text-o" class="btn-secondary"
+                            groups="kaierp.group_school_secretary,kaierp.group_school_registrar,kaierp.group_school_manager"/>
                     <button name="action_schedule_meeting"  string="Schedule Meeting"  type="object"
                             icon="fa-calendar" class="btn-secondary"/>
                     <field name="state" widget="statusbar"
@@ -53,19 +54,28 @@
                     <field name="photo" widget="image" class="oe_avatar"
                            options="{'preview_image': 'photo'}"/>
 
-                    <div class="oe_title">
-                        <label for="first_name"/>
-                        <h1>
-                            <field name="first_name" placeholder="First Name" class="oe_inline"/>
-                            <field name="middle_name" placeholder="Middle" class="oe_inline"/>
-                            <field name="last_name" placeholder="Last Name" class="oe_inline"/>
-                        </h1>
+                    <div class="oe_title o_admission_title o_student_title">
+                        <div class="o_admission_name_row d-flex flex-wrap align-items-end mb-2">
+                            <div class="o_admission_name_field">
+                                <label for="first_name" string="First Name"/>
+                                <field name="first_name" placeholder="First" nolabel="1"/>
+                            </div>
+                            <div class="o_admission_name_field o_admission_name_field--middle">
+                                <label for="middle_name" string="Middle Name"/>
+                                <field name="middle_name" placeholder="Middle" nolabel="1"/>
+                            </div>
+                            <div class="o_admission_name_field">
+                                <label for="last_name" string="Last Name"/>
+                                <field name="last_name" placeholder="Last" nolabel="1"/>
+                            </div>
+                        </div>
                         <field name="name" invisible="1"/>
-                        <div>
-                            <field name="student_id" readonly="student_id"/>
-                            <span class="mx-2">·</span>
-                            <field name="course"/>
-                            <span class="mx-2">·</span>
+                        <div class="d-flex flex-wrap align-items-center gap-2 text-muted">
+                            <label for="student_id" string="Student ID"/>
+                            <field name="student_id" readonly="student_id" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
+                            <field name="course" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
                             <field name="state" widget="badge"
                                    decoration-success="state == 'active'"
                                    decoration-warning="state == 'on_hold'"
@@ -78,6 +88,9 @@
                         <group string="Academic Choice">
                             <field name="course"/>
                             <field name="study_mode"/>
+                            <field name="year_of_study"/>
+                            <field name="ets_campus_location"/>
+                            <field name="family_quarters"/>
                             <field name="ata_number"/>
                             <field name="class_id" string="Academic Class"/>
                             <field name="roll_number"/>
@@ -87,6 +100,7 @@
                             <field name="academic_year"/>
                             <field name="admission_date"/>
                             <field name="graduation_date"/>
+                            <field name="partner_id" string="Billing Contact"/>
                             <field name="gpa" readonly="1"/>
                             <field name="attendance_percentage" readonly="1" widget="progressbar"/>
                             <field name="total_fees_due" readonly="1"/>
@@ -103,6 +117,9 @@
                                     <field name="last_name"/>
                                     <field name="whatsapp_number" widget="phone"/>
                                     <field name="date_of_birth" required="1"/>
+                                    <field name="birth_day" readonly="1"/>
+                                    <field name="birth_month" readonly="1"/>
+                                    <field name="birth_year" readonly="1"/>
                                     <field name="gender" required="1"/>
                                     <field name="nationality"/>
                                     <field name="age"/>
@@ -118,10 +135,12 @@
                         <page string="Contact" name="contact">
                             <group>
                                 <group string="Contact Information">
+                                    <field name="ets_email" widget="email"/>
                                     <field name="email" widget="email"/>
-                                    <field name="mobile_number" widget="phone"/>
                                     <field name="phone_number" widget="phone"/>
+                                    <field name="mobile_number" widget="phone"/>
                                     <field name="postal_address"/>
+                                    <field name="current_residence"/>
                                     <field name="city"/>
                                     <field name="state_name"/>
                                     <field name="zip_code"/>
@@ -142,6 +161,7 @@
                                     <field name="emergency_name"/>
                                     <field name="emergency_relationship"/>
                                     <field name="emergency_mobile" widget="phone"/>
+                                    <field name="emergency_email" widget="email"/>
                                 </group>
                             </group>
                         </page>
@@ -302,9 +322,6 @@
 
                         <page string="Fees" name="fees">
                             <div class="mb-2">
-                                <button name="action_assign_fees" type="object"
-                                        string="Assign Fees" class="btn-primary"
-                                        groups="kaierp.group_school_manager,kaierp.group_school_registrar"/>
                                 <button name="action_create_combined_invoice" type="object"
                                         string="Create Combined Invoice" class="btn-secondary"
                                         icon="fa-file-text-o"
@@ -329,6 +346,9 @@
                                     <button name="action_create_invoice" string="Invoice"
                                             type="object" icon="fa-file-text-o"
                                             invisible="invoice_id"/>
+                                    <button name="action_view_invoice" string="View Invoice"
+                                            type="object" icon="fa-external-link"
+                                            invisible="not invoice_id"/>
                                     <button name="action_mark_paid" string="Mark Paid"
                                             type="object" icon="fa-check"
                                             invisible="state == 'paid'"/>
@@ -354,6 +374,74 @@
 
                         <page string="Notes" name="notes">
                             <field name="notes" placeholder="Internal notes..."/>
+                        </page>
+
+                        <page string="Chaplain" name="chaplain">
+                            <div class="mb-3"
+                                 groups="kaierp.group_school_chaplain,kaierp.group_school_dean_students,kaierp.group_school_academic_dean,kaierp.group_school_manager">
+                                <button name="action_add_chaplain_note" type="object"
+                                        string="Add Note" class="btn-primary me-2"
+                                        icon="fa-plus"/>
+                                <button name="action_add_chaplain_document" type="object"
+                                        string="Add Document" class="btn-secondary"
+                                        icon="fa-upload"/>
+                            </div>
+                            <separator string="Notes"/>
+                            <p class="text-muted">Append-only log. Entries cannot be edited after saving.</p>
+                            <field name="chaplain_note_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="1">
+                                    <field name="note_date" string="Date"/>
+                                    <field name="author_id" string="Author"/>
+                                    <field name="note"/>
+                                    <field name="section" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <separator string="Documents"/>
+                            <field name="chaplain_document_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="1">
+                                    <field name="upload_date" string="Uploaded"/>
+                                    <field name="uploaded_by_id" string="By"/>
+                                    <field name="name" string="Title"/>
+                                    <field name="description"/>
+                                    <field name="document_file" filename="document_filename" string="File"/>
+                                    <field name="document_filename" column_invisible="1"/>
+                                    <field name="section" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Field Education" name="field_education">
+                            <div class="mb-3"
+                                 groups="kaierp.group_school_chaplain,kaierp.group_school_dean_students,kaierp.group_school_academic_dean,kaierp.group_school_manager">
+                                <button name="action_add_field_education_note" type="object"
+                                        string="Add Note" class="btn-primary me-2"
+                                        icon="fa-plus"/>
+                                <button name="action_add_field_education_document" type="object"
+                                        string="Add Document" class="btn-secondary"
+                                        icon="fa-upload"/>
+                            </div>
+                            <separator string="Notes"/>
+                            <p class="text-muted">Append-only log. Entries cannot be edited after saving.</p>
+                            <field name="field_education_note_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="1">
+                                    <field name="note_date" string="Date"/>
+                                    <field name="author_id" string="Author"/>
+                                    <field name="note"/>
+                                    <field name="section" column_invisible="1"/>
+                                </list>
+                            </field>
+                            <separator string="Documents"/>
+                            <field name="field_education_document_ids" nolabel="1" readonly="1">
+                                <list create="0" edit="0" delete="1">
+                                    <field name="upload_date" string="Uploaded"/>
+                                    <field name="uploaded_by_id" string="By"/>
+                                    <field name="name" string="Title"/>
+                                    <field name="description"/>
+                                    <field name="document_file" filename="document_filename" string="File"/>
+                                    <field name="document_filename" column_invisible="1"/>
+                                    <field name="section" column_invisible="1"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
@@ -405,7 +493,7 @@
                 <field name="gpa"/>
                 <field name="enrollment_count"/>
                 <templates>
-                    <t t-name="kanban-card">
+                    <t t-name="card">
                         <div class="oe_kanban_card oe_kanban_global_click">
                             <div class="o_kanban_image">
                                 <img t-att-src="kanban_image('school.student', 'photo', record.id.raw_value)"

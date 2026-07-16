@@ -7,6 +7,8 @@ import re
 import urllib.error
 import urllib.request
 
+from markupsafe import Markup, escape
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -70,15 +72,24 @@ class SchoolWhatsappMessage(models.Model):
 
     @api.model
     def normalize_phone(self, number, country=None):
-        """Return digits-only phone in international format (no + prefix for Meta API)."""
+        """Return digits-only phone in international format (no + prefix for Meta API).
+
+        Meta webhook ``from`` values already include the country code (e.g. US
+        ``15635528122``, India ``919398011837``). Do not prepend the default
+        country code when the number already looks international.
+        """
         if not number:
             return ''
-        digits = re.sub(r'\D', '', number)
+        digits = re.sub(r'\D', '', str(number))
         if not digits:
             return ''
 
-        default_code = re.sub(r'\D', '', self._config('kaierp.whatsapp_default_country_code', '91'))
-        if number.strip().startswith('+'):
+        default_code = re.sub(
+            r'\D', '', self._config('kaierp.whatsapp_default_country_code', '91'),
+        )
+
+        # E.164 (+...) or Meta-style numbers that already include country code.
+        if str(number).strip().startswith('+') or len(digits) >= 11:
             return digits
 
         if country and country.phone_code:
@@ -89,11 +100,77 @@ class SchoolWhatsappMessage(models.Model):
                 digits = digits.lstrip('0')
             return f'{cc}{digits}'
 
-        if default_code and not digits.startswith(default_code):
+        if default_code:
+            if digits.startswith(default_code):
+                return digits
             if digits.startswith('0'):
                 digits = digits.lstrip('0')
             return f'{default_code}{digits}'
         return digits
+
+    @api.model
+    def phone_variants(self, phone):
+        """Return alternate digit forms so we can match / display a full thread."""
+        normalized = self.normalize_phone(phone)
+        variants = {v for v in (phone, normalized, re.sub(r'\D', '', str(phone or ''))) if v}
+        # Also include a form with default country removed if wrongly prefixed earlier.
+        default_code = re.sub(
+            r'\D', '', self._config('kaierp.whatsapp_default_country_code', '91'),
+        )
+        for value in list(variants):
+            if default_code and value.startswith(default_code) and len(value) > len(default_code) + 8:
+                variants.add(value[len(default_code):])
+            if default_code and not value.startswith(default_code) and 8 <= len(value) <= 10:
+                variants.add(f'{default_code}{value}')
+        return list(variants)
+
+    @api.model
+    def search_thread(self, phone):
+        """All messages for a phone number (handles historical mis-normalized values)."""
+        variants = self.phone_variants(phone)
+        if not variants:
+            return self.browse()
+        return self.search(
+            [('phone', 'in', variants)],
+            order='create_date asc, id asc',
+        )
+
+    @api.model
+    def _render_conversation_html(self, messages):
+        """Build chat-bubble HTML for a message recordset (oldest → newest)."""
+        if not messages:
+            return Markup(
+                '<div class="o_wa_chat_empty text-muted">%s</div>'
+            ) % escape(_('No messages in this conversation yet.'))
+
+        parts = ['<div class="o_wa_chat">']
+        for msg in messages:
+            side = 'out' if msg.direction == 'outbound' else 'in'
+            label = _('You') if side == 'out' else _('Them')
+            when = fields.Datetime.context_timestamp(
+                msg, msg.create_date,
+            ).strftime('%d %b %Y %H:%M') if msg.create_date else ''
+            body = escape(msg.body or msg.template_name or '')
+            state = escape(msg.state or '')
+            err = ''
+            if msg.error_message:
+                err = (
+                    f'<div class="o_wa_chat_error">{escape(msg.error_message)}</div>'
+                )
+            parts.append(
+                f'<div class="o_wa_chat_row o_wa_chat_row--{side}">'
+                f'<div class="o_wa_chat_bubble">'
+                f'<div class="o_wa_chat_meta">'
+                f'<span class="o_wa_chat_who">{escape(label)}</span>'
+                f'<span class="o_wa_chat_time">{escape(when)}</span>'
+                f'<span class="o_wa_chat_state">{state}</span>'
+                f'</div>'
+                f'<div class="o_wa_chat_body">{body}</div>'
+                f'{err}'
+                f'</div></div>'
+            )
+        parts.append('</div>')
+        return Markup(''.join(parts))
 
     @api.model
     def _graph_request(self, payload):
@@ -215,15 +292,19 @@ class SchoolWhatsappMessage(models.Model):
     @api.model
     def send_text(self, phone, text, admission=None):
         """Send a plain text message (only works inside Meta's 24-hour session window)."""
-        if not self.is_enabled() or not text:
-            return False
+        if not self.is_enabled():
+            raise UserError(_(
+                'WhatsApp is not enabled. Turn it on under kAI-ERP → Settings → WhatsApp.',
+            ))
+        if not text:
+            raise UserError(_('Please enter a message to send.'))
 
         to_phone = self.normalize_phone(
             phone,
             country=admission.country_id if admission else None,
         )
         if not to_phone:
-            return False
+            raise UserError(_('Invalid WhatsApp phone number: %s') % (phone or _('(empty)')))
 
         log_model = self.sudo()
         log = log_model.create({
@@ -247,14 +328,15 @@ class SchoolWhatsappMessage(models.Model):
             return log
         except UserError as exc:
             log.write({'state': 'failed', 'error_message': str(exc)})
-            return log
+            raise
 
     @api.model
     def log_inbound(self, phone, body, meta_message_id, admission=None):
+        stored_phone = self.normalize_phone(phone) or phone
         return self.sudo().create({
             'admission_id': admission.id if admission else False,
             'direction': 'inbound',
-            'phone': phone,
+            'phone': stored_phone,
             'message_type': 'text',
             'body': body,
             'state': 'received',
@@ -262,7 +344,7 @@ class SchoolWhatsappMessage(models.Model):
         })
 
     @api.model
-    def update_delivery_status(self, meta_message_id, status):
+    def update_delivery_status(self, meta_message_id, status, errors=None):
         log = self.sudo().search([('meta_message_id', '=', meta_message_id)], limit=1)
         if not log:
             return
@@ -273,8 +355,26 @@ class SchoolWhatsappMessage(models.Model):
             'failed': 'failed',
         }
         mapped = state_map.get(status)
+        vals = {}
         if mapped:
-            log.state = mapped
+            vals['state'] = mapped
+        if errors:
+            parts = []
+            for err in errors:
+                title = err.get('title') or err.get('message') or ''
+                code = err.get('code')
+                detail = (err.get('error_data') or {}).get('details') or ''
+                bits = [str(x) for x in (code, title, detail) if x]
+                if bits:
+                    parts.append(' — '.join(bits))
+            if parts:
+                vals['error_message'] = '; '.join(parts)
+        if vals:
+            log.write(vals)
+            _logger.info(
+                'WhatsApp status update %s → %s (%s)',
+                meta_message_id, vals.get('state', log.state), vals.get('error_message', ''),
+            )
 
     @api.model
     def find_admission_by_phone(self, phone):
@@ -297,15 +397,17 @@ class SchoolWhatsappMessage(models.Model):
         self.ensure_one()
         if not self.phone:
             raise UserError(_('This message has no phone number.'))
+        # Prefer the Meta-normalized form; avoid double-prefixing.
+        reply_phone = self.normalize_phone(self.phone) or self.phone
         return {
             'type': 'ir.actions.act_window',
-            'name': _('WhatsApp Reply'),
+            'name': _('WhatsApp Conversation'),
             'res_model': 'school.whatsapp.reply.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {
                 'default_admission_id': self.admission_id.id if self.admission_id else False,
-                'default_phone': self.phone,
+                'default_phone': reply_phone,
             },
         }
 

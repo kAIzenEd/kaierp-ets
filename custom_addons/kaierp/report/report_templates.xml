@@ -1,128 +1,371 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <template id="report_student_transcript">
-    <t t-call="web.html_container">
-        <t t-foreach="docs" t-as="student">
-            <t t-call="web.external_layout">
-                <div class="page">
+    <t t-foreach="docs" t-as="student">
+        <t t-set="o" t-value="student"/>
+        <t t-set="tx" t-value="student.get_transcript_data()"/>
+        <t t-call="web.basic_layout">
+            <div class="page o_ets_transcript">
+                <style>
+                    .o_ets_transcript {
+                        font-family: "Times New Roman", Times, serif;
+                        font-size: 10.5px;
+                        color: #1a2a4a;
+                        line-height: 1.35;
+                    }
+                    .o_ets_transcript .hdr {
+                        display: table;
+                        width: 100%;
+                        margin-bottom: 6px;
+                    }
+                    .o_ets_transcript .hdr-logo {
+                        display: table-cell;
+                        width: 70px;
+                        vertical-align: middle;
+                    }
+                    .o_ets_transcript .hdr-logo img {
+                        max-width: 64px;
+                        max-height: 90px;
+                    }
+                    .o_ets_transcript .hdr-text {
+                        display: table-cell;
+                        vertical-align: middle;
+                        text-align: center;
+                        padding: 0 8px;
+                    }
+                    .o_ets_transcript .inst-name {
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 18px;
+                        font-weight: 700;
+                        color: #163a6b;
+                        letter-spacing: 0.04em;
+                        text-transform: uppercase;
+                        margin: 0;
+                    }
+                    .o_ets_transcript .inst-school-of {
+                        color: #a11d21;
+                        font-size: 11px;
+                        margin: 2px 0 0;
+                    }
+                    .o_ets_transcript .inst-parent {
+                        color: #8b1a1a;
+                        font-family: "Palatino Linotype", Palatino, "Times New Roman", serif;
+                        font-size: 15px;
+                        font-style: italic;
+                        margin: 0 0 4px;
+                    }
+                    .o_ets_transcript .inst-address {
+                        color: #163a6b;
+                        font-size: 10px;
+                        margin: 0;
+                    }
+                    .o_ets_transcript .title-banner {
+                        margin: 8px auto 2px;
+                        width: 42%;
+                        text-align: center;
+                        background: #d9d9d9;
+                        border: 1px solid #888;
+                        color: #fff;
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 14px;
+                        font-weight: 700;
+                        letter-spacing: 0.12em;
+                        padding: 3px 0;
+                        text-transform: uppercase;
+                    }
+                    .o_ets_transcript .title-email {
+                        text-align: center;
+                        color: #163a6b;
+                        font-size: 10px;
+                        margin: 0 0 10px;
+                    }
+                    .o_ets_transcript .meta {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 10px;
+                        color: #8b1a1a;
+                        font-size: 11px;
+                    }
+                    .o_ets_transcript .meta td {
+                        padding: 2px 6px 2px 0;
+                        vertical-align: top;
+                    }
+                    .o_ets_transcript .meta .lbl {
+                        font-weight: 700;
+                        white-space: nowrap;
+                        padding-right: 4px;
+                    }
+                    .o_ets_transcript .meta .sep {
+                        padding: 0 4px;
+                        color: #8b1a1a;
+                    }
+                    .o_ets_transcript .year-title {
+                        text-align: center;
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 12px;
+                        font-weight: 700;
+                        letter-spacing: 0.08em;
+                        margin: 12px 0 4px;
+                        color: #1a2a4a;
+                    }
+                    .o_ets_transcript .sem-title {
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: 0.06em;
+                        margin: 8px 0 2px;
+                        color: #1a2a4a;
+                    }
+                    .o_ets_transcript table.grades {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 2px;
+                    }
+                    .o_ets_transcript table.grades th,
+                    .o_ets_transcript table.grades td {
+                        border: 1px solid #444;
+                        padding: 2px 5px;
+                        font-size: 10px;
+                    }
+                    .o_ets_transcript table.grades th {
+                        background: #efefef;
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-weight: 700;
+                        text-align: center;
+                    }
+                    .o_ets_transcript table.grades .num { text-align: center; width: 12%; }
+                    .o_ets_transcript table.grades .sub { width: 48%; }
+                    .o_ets_transcript table.grades .gr { text-align: center; width: 10%; }
+                    .o_ets_transcript table.grades .cr { text-align: center; width: 10%; }
+                    .o_ets_transcript table.grades .gp { text-align: center; width: 12%; }
+                    .o_ets_transcript .total-row td {
+                        font-weight: 700;
+                        background: #f7f7f7;
+                    }
+                    .o_ets_transcript .summary-wrap {
+                        display: table;
+                        width: 100%;
+                        margin-top: 14px;
+                    }
+                    .o_ets_transcript .summary-left,
+                    .o_ets_transcript .summary-right {
+                        display: table-cell;
+                        vertical-align: top;
+                        width: 50%;
+                    }
+                    .o_ets_transcript .summary-table {
+                        width: 95%;
+                        border-collapse: collapse;
+                        color: #8b1a1a;
+                        font-size: 11px;
+                    }
+                    .o_ets_transcript .summary-table td {
+                        padding: 2px 4px;
+                        vertical-align: top;
+                    }
+                    .o_ets_transcript .sig {
+                        margin-top: 28px;
+                        text-align: center;
+                        font-size: 11px;
+                        color: #1a2a4a;
+                    }
+                    .o_ets_transcript .sig-name {
+                        font-weight: 700;
+                    }
+                    .o_ets_transcript .legend {
+                        margin-top: 16px;
+                        border-top: 1px solid #aaa;
+                        padding-top: 8px;
+                        font-size: 9.5px;
+                    }
+                    .o_ets_transcript .legend-title {
+                        font-family: Arial, Helvetica, sans-serif;
+                        font-weight: 700;
+                        letter-spacing: 0.06em;
+                        margin-bottom: 4px;
+                    }
+                    .o_ets_transcript .legend-grid {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .o_ets_transcript .legend-grid td {
+                        padding: 1px 6px 1px 0;
+                        vertical-align: top;
+                    }
+                    .o_ets_transcript .blank { color: #999; }
+                    .o_ets_transcript .muted { color: #666; font-style: italic; }
+                </style>
 
-                    <!-- ── Header ─────────────────────────────────── -->
-                    <div class="row mb-4">
-                        <div class="col-3">
-                            <t t-if="student.photo">
-                                <img t-att-src="image_data_uri(student.photo)"
-                                     style="width:90px;height:90px;object-fit:cover;border-radius:50%;border:2px solid #333"/>
-                            </t>
-                        </div>
-                        <div class="col-9">
-                            <h2 class="mb-0">Official Academic Transcript</h2>
-                            <hr/>
-                            <div class="row">
-                                <div class="col-6">
-                                    <strong>Student Name:</strong>
-                                    <t t-esc="student.name"/><br/>
-                                    <strong>Student ID:</strong>
-                                    <t t-esc="student.student_id"/><br/>
-                                    <strong>Gender:</strong>
-                                    <t t-esc="dict(student._fields['gender'].selection).get(student.gender, '')"/>
-                                </div>
-                                <div class="col-6">
-                                    <strong>Admission Date:</strong>
-                                    <t t-esc="student.admission_date"/><br/>
-                                    <strong>Status:</strong>
-                                    <t t-esc="dict(student._fields['state'].selection).get(student.state, '')"/><br/>
-                                    <strong>Cumulative GPA:</strong>
-                                    <t t-esc="'%.2f / 4.00' % student.gpa"/>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Institution header -->
+                <div class="hdr">
+                    <div class="hdr-logo">
+                        <t t-if="student.env.company.logo">
+                            <img t-att-src="image_data_uri(student.env.company.logo)" alt="ETS logo"/>
+                        </t>
                     </div>
+                    <div class="hdr-text">
+                        <div class="inst-name"><t t-esc="tx['institution_name']"/></div>
+                        <div class="inst-school-of">A School of</div>
+                        <div class="inst-parent"><t t-esc="tx['parent_org']"/></div>
+                        <div class="inst-address"><t t-esc="tx['institution_address']"/></div>
+                    </div>
+                </div>
+                <div class="title-banner">Transcript</div>
+                <div class="title-email"><t t-esc="tx['institution_email']"/></div>
 
-                    <!-- ── Grades by Year ──────────────────────────── -->
-                    <t t-set="years" t-value="student.grade_ids.filtered(lambda g: g.assessment_type == 'final_grade').mapped('academic_year')"/>
-                    <t t-set="unique_years" t-value="list(dict.fromkeys(years))"/>
+                <!-- Student identification (ETS two-row layout) -->
+                <table class="meta">
+                    <tr>
+                        <td class="lbl">Name</td><td class="sep">:</td>
+                        <td><t t-esc="tx['student_name'] or '—'"/></td>
+                        <td class="lbl">DOB</td><td class="sep">:</td>
+                        <td><t t-esc="tx['dob'] or '—'"/></td>
+                        <td class="lbl">Enrolled On</td><td class="sep">:</td>
+                        <td><t t-esc="tx['enrolled_on'] or '—'"/></td>
+                        <td class="lbl">Graduated On</td><td class="sep">:</td>
+                        <td><t t-esc="tx['graduated_on'] or '—'"/></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">ATA Reg.No</td><td class="sep">:</td>
+                        <td><t t-esc="tx['ata_reg_no'] or '—'"/></td>
+                        <td class="lbl">Reg.No</td><td class="sep">:</td>
+                        <td><t t-esc="tx['reg_no'] or '—'"/></td>
+                        <td class="lbl">Degree</td><td class="sep">:</td>
+                        <td colspan="4"><t t-esc="tx['degree'] or '—'"/></td>
+                    </tr>
+                </table>
 
-                    <t t-foreach="unique_years" t-as="year">
-                        <h4 class="mt-4">Academic Year: <t t-esc="year"/></h4>
-                        <table class="table table-sm table-bordered">
-                            <thead class="table-dark">
+                <t t-if="not tx['has_grades']">
+                    <p class="muted">No final course grades on record yet.</p>
+                </t>
+
+                <t t-foreach="tx['years']" t-as="year">
+                    <div class="year-title"><t t-esc="year['label']"/></div>
+                    <t t-foreach="year['semesters']" t-as="sem">
+                        <div class="sem-title"><t t-esc="sem['semester_label']"/></div>
+                        <table class="grades">
+                            <thead>
                                 <tr>
-                                    <th>Course Code</th>
-                                    <th>Course Name</th>
-                                    <!-- <th>Subject</th> -->
-                                    <th>Credits</th>
-                                    <th>Score</th>
-                                    <th>Grade</th>
-                                    <th>GPA Pts</th>
+                                    <th class="num">No</th>
+                                    <th class="sub">Subjects</th>
+                                    <th class="gr">Gr</th>
+                                    <th class="cr">Cr</th>
+                                    <th class="gp">Gp</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="year_grades" t-value="student.grade_ids.filtered(lambda g: g.assessment_type == 'final_grade' and g.academic_year == year)"/>
-                                <t t-foreach="year_grades" t-as="grade">
+                                <t t-foreach="sem['rows']" t-as="row">
                                     <tr>
-                                        <td><t t-esc="grade.class_id.code"/></td>
-                                        <td><t t-esc="grade.class_id.name"/></td>
-                                        <!-- <td><t t-esc="grade.class_id.subject"/></td> -->
-                                        <td><t t-esc="grade.class_id.credit_hours"/></td>
-                                        <td><t t-esc="'%.1f / %.1f' % (grade.score, grade.max_score)"/></td>
-                                        <td class="text-center fw-bold">
-                                            <t t-esc="grade.letter_grade"/>
-                                        </td>
-                                        <td><t t-esc="'%.2f' % grade.gpa_points"/></td>
+                                        <td class="num"><t t-esc="row['code']"/></td>
+                                        <td class="sub"><t t-esc="row['title']"/></td>
+                                        <td class="gr"><t t-esc="row['letter']"/></td>
+                                        <td class="cr"><t t-esc="row['credits']"/></td>
+                                        <td class="gp"><t t-esc="'%.2f' % row['quality_points']"/></td>
                                     </tr>
                                 </t>
-                                <!-- Year summary row -->
-                                <t t-set="yr_credits" t-value="sum(year_grades.mapped('class_id.credit_hours'))"/>
-                                <t t-set="yr_wp"      t-value="sum(g.gpa_points * g.class_id.credit_hours for g in year_grades)"/>
-                                <t t-set="yr_gpa"     t-value="yr_wp / yr_credits if yr_credits else 0"/>
-                                <tr class="table-light fw-bold">
-                                    <td colspan="3">Year Total / GPA</td>
-                                    <td><t t-esc="yr_credits"/></td>
-                                    <td>—</td>
-                                    <td>—</td>
-                                    <td><t t-esc="'%.2f' % yr_gpa"/></td>
-                                </tr>
                             </tbody>
                         </table>
                     </t>
+                    <table class="grades" style="margin-top:2px;">
+                        <tr class="total-row">
+                            <td style="width:70%;">TOTAL</td>
+                            <td class="cr" style="width:10%;"><t t-esc="year['credits']"/></td>
+                            <td class="gp" style="width:12%;"><t t-esc="'%.2f' % year['quality_points']"/></td>
+                        </tr>
+                    </table>
+                </t>
 
-                    <!-- ── Cumulative Summary ──────────────────────── -->
-                    <div class="row mt-4">
-                        <div class="col-6 offset-6">
-                            <table class="table table-sm table-bordered">
-                                <tr class="table-dark">
-                                    <th colspan="2" class="text-center">Cumulative Summary</th>
-                                </tr>
-                                <tr>
-                                    <td>Total Credit Hours</td>
-                                    <td class="text-end">
-                                        <t t-esc="sum(student.grade_ids.filtered(lambda g: g.assessment_type=='final_grade').mapped('class_id.credit_hours'))"/>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Cumulative GPA</td>
-                                    <td class="text-end fw-bold">
-                                        <t t-esc="'%.2f / 4.00' % student.gpa"/>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Status</td>
-                                    <td class="text-end">
-                                        <t t-esc="dict(student._fields['state'].selection).get(student.state, '')"/>
-                                    </td>
-                                </tr>
-                            </table>
+                <!-- Cumulative summary + signature -->
+                <div class="summary-wrap">
+                    <div class="summary-left">
+                        <table class="summary-table">
+                            <tr>
+                                <td class="lbl">Total Grade Points</td>
+                                <td class="sep">:</td>
+                                <td>
+                                    <t t-if="tx['has_grades']"><t t-esc="'%.2f' % tx['total_quality_points']"/></t>
+                                    <t t-else=""><span class="blank">—</span></t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="lbl">Total Number of Credit Hours</td>
+                                <td class="sep">:</td>
+                                <td>
+                                    <t t-if="tx['has_grades']"><t t-esc="'%.2f' % tx['total_credits']"/></t>
+                                    <t t-else=""><span class="blank">—</span></t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="lbl">Grade Point Average</td>
+                                <td class="sep">:</td>
+                                <td>
+                                    <t t-if="tx['gpa_display']"><t t-esc="tx['gpa_display']"/></t>
+                                    <t t-else=""><span class="blank">—</span></t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="lbl">Average Course Grade</td>
+                                <td class="sep">:</td>
+                                <td>
+                                    <t t-if="tx['average_course_grade']"><t t-esc="tx['average_course_grade']"/></t>
+                                    <t t-else=""><span class="blank">—</span></t>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="lbl">Majored In</td>
+                                <td class="sep">:</td>
+                                <td>
+                                    <t t-if="tx['major']"><t t-esc="tx['major']"/></t>
+                                    <t t-else=""><span class="blank">—</span></t>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="summary-right">
+                        <div class="sig">
+                            <t t-if="tx['registrar_name']">
+                                <div class="sig-name"><t t-esc="tx['registrar_name']"/></div>
+                            </t>
+                            <t t-else="">
+                                <div style="height:28px;"></div>
+                            </t>
+                            <div>( Registrar, ETS )</div>
                         </div>
                     </div>
-
-                    <!-- ── Footer note ────────────────────────────── -->
-                    <div class="mt-5 text-muted small text-center">
-                        <em>This is an official academic transcript generated by the School Management System.
-                        Issued on <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%B %d, %Y %H:%M')"/></em>
-                    </div>
-
                 </div>
-            </t>
+
+                <!-- Grading system legend -->
+                <div class="legend">
+                    <div class="legend-title">GRADING SYSTEM</div>
+                    <table class="legend-grid">
+                        <tr>
+                            <td>A+ = 100,99,98</td>
+                            <td>B+ = 89,88,87,86</td>
+                            <td>C+ = 79,78,77</td>
+                        </tr>
+                        <tr>
+                            <td>A = 97,96,95,94</td>
+                            <td>B = 85,84,83</td>
+                            <td>C = 76,75,74</td>
+                        </tr>
+                        <tr>
+                            <td>A- = 93,92,91,90</td>
+                            <td>B- = 82,81,80</td>
+                            <td>C- = 73,72,71,70</td>
+                        </tr>
+                        <tr>
+                            <td>F = 0–69</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </table>
+                    <p style="margin:6px 0 0;">
+                        Abbreviation Used :
+                        Gr = Grade &#160; Cr = Credit Hour &#160; GP = Grade point &#160;
+                        IC = Incomplete Course &#160; NA = Not Applicable &#160;
+                        ATA = Asia Theological Association
+                    </p>
+                </div>
+            </div>
         </t>
     </t>
 </template>

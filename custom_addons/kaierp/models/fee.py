@@ -79,14 +79,18 @@ class SchoolFee(models.Model):
             if vals.get('product_id') and not vals.get('unit_price'):
                 product = self.env['product.product'].browse(vals['product_id'])
                 vals['unit_price'] = product.list_price
-        return super().create(vals_list)
+        fees = super().create(vals_list)
+        fees.mapped('student_id')._ensure_partner()
+        return fees
 
     def _get_invoice_partner(self):
         self.ensure_one()
+        self.student_id._ensure_partner()
         partner = self.student_id.partner_id
         if not partner:
             raise UserError(_(
-                'Student %s has no billing contact. Link or create a contact first.',
+                'Student %s has no billing contact. Add an email address on the '
+                'student profile, or link a contact under Billing Contact.',
             ) % self.student_id.name)
         return partner
 
@@ -99,8 +103,8 @@ class SchoolFee(models.Model):
             'price_unit': self.unit_price,
         }
 
-    def action_create_invoice(self):
-        """Create one customer invoice for the selected fee lines."""
+    def _create_invoice_record(self):
+        """Create and return one customer invoice for the selected fee lines."""
         fees = self.filtered(lambda f: not f.invoice_id)
         if not fees:
             raise UserError(_('All selected fees are already linked to an invoice.'))
@@ -123,6 +127,15 @@ class SchoolFee(models.Model):
             'invoice_id': invoice.id,
             'state': 'invoiced',
         })
+        return invoice
+
+    def _register_invoice_payment(self, invoice):
+        """Post the invoice and register a customer payment in Accounting."""
+        self.env['school.admission']._post_invoice_and_register_payment(invoice)
+
+    def action_create_invoice(self):
+        """Create one customer invoice for the selected fee lines."""
+        invoice = self._create_invoice_record()
         return {
             'type': 'ir.actions.act_window',
             'name': _('Customer Invoice'),
@@ -144,11 +157,17 @@ class SchoolFee(models.Model):
         }
 
     def action_mark_paid(self):
-        self.write({
-            'state': 'paid',
-            'amount_paid': self.amount_due,
-            'payment_date': fields.Date.today(),
-        })
+        """Mark fee paid and create/post invoice + payment in Accounting."""
+        for fee in self:
+            fee.student_id._ensure_partner()
+            if not fee.invoice_id:
+                fee._create_invoice_record()
+            fee._register_invoice_payment(fee.invoice_id)
+            fee.write({
+                'state': 'paid',
+                'amount_paid': fee.amount_due,
+                'payment_date': fields.Date.today(),
+            })
 
     def action_waive(self):
         self.write({'state': 'waived'})
@@ -157,6 +176,7 @@ class SchoolFee(models.Model):
     def create_from_product(self, student, product, quantity=None, unit_price=None,
                               admission=None, due_date=None, academic_year=None):
         """Helper used by wizards and admission payment hooks."""
+        student._ensure_partner()
         tmpl = product.product_tmpl_id
         return self.create({
             'student_id': student.id,

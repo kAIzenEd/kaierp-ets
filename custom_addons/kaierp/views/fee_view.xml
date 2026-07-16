@@ -34,13 +34,15 @@
                 <header>
                     <button name="action_create_invoice" string="Create Invoice" type="object"
                             invisible="invoice_id" class="btn-primary"
-                            groups="kaierp.group_school_manager"/>
+                            groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
                     <button name="action_view_invoice" string="View Invoice" type="object"
                             invisible="not invoice_id" class="btn-secondary"/>
                     <button name="action_mark_paid" string="Mark as Paid" type="object"
-                            invisible="state == 'paid'" class="btn-success"/>
+                            invisible="state == 'paid'" class="btn-success"
+                            groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
                     <button name="action_waive" string="Waive Fee" type="object"
-                            invisible="state in ('paid','waived')" class="btn-secondary"/>
+                            invisible="state in ('paid','waived')" class="btn-secondary"
+                            groups="kaierp.group_school_finance,kaierp.group_school_secretary,kaierp.group_school_manager"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="pending,invoiced,paid"/>
                 </header>
@@ -73,9 +75,19 @@
     </record>
 
     <record id="action_school_fee" model="ir.actions.act_window">
-        <field name="name">Student Fees</field>
+        <field name="name">Pending Fees</field>
         <field name="res_model">school.fee</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'not in', ['paid', 'waived'])]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No outstanding fee assignments.
+            </p>
+            <p>
+                Fees awaiting invoice or payment appear here. Paid and waived
+                fees are in <strong>Invoices</strong> and <strong>Payments</strong>.
+            </p>
+        </field>
     </record>
 
     <record id="action_school_fee_create_combined_invoice" model="ir.actions.server">
