@@ -224,6 +224,9 @@
                                 </group>
                             </group>
                             <group>
+                                <group string="XI / Higher Secondary">
+                                    <field name="class_xi_month_year"/>
+                                </group>
                                 <group string="XII / Higher Secondary">
                                     <field name="class_xii_month_year"/>
                                 </group>
@@ -239,6 +242,7 @@
                                     <field name="ug_theo_bth_grad_month_year"/>
                                     <field name="ug_theo_bth_duration"/>
                                     <field name="ug_theo_bth_grade"/>
+                                    <field name="ug_non_theo_program"/>
                                     <field name="ug_non_theo_college"/>
                                     <field name="ug_non_theo_university"/>
                                     <field name="ug_non_theo_enroll_year"/>
@@ -255,12 +259,20 @@
                                     <field name="pg_theo_mdiv_grad_month_year"/>
                                     <field name="pg_theo_mdiv_duration"/>
                                     <field name="pg_theo_mdiv_grade"/>
+                                    <field name="pg_theo_doctorate_seminary"/>
+                                    <field name="pg_theo_doctorate_program"/>
+                                    <field name="pg_theo_doctorate_enroll_year"/>
+                                    <field name="pg_theo_doctorate_grad_month_year"/>
+                                    <field name="pg_theo_doctorate_duration"/>
+                                    <field name="pg_theo_doctorate_grade"/>
+                                    <field name="pg_non_theo_masters_program"/>
                                     <field name="pg_non_theo_masters_college"/>
                                     <field name="pg_non_theo_masters_university"/>
                                     <field name="pg_non_theo_masters_enroll_year"/>
                                     <field name="pg_non_theo_masters_grad_month_year"/>
                                     <field name="pg_non_theo_masters_duration"/>
                                     <field name="pg_non_theo_masters_grade"/>
+                                    <field name="pg_non_theo_doctorate_program"/>
                                     <field name="pg_non_theo_doctorate_college"/>
                                     <field name="pg_non_theo_doctorate_university"/>
                                     <field name="pg_non_theo_doctorate_enroll_year"/>
