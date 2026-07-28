@@ -16,6 +16,7 @@ class SchoolAdmissionWebsite(models.Model):
         'course': 'course',
         'study_mode': 'study_mode',
         'title': 'title',
+        'full_name': 'full_name',
         'first_name': 'first_name',
         'middle_name': 'middle_name',
         'last_name': 'last_name',
@@ -66,9 +67,19 @@ class SchoolAdmissionWebsite(models.Model):
         'personal_reference_1': 'personal_reference_1',
         'personal_reference_2': 'personal_reference_2',
         'personal_reference_3': 'personal_reference_3',
+        'personal_reference_4': 'personal_reference_4',
+        'personal_reference_1_email': 'personal_reference_1_email',
+        'personal_reference_2_email': 'personal_reference_2_email',
+        'personal_reference_3_email': 'personal_reference_3_email',
+        'personal_reference_4_email': 'personal_reference_4_email',
         'reference1': 'personal_reference_1',
         'reference2': 'personal_reference_2',
         'reference3': 'personal_reference_3',
+        'reference4': 'personal_reference_4',
+        'reference1_email': 'personal_reference_1_email',
+        'reference2_email': 'personal_reference_2_email',
+        'reference3_email': 'personal_reference_3_email',
+        'reference4_email': 'personal_reference_4_email',
         'class_x_month_year': 'class_x_month_year',
         'class_x_year': 'class_x_year',
         'diploma_after_class_x': 'diploma_after_class_x',
@@ -189,6 +200,7 @@ class SchoolAdmissionWebsite(models.Model):
         'self_declaration_agreed': 'self_declaration_agreed',
         # Railway / ACA ERPNext gateway (camelCase)
         'correlationId': 'website_submission_id',
+        'fullName': 'full_name',
         'firstName': 'first_name',
         'lastName': 'last_name',
         'middleName': 'middle_name',
@@ -322,6 +334,17 @@ class SchoolAdmissionWebsite(models.Model):
         'personalReference1': 'personal_reference_1',
         'personalReference2': 'personal_reference_2',
         'personalReference3': 'personal_reference_3',
+        'personalReference4': 'personal_reference_4',
+        'employerReference': 'personal_reference_4',
+        'personalReference1Email': 'personal_reference_1_email',
+        'personalReference2Email': 'personal_reference_2_email',
+        'personalReference3Email': 'personal_reference_3_email',
+        'personalReference4Email': 'personal_reference_4_email',
+        'employerReferenceEmail': 'personal_reference_4_email',
+        'reference1Email': 'personal_reference_1_email',
+        'reference2Email': 'personal_reference_2_email',
+        'reference3Email': 'personal_reference_3_email',
+        'reference4Email': 'personal_reference_4_email',
         'spouseName': 'spouse_name',
         'spouseDob': 'spouse_dob',
         'spouseNationality': 'spouse_nationality',
@@ -483,11 +506,18 @@ class SchoolAdmissionWebsite(models.Model):
             vals['notes'] = extra_notes
 
         missing = [
-            field for field in ('course', 'study_mode', 'first_name',
-                                'last_name', 'whatsapp_number', 'date_of_birth', 'gender',
-                                'email', 'postal_address', 'city', 'country_id')
+            field for field in ('course', 'study_mode', 'whatsapp_number',
+                                'date_of_birth', 'gender', 'email', 'postal_address',
+                                'city', 'country_id')
             if not vals.get(field)
         ]
+        # full_name is preferred; first/last still accepted (website may send both)
+        if not vals.get('full_name') and not (vals.get('first_name') and vals.get('last_name')):
+            missing.append('full_name (or first_name + last_name)')
+        if vals.get('full_name') and not vals.get('first_name'):
+            parts = str(vals['full_name']).split(None, 1)
+            vals['first_name'] = parts[0]
+            vals['last_name'] = parts[1] if len(parts) > 1 else parts[0]
         if missing:
             raise ValidationError(
                 _('Missing required fields: %s') % ', '.join(missing),
@@ -544,7 +574,139 @@ class SchoolAdmissionWebsite(models.Model):
             if char_field in data and data[char_field] is not None:
                 data[char_field] = str(data[char_field])
 
+        self._normalize_full_name_fields(data)
+        self._normalize_references_from_list(data)
+
+        # Drop removed website keys so they are not treated as unexpected later
+        for obsolete in (
+            'applicantType', 'indianState', 'academicCountry',
+            'appliedTerm', 'term', 'applicant_type', 'indian_state',
+            'academic_country', 'applied_term', 'middleName', 'middle_name',
+        ):
+            data.pop(obsolete, None)
+
         return data
+
+    @api.model
+    def _normalize_full_name_fields(self, data):
+        """Prefer fullName; derive first/last when the site only sends fullName."""
+        full = (data.get('fullName') or data.get('full_name') or '').strip()
+        if full:
+            data['fullName'] = full
+            data['full_name'] = full
+            if not (data.get('firstName') or data.get('first_name')):
+                parts = full.split(None, 1)
+                data['firstName'] = parts[0]
+                data['lastName'] = parts[1] if len(parts) > 1 else parts[0]
+            return
+
+        # Build full_name from parts when website still sends split names only
+        first = (data.get('firstName') or data.get('first_name') or '').strip()
+        middle = (data.get('middleName') or data.get('middle_name') or '').strip()
+        last = (data.get('lastName') or data.get('last_name') or '').strip()
+        if first or last:
+            assembled = ' '.join(p for p in (first, middle, last) if p)
+            if assembled:
+                data['fullName'] = assembled
+                data['full_name'] = assembled
+
+    @api.model
+    def _normalize_references_from_list(self, data):
+        """Flatten references[] into personal_reference_N (+ email) fields.
+
+        Supports flat keys already present, and child rows with
+        referenceLabel / referenceName / referencePhone / referenceEmail.
+        """
+        slots = (
+            {
+                'index': 0,
+                'text_keys': (
+                    'personalReference1', 'reference1', 'personal_reference_1',
+                ),
+                'email_keys': (
+                    'personalReference1Email', 'reference1Email',
+                    'personal_reference_1_email',
+                ),
+                'labels': ('1', 'elder', 'pastor', 'personal 1', 'reference 1'),
+            },
+            {
+                'index': 1,
+                'text_keys': (
+                    'personalReference2', 'reference2', 'personal_reference_2',
+                ),
+                'email_keys': (
+                    'personalReference2Email', 'reference2Email',
+                    'personal_reference_2_email',
+                ),
+                'labels': ('2', 'mentor', 'personal 2', 'reference 2'),
+            },
+            {
+                'index': 2,
+                'text_keys': (
+                    'personalReference3', 'reference3', 'personal_reference_3',
+                ),
+                'email_keys': (
+                    'personalReference3Email', 'reference3Email',
+                    'personal_reference_3_email',
+                ),
+                'labels': (
+                    '3', 'professor', 'seminary', 'personal 3', 'reference 3',
+                ),
+            },
+            {
+                'index': 3,
+                'text_keys': (
+                    'personalReference4', 'reference4', 'employerReference',
+                    'personal_reference_4',
+                ),
+                'email_keys': (
+                    'personalReference4Email', 'reference4Email',
+                    'employerReferenceEmail', 'personal_reference_4_email',
+                ),
+                'labels': ('4', 'employer', 'personal 4', 'reference 4'),
+            },
+        )
+
+        references = data.get('references')
+        if not isinstance(references, list):
+            references = []
+
+        def _ref_for_slot(slot):
+            for ref in references:
+                if not isinstance(ref, dict):
+                    continue
+                label = str(ref.get('referenceLabel') or '').strip().lower()
+                if label and any(token in label for token in slot['labels']):
+                    return ref
+            if slot['index'] < len(references) and isinstance(
+                references[slot['index']], dict,
+            ):
+                return references[slot['index']]
+            return None
+
+        for slot in slots:
+            ref = _ref_for_slot(slot)
+            if not ref:
+                continue
+
+            if not any(data.get(k) for k in slot['email_keys']):
+                email = (
+                    ref.get('referenceEmail')
+                    or ref.get('email')
+                    or ref.get('personalReferenceEmail')
+                )
+                if email:
+                    data[slot['email_keys'][0]] = str(email).strip()
+
+            if not any(data.get(k) for k in slot['text_keys']):
+                parts = [
+                    str(ref.get('referenceName') or '').strip(),
+                    str(ref.get('referencePhone') or '').strip(),
+                    str(ref.get('referenceLabel') or '').strip(),
+                ]
+                blob = ', '.join(p for p in parts if p)
+                if blob:
+                    data[slot['text_keys'][0]] = blob
 
     @api.model
     def _extract_gateway_extras(self, payload):
@@ -566,7 +728,11 @@ class SchoolAdmissionWebsite(models.Model):
             lines = []
             for ref in references:
                 if isinstance(ref, dict):
-                    lines.append(ref.get('referenceName') or str(ref))
+                    label = ref.get('referenceName') or str(ref)
+                    email = ref.get('referenceEmail') or ref.get('email')
+                    if email:
+                        label = '%s <%s>' % (label, email)
+                    lines.append(label)
                 else:
                     lines.append(str(ref))
             notes_parts.append(

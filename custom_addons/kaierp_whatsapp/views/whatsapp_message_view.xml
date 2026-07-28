@@ -9,6 +9,7 @@
                 <field name="create_date" string="Date"/>
                 <field name="direction"/>
                 <field name="admission_id"/>
+                <field name="student_id"/>
                 <field name="phone"/>
                 <field name="message_type"/>
                 <field name="template_name"/>
@@ -40,6 +41,7 @@
                             <field name="direction"/>
                             <field name="state"/>
                             <field name="admission_id"/>
+                            <field name="student_id"/>
                         </group>
                         <group>
                             <field name="phone"/>
@@ -80,34 +82,41 @@
                 <field name="phone"/>
                 <field name="body"/>
                 <field name="admission_id"/>
+                <field name="student_id"/>
                 <field name="template_name"/>
                 <filter name="inbound" string="Replies received" domain="[('direction', '=', 'inbound')]"/>
-                <filter name="unlinked" string="No linked admission"
-                        domain="[('direction', '=', 'inbound'), ('admission_id', '=', False)]"/>
+                <filter name="unlinked" string="No linked record"
+                        domain="[('direction', '=', 'inbound'), ('admission_id', '=', False), ('student_id', '=', False)]"/>
                 <filter name="outbound" string="Sent by us" domain="[('direction', '=', 'outbound')]"/>
                 <separator/>
                 <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
                 <group>
                     <filter name="group_direction" string="Direction" context="{'group_by': 'direction'}"/>
                     <filter name="group_admission" string="Admission" context="{'group_by': 'admission_id'}"/>
+                    <filter name="group_student" string="Student" context="{'group_by': 'student_id'}"/>
                     <filter name="group_phone" string="Phone" context="{'group_by': 'phone'}"/>
                 </group>
             </search>
         </field>
     </record>
 
-    <menuitem id="menu_school_whatsapp_messages"
-              name="WhatsApp Log"
-              parent="menu_school_comms"
-              action="action_school_whatsapp_message"
-              sequence="5"
-              groups="kaierp.group_school_manager"/>
+    <menuitem id="menu_kaierp_whatsapp_root"
+              name="WhatsApp"
+              sequence="55"
+              groups="base.group_user"/>
 
     <menuitem id="menu_school_whatsapp_inbox"
-              name="WhatsApp Inbox"
-              parent="menu_school_students"
+              name="Inbox"
+              parent="menu_kaierp_whatsapp_root"
               action="action_school_whatsapp_message_inbound"
-              sequence="3"
-              groups="kaierp.group_school_registrar,kaierp.group_school_manager,kaierp.group_school_secretary"/>
+              sequence="1"
+              groups="base.group_user"/>
+
+    <menuitem id="menu_school_whatsapp_messages"
+              name="Message Log"
+              parent="menu_kaierp_whatsapp_root"
+              action="action_school_whatsapp_message"
+              sequence="2"
+              groups="base.group_user"/>
 
 </odoo>

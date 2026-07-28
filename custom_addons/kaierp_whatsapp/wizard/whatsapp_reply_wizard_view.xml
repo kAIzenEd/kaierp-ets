@@ -8,6 +8,7 @@
                 <group>
                     <group>
                         <field name="admission_id" invisible="not admission_id"/>
+                        <field name="student_id" invisible="not student_id"/>
                         <field name="applicant_name"/>
                     </group>
                     <group>

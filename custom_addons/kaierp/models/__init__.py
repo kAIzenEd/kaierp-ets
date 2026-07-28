@@ -7,6 +7,7 @@ from . import enrollment
 from . import admission
 from . import admission_document_review
 from . import admission_website
+from . import admission_reference_mail
 from . import grade
 from . import attendance
 from . import teacher
@@ -18,4 +19,3 @@ from . import razorpay_payment
 from . import res_config_settings
 from . import res_partner
 from . import res_users
-from . import whatsapp_message

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default WhatsApp config parameters are ensured in post_init_hook so
+         existing databases keep their values when splitting out of kaierp. -->
+</odoo>

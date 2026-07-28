@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Own Settings app tab — does not depend on ETS Razorpay / kaierp settings view -->
+    <record id="res_config_settings_view_form_kaierp_whatsapp" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.kaierp.whatsapp</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="WhatsApp" string="WhatsApp" name="kaierp_whatsapp">
+                    <block title="Meta Cloud API" name="kaierp_whatsapp_api">
+                        <setting string="Enable WhatsApp notifications"
+                                 help="Send admission status updates to applicants via WhatsApp templates.">
+                            <field name="whatsapp_enabled"/>
+                        </setting>
+                        <setting string="Phone Number ID"
+                                 help="From Meta → WhatsApp → API Setup. Must be the LIVE number applicants message (not the Meta test +1 555… number). After editing, click Save.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_phone_number_id" class="col-lg-3 o_light_label">Phone Number ID</label>
+                                    <field name="whatsapp_phone_number_id"
+                                           placeholder="e.g. 1116619648208744"
+                                           class="oe_inline"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_phone_display" class="col-lg-3 o_light_label">Resolves to</label>
+                                    <field name="whatsapp_phone_display" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="API credentials"
+                                 help="From Meta Developer Console → WhatsApp → API Setup. Click Save after changes.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_access_token" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_access_token" password="True" placeholder="Permanent access token"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_app_secret" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_app_secret" password="True" placeholder="App Secret (for webhook signature)"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_api_version" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_api_version"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_default_country_code" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_default_country_code"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Webhook" name="kaierp_whatsapp_webhook">
+                        <setting string="Incoming messages"
+                                 help="Paste the callback URL into Meta. Use the same verify token in Odoo and Meta.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_webhook_url" class="col-lg-3 o_light_label">Callback URL</label>
+                                    <field name="whatsapp_webhook_url" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_webhook_verify_token" class="col-lg-3 o_light_label">Verify Token</label>
+                                    <field name="whatsapp_webhook_verify_token"
+                                           placeholder="e.g. my-secret-verify-token-123"/>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <p>Endpoint: <code>/kaierp/whatsapp/webhook</code>. Subscribe to
+                                    <code>messages</code> and <code>message_template_status_update</code>.
+                                    Requires public HTTPS.</p>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                    <block title="Admission notifications" name="kaierp_whatsapp_rules">
+                        <setting string="Templates &amp; rules"
+                                 help="Map admission create/state changes to Meta templates.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_template_language" class="col-lg-3 o_light_label"/>
+                                    <field name="whatsapp_template_language"/>
+                                </div>
+                                <div class="row mt8">
+                                    <div class="col-lg-12">
+                                        <button name="action_whatsapp_open_event_rules"
+                                                type="object"
+                                                string="Configure Notification Rules"
+                                                class="btn-secondary"
+                                                icon="fa-list"/>
+                                        <span class="text-muted ms-2">
+                                            <field name="whatsapp_event_rule_count" class="oe_inline"/> rule(s)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Test connection">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="whatsapp_test_phone" class="col-lg-3 o_light_label">Test number</label>
+                                    <field name="whatsapp_test_phone" placeholder="+91XXXXXXXXXX"/>
+                                </div>
+                                <div class="row">
+                                    <label for="whatsapp_template_test" class="col-lg-3 o_light_label">Test template</label>
+                                    <field name="whatsapp_template_test"/>
+                                </div>
+                                <div class="row mt8">
+                                    <button name="action_whatsapp_test_connection"
+                                            type="object"
+                                            string="Send Test Message"
+                                            class="btn-primary"
+                                            icon="fa-whatsapp"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_kaierp_whatsapp_configuration" model="ir.actions.act_window">
+        <field name="name">WhatsApp Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'kaierp_whatsapp'}</field>
+    </record>
+
+    <menuitem id="menu_kaierp_whatsapp_settings"
+              name="Settings"
+              parent="menu_kaierp_whatsapp_root"
+              action="action_kaierp_whatsapp_configuration"
+              sequence="90"
+              groups="base.group_system"/>
+
+</odoo>

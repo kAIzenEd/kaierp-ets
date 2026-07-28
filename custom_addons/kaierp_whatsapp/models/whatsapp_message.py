@@ -22,6 +22,7 @@ class SchoolWhatsappMessage(models.Model):
     _rec_name = 'display_name'
 
     admission_id = fields.Many2one('school.admission', string='Admission', index=True, ondelete='set null')
+    student_id = fields.Many2one('school.student', string='Student', index=True, ondelete='set null')
     direction = fields.Selection([
         ('outbound', 'Outbound'),
         ('inbound', 'Inbound'),
@@ -223,7 +224,7 @@ class SchoolWhatsappMessage(models.Model):
     # ── Send API ──────────────────────────────────────────────────
 
     @api.model
-    def send_template(self, phone, template_name, body_parameters=None, admission=None):
+    def send_template(self, phone, template_name, body_parameters=None, admission=None, student=None):
         """Send a Meta-approved template message and log the result."""
         if not self.is_enabled():
             return False
@@ -231,10 +232,12 @@ class SchoolWhatsappMessage(models.Model):
             _logger.info('WhatsApp template not configured; skipping send to %s', phone)
             return False
 
-        to_phone = self.normalize_phone(
-            phone,
-            country=admission.country_id if admission else None,
-        )
+        country = None
+        if admission:
+            country = getattr(admission, 'country_id', None)
+        elif student:
+            country = getattr(student, 'country_id', None)
+        to_phone = self.normalize_phone(phone, country=country)
         if not to_phone:
             _logger.warning('WhatsApp: invalid phone number %r', phone)
             return False
@@ -262,6 +265,7 @@ class SchoolWhatsappMessage(models.Model):
         log_model = self.sudo()
         log = log_model.create({
             'admission_id': admission.id if admission else False,
+            'student_id': student.id if student else False,
             'direction': 'outbound',
             'phone': to_phone,
             'message_type': 'template',
@@ -290,25 +294,28 @@ class SchoolWhatsappMessage(models.Model):
             return log
 
     @api.model
-    def send_text(self, phone, text, admission=None):
+    def send_text(self, phone, text, admission=None, student=None):
         """Send a plain text message (only works inside Meta's 24-hour session window)."""
         if not self.is_enabled():
             raise UserError(_(
-                'WhatsApp is not enabled. Turn it on under kAI-ERP → Settings → WhatsApp.',
+                'WhatsApp is not enabled. Turn it on under Settings → WhatsApp.',
             ))
         if not text:
             raise UserError(_('Please enter a message to send.'))
 
-        to_phone = self.normalize_phone(
-            phone,
-            country=admission.country_id if admission else None,
-        )
+        country = None
+        if admission:
+            country = getattr(admission, 'country_id', None)
+        elif student:
+            country = getattr(student, 'country_id', None)
+        to_phone = self.normalize_phone(phone, country=country)
         if not to_phone:
             raise UserError(_('Invalid WhatsApp phone number: %s') % (phone or _('(empty)')))
 
         log_model = self.sudo()
         log = log_model.create({
             'admission_id': admission.id if admission else False,
+            'student_id': student.id if student else False,
             'direction': 'outbound',
             'phone': to_phone,
             'message_type': 'text',
@@ -331,10 +338,11 @@ class SchoolWhatsappMessage(models.Model):
             raise
 
     @api.model
-    def log_inbound(self, phone, body, meta_message_id, admission=None):
+    def log_inbound(self, phone, body, meta_message_id, admission=None, student=None):
         stored_phone = self.normalize_phone(phone) or phone
         return self.sudo().create({
             'admission_id': admission.id if admission else False,
+            'student_id': student.id if student else False,
             'direction': 'inbound',
             'phone': stored_phone,
             'message_type': 'text',
@@ -383,17 +391,44 @@ class SchoolWhatsappMessage(models.Model):
             return self.env['school.admission']
         candidates = self.env['school.admission'].search([
             ('whatsapp_number', '!=', False),
-        ], order='application_date desc')
+        ], order='id desc')
         for admission in candidates:
             if self.normalize_phone(
                 admission.whatsapp_number,
-                country=admission.country_id,
+                country=getattr(admission, 'country_id', False),
             ) == normalized:
                 return admission
         return self.env['school.admission']
 
+    @api.model
+    def find_student_by_phone(self, phone):
+        normalized = self.normalize_phone(phone)
+        if not normalized or 'school.student' not in self.env:
+            return self.env['school.student']
+        Student = self.env['school.student']
+        phone_fields = [
+            name for name in ('whatsapp_number', 'mobile_number', 'phone_number', 'phone', 'mobile')
+            if name in Student._fields
+        ]
+        if not phone_fields:
+            return Student
+        domain = []
+        for index, name in enumerate(phone_fields):
+            if index:
+                domain = ['|'] + domain
+            domain.append((name, '!=', False))
+        candidates = Student.search(domain, order='id desc')
+        for student in candidates:
+            for name in phone_fields:
+                value = student[name]
+                if value and self.normalize_phone(
+                    value, country=getattr(student, 'country_id', False),
+                ) == normalized:
+                    return student
+        return Student
+
     def action_whatsapp_reply(self):
-        """Open reply wizard for this phone number (with or without a linked admission)."""
+        """Open reply wizard for this phone number (with or without a linked record)."""
         self.ensure_one()
         if not self.phone:
             raise UserError(_('This message has no phone number.'))
@@ -407,6 +442,7 @@ class SchoolWhatsappMessage(models.Model):
             'target': 'new',
             'context': {
                 'default_admission_id': self.admission_id.id if self.admission_id else False,
+                'default_student_id': self.student_id.id if self.student_id else False,
                 'default_phone': reply_phone,
             },
         }

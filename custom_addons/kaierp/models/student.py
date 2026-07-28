@@ -78,6 +78,10 @@ class SchoolStudent(models.Model):
     first_name = fields.Char(string='First Name', tracking=True)
     middle_name = fields.Char(string='Middle Name')
     last_name = fields.Char(string='Last Name', tracking=True)
+    full_name = fields.Char(
+        string='Full Name (as on X / XII certificates)',
+        tracking=True,
+    )
     whatsapp_number = fields.Char(string='WhatsApp Number')
     date_of_birth = fields.Date(string='Date of Birth', required=True, tracking=True)
     birth_day = fields.Integer(
@@ -177,6 +181,11 @@ class SchoolStudent(models.Model):
     personal_reference_1 = fields.Text(string='Personal Reference 1')
     personal_reference_2 = fields.Text(string='Personal Reference 2')
     personal_reference_3 = fields.Text(string='Personal Reference 3')
+    personal_reference_4 = fields.Text(string='Reference 4 (Employer)')
+    personal_reference_1_email = fields.Char(string='Personal Reference 1 Email')
+    personal_reference_2_email = fields.Char(string='Personal Reference 2 Email')
+    personal_reference_3_email = fields.Char(string='Personal Reference 3 Email')
+    personal_reference_4_email = fields.Char(string='Reference 4 (Employer) Email')
 
     # ── Academic / professional qualification (mirrors admission)
     class_x_year = fields.Char(string='Class X (Year of Completion)')
@@ -398,12 +407,15 @@ class SchoolStudent(models.Model):
         )
 
     # ─── Computes ─────────────────────────────────────────────
-    @api.depends('first_name', 'middle_name', 'last_name')
+    @api.depends('full_name', 'first_name', 'middle_name', 'last_name')
     def _compute_name(self):
         for rec in self:
-            rec.name = ' '.join(
-                filter(None, [rec.first_name, rec.middle_name, rec.last_name]),
-            ).strip()
+            if rec.full_name:
+                rec.name = rec.full_name.strip()
+            else:
+                rec.name = ' '.join(
+                    filter(None, [rec.first_name, rec.middle_name, rec.last_name]),
+                ).strip()
 
     @api.depends('enrollment_ids')
     def _compute_enrollment_count(self):
@@ -444,12 +456,15 @@ class SchoolStudent(models.Model):
         No auto-generation or modification of student_id.
         """
         for vals in vals_list:
-            full_name = ' '.join(filter(None, [
-                vals.get('first_name', ''),
-                vals.get('middle_name', ''),
-                vals.get('last_name', ''),
-            ])).strip()
-            vals['name'] = full_name or _('New')
+            if vals.get('full_name'):
+                vals['name'] = vals['full_name'].strip() or _('New')
+            else:
+                assembled = ' '.join(filter(None, [
+                    vals.get('first_name', ''),
+                    vals.get('middle_name', ''),
+                    vals.get('last_name', ''),
+                ])).strip()
+                vals['name'] = assembled or _('New')
         students = super().create(vals_list)
         students._ensure_partner()
         return students

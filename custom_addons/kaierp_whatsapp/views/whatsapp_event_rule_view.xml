@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_whatsapp_event_rule_list" model="ir.ui.view">
+        <field name="name">school.whatsapp.event.rule.list</field>
+        <field name="model">school.whatsapp.event.rule</field>
+        <field name="arch" type="xml">
+            <list string="WhatsApp Notification Rules">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="trigger"/>
+                <field name="state"/>
+                <field name="template_name"/>
+                <field name="body_param_keys"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_whatsapp_event_rule_form" model="ir.ui.view">
+        <field name="name">school.whatsapp.event.rule.form</field>
+        <field name="model">school.whatsapp.event.rule</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Notification Rule">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger"
+                            invisible="active"/>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="sequence"/>
+                            <field name="trigger"/>
+                            <field name="state" invisible="trigger != 'on_state'"
+                                   required="trigger == 'on_state'"
+                                   placeholder="e.g. accepted"/>
+                        </group>
+                        <group>
+                            <field name="template_name"
+                                   placeholder="exact_meta_template_name"/>
+                            <field name="body_param_keys"
+                                   placeholder="name,reference,course"/>
+                            <field name="notes" placeholder="Optional notes…"/>
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <p><strong>Body parameters</strong> are sent as Meta template
+                        variables <code>{{1}}</code>, <code>{{2}}</code>, … in order.</p>
+                        <p>Tokens: <code>name</code>, <code>reference</code>,
+                        <code>course</code>, <code>state</code>, <code>email</code>,
+                        <code>phone</code>, <code>whatsapp_number</code>, any admission
+                        field, or <code>selection:field_name</code>.</p>
+                        <p>Use the technical admission <em>state</em> code
+                        (e.g. <code>pending_applicant</code>), not the label.</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_whatsapp_event_rule" model="ir.actions.act_window">
+        <field name="name">Notification Rules</field>
+        <field name="res_model">school.whatsapp.event.rule</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure which WhatsApp template to send for each admission event.
+            </p>
+            <p>
+                Other schools can reuse this module by creating rules for
+                <em>their</em> admission states and Meta template names — no code changes.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_school_whatsapp_event_rules"
+              name="Notification Rules"
+              parent="menu_kaierp_whatsapp_root"
+              action="action_school_whatsapp_event_rule"
+              sequence="3"
+              groups="base.group_user"/>
+
+</odoo>

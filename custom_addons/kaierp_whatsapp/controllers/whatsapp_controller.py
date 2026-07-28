@@ -80,19 +80,29 @@ class WhatsappWebhookController(http.Controller):
             body = (message.get('text') or {}).get('body', '')
             meta_id = message.get('id', '')
             admission = Whatsapp.find_admission_by_phone(phone)
-            log = Whatsapp.log_inbound(phone, body, meta_id, admission=admission)
+            student = Whatsapp.find_student_by_phone(phone)
+            log = Whatsapp.log_inbound(
+                phone, body, meta_id, admission=admission, student=student,
+            )
+            note_body = Markup(
+                '<p><strong>WhatsApp received:</strong></p><p>%s</p>'
+            ) % escape(body)
             if admission:
-                # Internal note only — do not email followers / the applicant.
                 admission.message_post(
-                    body=Markup(
-                        '<p><strong>WhatsApp from applicant:</strong></p><p>%s</p>'
-                    ) % escape(body),
+                    body=note_body,
+                    message_type='comment',
+                    subtype_xmlid='mail.mt_note',
+                )
+            if student:
+                student.message_post(
+                    body=note_body,
                     message_type='comment',
                     subtype_xmlid='mail.mt_note',
                 )
             _logger.info(
-                'WhatsApp inbound message %s from %s (admission=%s)',
+                'WhatsApp inbound message %s from %s (admission=%s student=%s)',
                 log.id,
                 phone,
-                admission.reference if admission else 'none',
+                admission.display_name if admission else 'none',
+                student.display_name if student else 'none',
             )

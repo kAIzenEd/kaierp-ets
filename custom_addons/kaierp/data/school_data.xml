@@ -105,6 +105,24 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
             <field name="lang">{{ object.env.user.lang }}</field>
         </record>
 
+        <!-- Email: ask personal references to complete the attached PDF form -->
+        <record id="email_template_admission_reference_request" model="mail.template">
+            <field name="name">Admission — Personal Reference Request</field>
+            <field name="model_id" ref="model_school_admission"/>
+            <field name="subject">Reference Request — {{ object.full_name or object.name }} | ETS-ACA</field>
+            <field name="reply_to">ets@acaindia.org</field>
+            <field name="body_html" type="html">
+<p>Greetings from the Evangelical Theological Seminary of ACA,</p>
+<p><t t-out="object.full_name or object.name or ''"/> has selected you as a reference for them.
+Please see the attached PDF for the template to follow when submitting their reference form.
+Once you have filled out the form, <strong>reply to this email</strong> and attach the
+filled-out form to your reply (please keep the subject line unchanged).
+If you have any questions please reach out to us at
+<a href="mailto:ets@acaindia.org">ets@acaindia.org</a>.</p>
+            </field>
+            <field name="lang">{{ object.env.user.lang }}</field>
+        </record>
+
         <!-- Email: request corrected / missing documents via secure upload link -->
         <record id="email_template_admission_document_upload" model="mail.template">
             <field name="name">Admission — Document Upload Request</field>

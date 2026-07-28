@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
+import logging
+import re
 import secrets
 from datetime import timedelta
 
@@ -7,6 +9,16 @@ from markupsafe import Markup, escape
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.tools import email_normalize, file_open
+from odoo.tools.mail import email_split
+
+_logger = logging.getLogger(__name__)
+
+# Must stay in sync with admission_reference_mail.ETS_REF_TOKEN_RE
+ETS_REF_TOKEN_RE = re.compile(
+    r'\[ETS-REF:ID:(?P<id>\d+)-R(?P<slot>[1-4])\]',
+    re.IGNORECASE,
+)
 
 
 class SchoolAdmission(models.Model):
@@ -99,6 +111,12 @@ class SchoolAdmission(models.Model):
         ('mr', 'Mr'),
         ('professor', 'Professor'),
     ], string='Title')
+    full_name = fields.Char(
+        string='Full Name (as on X / XII certificates)',
+        tracking=True,
+        help='Source of truth from the website form. First/last are kept for '
+             'compatibility when the site splits fullName.',
+    )
     first_name = fields.Char(string='First Name', required=True, tracking=True)
     middle_name = fields.Char(string='Middle Name')
     last_name = fields.Char(string='Last Name', required=True, tracking=True)
@@ -206,6 +224,11 @@ class SchoolAdmission(models.Model):
     personal_reference_1 = fields.Text(string='Personal Reference 1')
     personal_reference_2 = fields.Text(string='Personal Reference 2')
     personal_reference_3 = fields.Text(string='Personal Reference 3')
+    personal_reference_4 = fields.Text(string='Reference 4 (Employer)')
+    personal_reference_1_email = fields.Char(string='Personal Reference 1 Email')
+    personal_reference_2_email = fields.Char(string='Personal Reference 2 Email')
+    personal_reference_3_email = fields.Char(string='Personal Reference 3 Email')
+    personal_reference_4_email = fields.Char(string='Reference 4 (Employer) Email')
 
     # ── Academic / professional qualification ─────────────────
     class_x_month_year = fields.Char(string='Class X Month & Year of Completion')
@@ -584,9 +607,6 @@ class SchoolAdmission(models.Model):
     student_id = fields.Many2one(
         'school.student', string='Created Student', readonly=True, copy=False,
     )
-    whatsapp_message_ids = fields.One2many(
-        'school.whatsapp.message', 'admission_id', string='WhatsApp Messages',
-    )
     notes = fields.Html(string='Internal Notes')
     color = fields.Integer(string='Color Index', compute='_compute_color')
 
@@ -613,11 +633,14 @@ class SchoolAdmission(models.Model):
                         'Exam accommodation is limited to %s nights maximum.',
                     ) % self.EXAM_ACCOMMODATION_MAX_NIGHTS)
 
-    @api.depends('first_name', 'middle_name', 'last_name')
+    @api.depends('full_name', 'first_name', 'middle_name', 'last_name')
     def _compute_name(self):
         for rec in self:
-            parts = [p for p in (rec.first_name, rec.middle_name, rec.last_name) if p]
-            rec.name = ' '.join(parts)
+            if rec.full_name:
+                rec.name = rec.full_name.strip()
+            else:
+                parts = [p for p in (rec.first_name, rec.middle_name, rec.last_name) if p]
+                rec.name = ' '.join(parts)
 
     @api.depends('document_review_ids.is_verified', 'document_review_ids.has_issue')
     def _compute_document_review_counts(self):
@@ -1010,12 +1033,9 @@ class SchoolAdmission(models.Model):
         records._ensure_document_reviews()
         records._register_application_fee_accounting_if_paid()
         records._send_new_admission_emails()
-        records._send_whatsapp_application_received()
         return records
 
     def write(self, vals):
-        track_state = 'state' in vals
-        old_states = {rec.id: rec.state for rec in self} if track_state else {}
         payment_trigger = any(
             key in vals for key in (
                 'application_fee_paid', 'payment_successful',
@@ -1025,17 +1045,269 @@ class SchoolAdmission(models.Model):
         result = super().write(vals)
         if payment_trigger:
             self._register_application_fee_accounting_if_paid()
-        if track_state:
-            for rec in self:
-                previous = old_states.get(rec.id)
-                if previous and previous != rec.state:
-                    rec._send_whatsapp_on_state_change(previous, rec.state)
         return result
+
+    # Personal reference slot → blank PDF form + target document field
+    # (email_field, pdf_module_path, attachment_filename, slot_no, doc_field)
+    _REFERENCE_FORM_PDFS = (
+        (
+            'personal_reference_1_email',
+            'kaierp/static/reference_forms/reference-form-1-elder-pastor.pdf',
+            'Reference Form 1 — Elder / Pastor.pdf',
+            1,
+            'doc_reference_form_1',
+        ),
+        (
+            'personal_reference_2_email',
+            'kaierp/static/reference_forms/reference-form-2-mentor.pdf',
+            'Reference Form 2 — Mentor.pdf',
+            2,
+            'doc_reference_form_2',
+        ),
+        (
+            'personal_reference_3_email',
+            'kaierp/static/reference_forms/reference-form-3-mentor-seminary-professor.pdf',
+            'Reference Form 3 — Mentor / Seminary Professor.pdf',
+            3,
+            'doc_reference_form_3',
+        ),
+        (
+            'personal_reference_4_email',
+            'kaierp/static/reference_forms/reference-form-4-employer.pdf',
+            'Reference Form 4 — Employer.pdf',
+            4,
+            'doc_reference_form_4_employer',
+        ),
+    )
 
     def _send_new_admission_emails(self):
         self._notify_registrar_new_admission()
         self._notify_applicant_application_received()
+        self._notify_personal_references()
         self._notify_registrars_inbox()
+
+    def _get_reference_form_attachment(self, module_relative_path, filename):
+        """Load a blank reference PDF from the module and store as an attachment."""
+        self.ensure_one()
+        try:
+            with file_open(module_relative_path, 'rb') as pdf_file:
+                pdf_bytes = pdf_file.read()
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            _logger.warning(
+                'Reference form PDF missing (%s): %s', module_relative_path, exc,
+            )
+            return self.env['ir.attachment']
+        return self.env['ir.attachment'].create({
+            'name': filename,
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_bytes),
+            'mimetype': 'application/pdf',
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+
+    def _reference_reply_token(self, slot):
+        """Stable subject token so replies can be routed/matched without headers."""
+        self.ensure_one()
+        return '[ETS-REF:ID:%s-R%s]' % (self.id, int(slot))
+
+    def _notify_personal_references(self):
+        """Email each personal reference with the matching blank PDF form."""
+        template = self.env.ref(
+            'kaierp.email_template_admission_reference_request',
+            raise_if_not_found=False,
+        )
+        if not template:
+            _logger.warning('Reference request email template not found.')
+            return
+
+        for admission in self:
+            sent = []
+            applicant = admission.full_name or admission.name or ''
+            for email_field, pdf_path, pdf_name, slot, _doc_field in self._REFERENCE_FORM_PDFS:
+                email = (admission[email_field] or '').strip()
+                if not email:
+                    continue
+                attachment = admission._get_reference_form_attachment(pdf_path, pdf_name)
+                token = admission._reference_reply_token(slot)
+                email_values = {
+                    'email_to': email,
+                    'reply_to': 'ets@acaindia.org',
+                    'subject': _(
+                        'Reference Request — %(name)s %(token)s | ETS-ACA',
+                        name=applicant,
+                        token=token,
+                    ),
+                }
+                if attachment:
+                    email_values['attachment_ids'] = [(6, 0, attachment.ids)]
+                template.with_context(skip_reference_reply_ingest=True).send_mail(
+                    admission.id,
+                    force_send=True,
+                    email_values=email_values,
+                )
+                sent.append('%s (R%s)' % (email, slot))
+
+            if sent:
+                admission.message_post(
+                    body=_(
+                        'Reference request emails sent to: %s',
+                    ) % ', '.join(sent),
+                    message_type='notification',
+                )
+
+    def _extract_email_address(self, email_from):
+        if not email_from:
+            return ''
+        parts = email_split(email_from)
+        candidate = parts[0] if parts else email_from
+        return (email_normalize(candidate) or '').strip().lower()
+
+    def _doc_field_for_reference_slot(self, slot):
+        slot = int(slot)
+        for _email, _path, _name, slot_no, doc_field in self._REFERENCE_FORM_PDFS:
+            if slot_no == slot:
+                return doc_field
+        return False
+
+    def _match_reference_slot(self, email_from, subject=''):
+        """Resolve reference slot 1–4 from sender email and/or subject token.
+
+        Sender email is authoritative. Subject token is a fallback for replies
+        from a different address. Never match on subject alone when From is us
+        (avoids filing the blank PDF we just sent outbound).
+        """
+        self.ensure_one()
+        sender = self._extract_email_address(email_from)
+        our_addresses = {
+            self._extract_email_address('ets@acaindia.org'),
+            self._extract_email_address(
+                self.env.company.email or '',
+            ),
+            self._extract_email_address(
+                self.env.user.email_formatted or self.env.user.email or '',
+            ),
+        }
+        our_addresses.discard('')
+
+        # Outbound mail we sent ourselves — never auto-file
+        if sender and sender in our_addresses:
+            return False
+
+        if sender:
+            for email_field, _path, _name, slot_no, _doc in self._REFERENCE_FORM_PDFS:
+                stored = self._extract_email_address(self[email_field] or '')
+                if stored and stored == sender:
+                    return slot_no
+
+        subject = subject or ''
+        match = ETS_REF_TOKEN_RE.search(subject)
+        if match and int(match.group('id')) == self.id and sender:
+            # Subject fallback only when there is an external From address
+            return int(match.group('slot'))
+        return False
+
+    def _iter_reference_reply_files(self, message):
+        """Yield (filename, raw_bytes) for PDF/image attachments on a mail.message."""
+        for attachment in message.attachment_ids:
+            mimetype = (attachment.mimetype or '').lower()
+            name = (attachment.name or 'reference.pdf').strip() or 'reference.pdf'
+            lower_name = name.lower()
+            is_pdf = mimetype == 'application/pdf' or lower_name.endswith('.pdf')
+            is_image = mimetype.startswith('image/') or lower_name.endswith(
+                ('.png', '.jpg', '.jpeg'),
+            )
+            if not (is_pdf or is_image):
+                continue
+            raw = base64.b64decode(attachment.datas or b'')
+            if not raw:
+                continue
+            yield name, raw
+
+    def _store_reference_reply_document(self, slot, filename, raw_bytes):
+        """Write filled reference form into the matching document binary field."""
+        self.ensure_one()
+        doc_field = self._doc_field_for_reference_slot(slot)
+        if not doc_field or doc_field not in self._fields:
+            return False
+
+        self.with_context(skip_reference_reply_ingest=True).write({
+            doc_field: base64.b64encode(raw_bytes),
+        })
+
+        review = self.document_review_ids.filtered(
+            lambda line: line.document_code == doc_field,
+        )[:1]
+        if review:
+            note = (review.review_notes or '').strip()
+            received = _('Received by email reply from reference R%s.') % slot
+            review.with_context(skip_reference_reply_ingest=True).write({
+                'has_issue': False,
+                'is_verified': False,
+                'review_notes': ('%s %s' % (note, received)).strip() if note else received,
+            })
+
+        label = dict(self.ADMISSION_DOCUMENT_SLOTS).get(doc_field, doc_field)
+        self.with_context(skip_reference_reply_ingest=True).message_post(
+            body=Markup(_(
+                'Reference form <strong>R%(slot)s</strong> received by email '
+                'and stored as <strong>%(label)s</strong> (%(file)s).',
+                slot=slot,
+                label=label,
+                file=escape(filename),
+            )),
+            message_type='notification',
+            subtype_xmlid='mail.mt_note',
+        )
+        return doc_field
+
+    def _try_ingest_reference_reply_attachments(self, message):
+        """If this chatter message is a reference reply with files, file them."""
+        if self.env.context.get('skip_reference_reply_ingest'):
+            return
+        for admission in self:
+            attachments = list(admission._iter_reference_reply_files(message))
+            if not attachments:
+                continue
+
+            slot = admission._match_reference_slot(
+                message.email_from,
+                subject=message.subject or '',
+            )
+            if not slot:
+                _logger.info(
+                    'Reference reply on admission %s has attachments but no '
+                    'matching slot (from=%s subject=%s)',
+                    admission.id, message.email_from, message.subject,
+                )
+                admission.with_context(skip_reference_reply_ingest=True).message_post(
+                    body=_(
+                        'Received an email with attachment(s), but could not '
+                        'match it to Reference 1–4. Please file manually. '
+                        'From: %s',
+                    ) % (message.email_from or _('unknown')),
+                    message_type='notification',
+                    subtype_xmlid='mail.mt_note',
+                )
+                continue
+
+            chosen = None
+            for name, raw in attachments:
+                if name.lower().endswith('.pdf'):
+                    chosen = (name, raw)
+                    break
+            if not chosen:
+                chosen = attachments[0]
+            admission._store_reference_reply_document(slot, chosen[0], chosen[1])
+
+    def _message_post_after_hook(self, message, msg_vals):
+        res = super()._message_post_after_hook(message, msg_vals)
+        if self.env.context.get('skip_reference_reply_ingest'):
+            return res
+        if message.message_type in ('email', 'comment') and message.attachment_ids:
+            if message.email_from or msg_vals.get('email_from'):
+                self._try_ingest_reference_reply_attachments(message)
+        return res
 
     def _get_registrar_users(self):
         """Return active internal users who should receive admission alerts."""
@@ -1125,62 +1397,6 @@ class SchoolAdmission(models.Model):
                 continue
             template.send_mail(admission.id, force_send=True)
 
-    def _send_whatsapp_application_received(self):
-        self._send_whatsapp_notification('received')
-
-    def _send_whatsapp_on_state_change(self, old_state, new_state):
-        template_key_map = {
-            'pending_applicant': 'pending_applicant',
-            'pending_exam_interview': 'exam_interview',
-            'accepted': 'accepted',
-            'admission_denied': 'denied',
-        }
-        key = template_key_map.get(new_state)
-        if key:
-            self._send_whatsapp_notification(key)
-
-    def _send_whatsapp_notification(self, event_key):
-        """Send a WhatsApp template for the given admission event."""
-        Whatsapp = self.env['school.whatsapp.message']
-        if not Whatsapp.is_enabled():
-            return
-
-        config_keys = {
-            'received': 'kaierp.whatsapp_template_received',
-            'pending_applicant': 'kaierp.whatsapp_template_pending_applicant',
-            'exam_interview': 'kaierp.whatsapp_template_exam_interview',
-            'accepted': 'kaierp.whatsapp_template_accepted',
-            'denied': 'kaierp.whatsapp_template_denied',
-        }
-        param_key = config_keys.get(event_key)
-        if not param_key:
-            return
-
-        template_name = self.env['ir.config_parameter'].sudo().get_param(param_key, '').strip()
-        if not template_name:
-            return
-
-        for admission in self:
-            if not admission.whatsapp_number:
-                continue
-            params_map = {
-                'received': [
-                    admission.name,
-                    admission.reference,
-                    admission.format_selection('course'),
-                ],
-                'pending_applicant': [admission.name, admission.reference],
-                'exam_interview': [admission.name, admission.reference],
-                'accepted': [admission.name, admission.format_selection('course')],
-                'denied': [admission.name, admission.reference],
-            }
-            Whatsapp.send_template(
-                admission.whatsapp_number,
-                template_name,
-                body_parameters=params_map.get(event_key, []),
-                admission=admission,
-            )
-
     def action_view_student(self):
         self.ensure_one()
         return {
@@ -1189,29 +1405,6 @@ class SchoolAdmission(models.Model):
             'res_model': 'school.student',
             'res_id': self.student_id.id,
             'view_mode': 'form',
-        }
-
-    def action_whatsapp_open_conversation(self):
-        """Open the WhatsApp conversation thread for this applicant."""
-        self.ensure_one()
-        phone = self.whatsapp_number
-        if not phone and self.whatsapp_message_ids:
-            phone = self.whatsapp_message_ids[0].phone
-        if not phone:
-            raise ValidationError(_('This application has no WhatsApp number.'))
-        Whatsapp = self.env['school.whatsapp.message']
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('WhatsApp Conversation'),
-            'res_model': 'school.whatsapp.reply.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_admission_id': self.id,
-                'default_phone': Whatsapp.normalize_phone(
-                    phone, country=self.country_id,
-                ) or phone,
-            },
         }
 
     def action_verify_all_documents(self):
@@ -1489,7 +1682,7 @@ class SchoolAdmission(models.Model):
 
     # Fields copied from admission → student (excludes exam accommodation & workflow).
     _ADMISSION_TO_STUDENT_FIELDS = (
-        'title', 'first_name', 'middle_name', 'last_name',
+        'title', 'full_name', 'first_name', 'middle_name', 'last_name',
         'course', 'study_mode',
         'whatsapp_number', 'date_of_birth', 'gender', 'nationality', 'age',
         'marital_status', 'plan_married_during_study',
@@ -1501,6 +1694,9 @@ class SchoolAdmission(models.Model):
         'is_ordained', 'church_financial_support', 'graduated_seminary_last_two_years',
         'working_for_organisation',
         'personal_reference_1', 'personal_reference_2', 'personal_reference_3',
+        'personal_reference_4',
+        'personal_reference_1_email', 'personal_reference_2_email',
+        'personal_reference_3_email', 'personal_reference_4_email',
         'class_x_year', 'diploma_after_class_x', 'class_xii_diploma_year',
         'has_undergraduate_theology', 'has_undergraduate_non_theology',
         'has_postgraduate_theology', 'has_postgraduate_non_theology',

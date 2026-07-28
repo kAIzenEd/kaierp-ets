@@ -4,8 +4,9 @@ services:
     command: --addons-path=/mnt/extra-addons
     depends_on:
       - db
+    # Localhost for ngrok (ngrok http 8069) and local browser access
     ports:
-      - "8069:8069"
+      - "127.0.0.1:8069:8069"
     environment:
       - HOST=db
       - USER=odoo

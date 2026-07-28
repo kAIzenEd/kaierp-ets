@@ -55,6 +55,13 @@
                            options="{'preview_image': 'photo'}"/>
 
                     <div class="oe_title o_admission_title o_student_title">
+                        <div class="o_admission_name_row mb-2">
+                            <label for="full_name"
+                                   string="Full Name (as on X / XII certificates)"/>
+                            <field name="full_name"
+                                   placeholder="Full legal name as on certificates"
+                                   nolabel="1"/>
+                        </div>
                         <div class="o_admission_name_row d-flex flex-wrap align-items-end mb-2">
                             <div class="o_admission_name_field">
                                 <label for="first_name" string="First Name"/>
@@ -112,6 +119,7 @@
                             <group>
                                 <group string="Personal Information">
                                     <field name="title"/>
+                                    <field name="full_name"/>
                                     <field name="first_name"/>
                                     <field name="middle_name"/>
                                     <field name="last_name"/>
@@ -185,10 +193,20 @@
                             <group>
                                 <field name="personal_reference_1"
                                        placeholder="Name, address, phone"/>
+                                <field name="personal_reference_1_email"
+                                       placeholder="reference1@example.com"/>
                                 <field name="personal_reference_2"
                                        placeholder="Name, address, phone"/>
+                                <field name="personal_reference_2_email"
+                                       placeholder="reference2@example.com"/>
                                 <field name="personal_reference_3"
                                        placeholder="Name, address, phone"/>
+                                <field name="personal_reference_3_email"
+                                       placeholder="reference3@example.com"/>
+                                <field name="personal_reference_4"
+                                       placeholder="Name, address, phone"/>
+                                <field name="personal_reference_4_email"
+                                       placeholder="employer@example.com"/>
                             </group>
                         </page>
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_admission_form_whatsapp" model="ir.ui.view">
+        <field name="name">school.admission.form.whatsapp</field>
+        <field name="model">school.admission</field>
+        <field name="inherit_id" ref="kaierp.view_school_admission_form"/>
+        <field name="arch" type="xml">
+            <!-- notebook exists on all kaierp admission forms; avoid ETS-only page names -->
+            <xpath expr="//notebook" position="inside">
+                <page string="WhatsApp" name="whatsapp">
+                    <group>
+                        <field name="whatsapp_number" placeholder="+91XXXXXXXXXX"/>
+                    </group>
+                    <div class="mb-2">
+                        <button name="action_whatsapp_open_conversation" type="object"
+                                string="Open conversation" class="btn-primary"
+                                icon="fa-whatsapp"
+                                invisible="not whatsapp_number"
+                                groups="base.group_user"/>
+                    </div>
+                    <field name="whatsapp_message_ids" nolabel="1" readonly="1">
+                        <list create="0" edit="0">
+                            <field name="create_date" string="Date"/>
+                            <field name="direction"/>
+                            <field name="phone"/>
+                            <field name="template_name"/>
+                            <field name="body"/>
+                            <field name="state" widget="badge"/>
+                            <button name="action_whatsapp_reply" type="object"
+                                    string="Open chat" icon="fa-whatsapp"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

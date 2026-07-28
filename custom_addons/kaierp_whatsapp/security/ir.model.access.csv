@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_school_whatsapp_reply_wizard_user,school.whatsapp.reply.wizard.user,model_school_whatsapp_reply_wizard,base.group_user,1,1,1,1
+access_school_whatsapp_message_user,school.whatsapp.message.user,model_school_whatsapp_message,base.group_user,1,1,0,0
+access_school_whatsapp_event_rule_user,school.whatsapp.event.rule.user,model_school_whatsapp_event_rule,base.group_user,1,1,1,1
+access_school_whatsapp_event_rule_system,school.whatsapp.event.rule.system,model_school_whatsapp_event_rule,base.group_system,1,1,1,1
