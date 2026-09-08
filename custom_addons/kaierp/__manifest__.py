@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.3.56',
+    'version': '19.0.1.3.57',
     'category': 'Education',
     'summary': 'Complete school management: students, classes, admissions, grades & transcripts',
     'description': """
@@ -44,6 +44,7 @@
         'data/kaisight_report_sources.xml',
         'data/kaisight_student_directory_report.xml',
         'data/demo_school_users.xml',
+        'data/canvas_cron.xml',
 
         # Views
         'views/school_dashboard_view.xml',
@@ -61,6 +62,7 @@
         'views/fee_view.xml',
         'views/finance_view.xml',
         'views/school_menu.xml',
+        'views/canvas_view.xml',
         'views/res_config_settings_views.xml',
 
         # Wizards

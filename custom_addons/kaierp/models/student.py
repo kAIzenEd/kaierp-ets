@@ -114,6 +114,10 @@ class SchoolStudent(models.Model):
     # ── Contact information (mirrors admission) ───────────────
     email = fields.Char(string='Personal Email Address', tracking=True)
     ets_email = fields.Char(string='ETS Email Address', tracking=True)
+    canvas_user_id = fields.Char(
+        string='Canvas User ID', copy=False, index=True,
+        help='Set automatically when this student is matched from Canvas.',
+    )
     mobile_number = fields.Char(string='Mobile Number')
     phone_number = fields.Char(string='Personal Phone Number')
     postal_address = fields.Text(string='Permanent Address')

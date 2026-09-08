@@ -26,6 +26,8 @@
                         <group>
                             <field name="gender" required="1"/>
                             <field name="email" widget="email" required="1"/>
+                            <field name="canvas_user_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
                             <field name="phone" widget="phone"/>
                             <field name="join_date"/>
                         </group>

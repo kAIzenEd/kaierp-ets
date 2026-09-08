@@ -37,6 +37,9 @@ class SchoolEnrollment(models.Model):
         domain="[('student_id','=',student_id),('class_id','=',class_id)]"
     )
     notes = fields.Text(string='Notes')
+    canvas_enrollment_id = fields.Char(
+        string='Canvas Enrollment ID', copy=False, index=True,
+    )
 
     # Related fields for convenience
     teacher_id = fields.Many2one(
@@ -69,6 +72,8 @@ class SchoolEnrollment(models.Model):
 
     @api.constrains('class_id')
     def _check_capacity(self):
+        if self.env.context.get('canvas_sync'):
+            return
         for rec in self:
             if rec.class_id.available_seats == 0 and rec.state == 'enrolled':
                 raise UserError(_(

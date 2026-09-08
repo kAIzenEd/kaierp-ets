@@ -59,6 +59,88 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Canvas LMS" name="kaierp_canvas"
+                           groups="kaierp.group_school_manager,kaierp.group_school_it_admin">
+                        <setting string="Connection"
+                                 help="Canvas is the source of terms, courses, student rosters, and teacher assignments. Fill these in, Save, then Connect.">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="canvas_base_url" class="col-lg-3 o_light_label">Canvas URL</label>
+                                    <field name="canvas_base_url" placeholder="https://your-school.instructure.com"/>
+                                </div>
+                                <div class="row">
+                                    <label for="canvas_account_id" class="col-lg-3 o_light_label">Account ID</label>
+                                    <field name="canvas_account_id" placeholder="1"/>
+                                </div>
+                                <div class="row">
+                                    <label for="canvas_client_id" class="col-lg-3 o_light_label">Developer Key ID</label>
+                                    <field name="canvas_client_id"/>
+                                </div>
+                                <div class="row">
+                                    <label for="canvas_client_secret" class="col-lg-3 o_light_label">Developer Key Secret</label>
+                                    <field name="canvas_client_secret" password="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="canvas_oauth_callback_url" class="col-lg-3 o_light_label">Redirect URI</label>
+                                    <field name="canvas_oauth_callback_url" readonly="1" class="oe_inline text-break"/>
+                                </div>
+                                <div class="row">
+                                    <label for="canvas_redirect_uri_override" class="col-lg-3 o_light_label">Redirect URI override</label>
+                                    <field name="canvas_redirect_uri_override"
+                                           placeholder="https://odoo-ets.kaizened.in/kaierp/canvas/oauth/callback"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="canvas_connected" class="col-lg-3 o_light_label">Connected</label>
+                                    <field name="canvas_connected" readonly="1"/>
+                                </div>
+                                <div class="row">
+                                    <label for="canvas_connected_user" class="col-lg-3 o_light_label">Connected as</label>
+                                    <field name="canvas_connected_user" readonly="1"/>
+                                </div>
+                                <div class="row" invisible="not canvas_last_oauth_error">
+                                    <label for="canvas_last_oauth_error" class="col-lg-3 o_light_label">Last OAuth error</label>
+                                    <field name="canvas_last_oauth_error" readonly="1"/>
+                                </div>
+                                <div class="mt16 d-flex flex-wrap gap-2">
+                                    <button name="action_canvas_oauth_start" type="object"
+                                            string="Connect to Canvas" class="btn-primary"
+                                            invisible="canvas_connected"/>
+                                    <button name="action_canvas_test_connection" type="object"
+                                            string="Test connection" class="btn-secondary"
+                                            invisible="not canvas_connected"/>
+                                    <button name="action_canvas_sync_now" type="object"
+                                            string="Sync now" class="btn-primary"
+                                            invisible="not canvas_connected"/>
+                                    <button name="action_canvas_disconnect" type="object"
+                                            string="Disconnect" class="btn-secondary"
+                                            invisible="not canvas_connected"/>
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <p>Paste the Redirect URI into the Canvas API Developer Key.
+                                    Authorize with the dedicated Canvas integration admin user.
+                                    Nightly sync stays off until you enable it below.</p>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Nightly sync"
+                                 help="When enabled, Odoo pulls terms, courses, student enrollments, and teacher assignments from Canvas once a day. Unmatched people are listed under Academics → Canvas LMS → Sync Issues.">
+                            <field name="canvas_sync_enabled"/>
+                        </setting>
+                        <setting string="Include unpublished courses"
+                                 help="Off: only published (available) and optionally completed courses. On: also sync unpublished shells.">
+                            <field name="canvas_sync_unpublished"/>
+                        </setting>
+                        <setting string="Include completed courses"
+                                 help="On: also sync concluded Canvas courses. Off: current/available courses only.">
+                            <field name="canvas_sync_completed_courses"/>
+                        </setting>
+                        <div class="text-muted mt-2" invisible="not canvas_last_sync_summary">
+                            <p><strong>Last sync:</strong>
+                                <field name="canvas_last_sync_at" readonly="1" class="oe_inline"/>
+                            </p>
+                            <p><field name="canvas_last_sync_summary" readonly="1"/></p>
+                        </div>
+                    </block>
                 </app>
             </xpath>
         </field>

@@ -18,6 +18,10 @@ class SchoolTeacher(models.Model):
     ], required=True)
 
     email = fields.Char(string='Email', required=True, tracking=True)
+    canvas_user_id = fields.Char(
+        string='Canvas User ID', copy=False, index=True,
+        help='Set automatically when this teacher is matched from Canvas.',
+    )
     phone = fields.Char(string='Phone')
 
     department = fields.Char(string='Department')

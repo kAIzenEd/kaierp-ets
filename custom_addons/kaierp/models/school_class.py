@@ -64,6 +64,12 @@ class SchoolClass(models.Model):
     )
     start_date = fields.Date(string='Start Date')
     end_date = fields.Date(string='End Date')
+    canvas_course_id = fields.Char(
+        string='Canvas Course ID', copy=False, index=True,
+        help='Set automatically when this class is synced from Canvas.',
+    )
+    canvas_term_id = fields.Char(string='Canvas Term ID', copy=False, index=True)
+    canvas_sis_course_id = fields.Char(string='Canvas SIS Course ID', copy=False)
 
     syllabus = fields.Html(string='Syllabus')
     prerequisites = fields.Many2many(

@@ -2,3 +2,4 @@
 from . import admission_controller
 from . import document_upload_controller
 from . import razorpay_controller
+from . import canvas_controller

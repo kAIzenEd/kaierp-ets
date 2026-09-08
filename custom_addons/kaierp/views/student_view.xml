@@ -102,6 +102,8 @@
                             <field name="class_id" string="Academic Class"/>
                             <field name="roll_number"/>
                             <field name="admission_id" readonly="1"/>
+                            <field name="canvas_user_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
                         </group>
                         <group string="Enrollment Info">
                             <field name="academic_year"/>

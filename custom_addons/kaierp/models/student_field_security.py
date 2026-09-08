@@ -54,6 +54,7 @@ STUDENT_FIELD_GROUPS = {
     "plan_married_during_study": _FULL,
     "email": _FIN_OR_FULL,
     "ets_email": _FIN_OR_FULL,
+    "canvas_user_id": _ACADEMIC,
     "mobile_number": _FIN_OR_FULL,
     "phone_number": _FIN_OR_FULL,
     "postal_address": _FULL,

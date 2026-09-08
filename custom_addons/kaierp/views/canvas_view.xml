@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_canvas_term_list" model="ir.ui.view">
+        <field name="name">school.canvas.term.list</field>
+        <field name="model">school.canvas.term</field>
+        <field name="arch" type="xml">
+            <list string="Canvas Terms" editable="bottom">
+                <field name="name"/>
+                <field name="canvas_term_id" optional="hide"/>
+                <field name="sis_term_id" optional="hide"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="academic_year"/>
+                <field name="semester"/>
+                <field name="workflow_state" optional="hide"/>
+                <field name="class_count"/>
+                <field name="last_sync_at" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_canvas_term_form" model="ir.ui.view">
+        <field name="name">school.canvas.term.form</field>
+        <field name="model">school.canvas.term</field>
+        <field name="arch" type="xml">
+            <form string="Canvas Term">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="canvas_term_id" readonly="1"/>
+                            <field name="sis_term_id" readonly="1"/>
+                            <field name="workflow_state" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="start_date" readonly="1"/>
+                            <field name="end_date" readonly="1"/>
+                            <field name="academic_year"/>
+                            <field name="semester"/>
+                            <field name="class_count"/>
+                            <field name="last_sync_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <p class="text-muted">
+                        Academic year and semester are written onto synced classes.
+                        Adjust them here if the automatic guess from the Canvas term name is wrong, then sync again.
+                    </p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_canvas_term" model="ir.actions.act_window">
+        <field name="name">Canvas Terms</field>
+        <field name="res_model">school.canvas.term</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_school_canvas_sync_issue_list" model="ir.ui.view">
+        <field name="name">school.canvas.sync.issue.list</field>
+        <field name="model">school.canvas.sync.issue</field>
+        <field name="arch" type="xml">
+            <list string="Canvas Sync Issues"
+                  decoration-warning="state == 'open'"
+                  decoration-muted="state in ('resolved','ignored')">
+                <field name="issue_type"/>
+                <field name="canvas_user_name"/>
+                <field name="canvas_email"/>
+                <field name="canvas_login_id" optional="hide"/>
+                <field name="canvas_course_name"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'open'"
+                       decoration-success="state == 'resolved'"
+                       decoration-muted="state == 'ignored'"/>
+                <field name="create_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_canvas_sync_issue_form" model="ir.ui.view">
+        <field name="name">school.canvas.sync.issue.form</field>
+        <field name="model">school.canvas.sync.issue</field>
+        <field name="arch" type="xml">
+            <form string="Canvas Sync Issue">
+                <header>
+                    <button name="action_link_student" type="object" string="Link Student"
+                            class="btn-primary"
+                            invisible="issue_type not in ('unmatched_student','ambiguous_match') or state != 'open'"/>
+                    <button name="action_link_teacher" type="object" string="Link Teacher"
+                            class="btn-primary"
+                            invisible="issue_type not in ('unmatched_teacher','ambiguous_match','extra_teacher') or state != 'open'"/>
+                    <button name="action_ignore" type="object" string="Ignore"
+                            invisible="state != 'open'" class="btn-secondary"/>
+                    <button name="action_reopen" type="object" string="Reopen"
+                            invisible="state == 'open'" class="btn-secondary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,resolved,ignored"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="issue_type"/>
+                            <field name="canvas_user_name"/>
+                            <field name="canvas_email"/>
+                            <field name="canvas_login_id"/>
+                            <field name="canvas_user_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="canvas_course_name"/>
+                            <field name="canvas_course_id" readonly="1"/>
+                            <field name="canvas_enrollment_id" readonly="1"/>
+                            <field name="class_id"/>
+                            <field name="student_id"
+                                   invisible="issue_type not in ('unmatched_student','ambiguous_match')"/>
+                            <field name="teacher_id"
+                                   invisible="issue_type not in ('unmatched_teacher','ambiguous_match','extra_teacher')"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_school_canvas_sync_issue_search" model="ir.ui.view">
+        <field name="name">school.canvas.sync.issue.search</field>
+        <field name="model">school.canvas.sync.issue</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="canvas_user_name"/>
+                <field name="canvas_email"/>
+                <field name="canvas_login_id"/>
+                <field name="canvas_course_name"/>
+                <filter string="Open" name="open" domain="[('state','=','open')]"/>
+                <filter string="Resolved" name="resolved" domain="[('state','=','resolved')]"/>
+                <filter string="Ignored" name="ignored" domain="[('state','=','ignored')]"/>
+                <separator/>
+                <filter string="Unmatched students" name="unmatched_student"
+                        domain="[('issue_type','=','unmatched_student')]"/>
+                <filter string="Unmatched teachers" name="unmatched_teacher"
+                        domain="[('issue_type','=','unmatched_teacher')]"/>
+                <group>
+                    <filter string="Type" name="group_type" context="{'group_by':'issue_type'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_school_canvas_sync_issue" model="ir.actions.act_window">
+        <field name="name">Canvas Sync Issues</field>
+        <field name="res_model">school.canvas.sync.issue</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+
+    <record id="view_school_canvas_sync_run_list" model="ir.ui.view">
+        <field name="name">school.canvas.sync.run.list</field>
+        <field name="model">school.canvas.sync.run</field>
+        <field name="arch" type="xml">
+            <list string="Canvas Sync History" create="0" delete="0"
+                  decoration-danger="state == 'failed'"
+                  decoration-success="state == 'done'">
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'failed'"
+                       decoration-info="state == 'running'"/>
+                <field name="terms_synced"/>
+                <field name="classes_synced"/>
+                <field name="enrollments_synced"/>
+                <field name="teachers_assigned"/>
+                <field name="issues_open"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_canvas_sync_run_form" model="ir.ui.view">
+        <field name="name">school.canvas.sync.run.form</field>
+        <field name="model">school.canvas.sync.run</field>
+        <field name="arch" type="xml">
+            <form string="Canvas Sync Run" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                            <field name="state"/>
+                        </group>
+                        <group>
+                            <field name="terms_synced"/>
+                            <field name="classes_synced"/>
+                            <field name="enrollments_synced"/>
+                            <field name="teachers_assigned"/>
+                            <field name="issues_open"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="summary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_canvas_sync_run" model="ir.actions.act_window">
+        <field name="name">Canvas Sync History</field>
+        <field name="res_model">school.canvas.sync.run</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_school_canvas"
+              name="Canvas LMS"
+              parent="menu_school_academics"
+              sequence="9"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_manager"/>
+
+    <menuitem id="menu_school_canvas_issues"
+              name="Sync Issues"
+              parent="menu_school_canvas"
+              action="action_school_canvas_sync_issue"
+              sequence="1"/>
+
+    <menuitem id="menu_school_canvas_terms"
+              name="Terms"
+              parent="menu_school_canvas"
+              action="action_school_canvas_term"
+              sequence="2"/>
+
+    <menuitem id="menu_school_canvas_runs"
+              name="Sync History"
+              parent="menu_school_canvas"
+              action="action_school_canvas_sync_run"
+              sequence="3"/>
+
+</odoo>

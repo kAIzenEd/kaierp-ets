@@ -133,3 +133,16 @@ access_school_bulk_grade_wizard,school.bulk.grade.wizard,model_school_bulk_grade
 access_school_bulk_grade_wizard_manager,school.bulk.grade.wizard.manager,model_school_bulk_grade_wizard,group_school_manager,1,1,1,1
 access_school_take_attendance_wizard,school.take.attendance.wizard,model_school_take_attendance_wizard,group_school_teacher,1,1,1,1
 access_school_take_attendance_wizard_manager,school.take.attendance.wizard.manager,model_school_take_attendance_wizard,group_school_manager,1,1,1,1
+
+access_school_canvas_term_manager,school.canvas.term.manager,model_school_canvas_term,group_school_manager,1,1,1,1
+access_school_canvas_term_registrar,school.canvas.term.registrar,model_school_canvas_term,group_school_registrar,1,1,1,0
+access_school_canvas_term_secretary,school.canvas.term.secretary,model_school_canvas_term,group_school_secretary,1,0,0,0
+
+access_school_canvas_sync_issue_manager,school.canvas.sync.issue.manager,model_school_canvas_sync_issue,group_school_manager,1,1,1,1
+access_school_canvas_sync_issue_registrar,school.canvas.sync.issue.registrar,model_school_canvas_sync_issue,group_school_registrar,1,1,1,0
+access_school_canvas_sync_issue_secretary,school.canvas.sync.issue.secretary,model_school_canvas_sync_issue,group_school_secretary,1,0,0,0
+
+access_school_canvas_sync_run_manager,school.canvas.sync.run.manager,model_school_canvas_sync_run,group_school_manager,1,1,1,1
+access_school_canvas_sync_run_registrar,school.canvas.sync.run.registrar,model_school_canvas_sync_run,group_school_registrar,1,0,0,0
+access_school_canvas_sync_run_secretary,school.canvas.sync.run.secretary,model_school_canvas_sync_run,group_school_secretary,1,0,0,0
+

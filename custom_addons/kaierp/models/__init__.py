@@ -16,6 +16,10 @@ from . import announcement
 from . import fee
 from . import product_template
 from . import razorpay_payment
+from . import canvas_api
+from . import canvas_term
+from . import canvas_sync_issue
+from . import canvas_sync
 from . import res_config_settings
 from . import res_partner
 from . import res_users

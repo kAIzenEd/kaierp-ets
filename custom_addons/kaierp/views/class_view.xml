@@ -67,6 +67,12 @@
                             <field name="credit_hours"/>
                             <field name="max_students"/>
                             <field name="semester"/>
+                            <field name="canvas_course_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
+                            <field name="canvas_sis_course_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
+                            <field name="canvas_term_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
                         </group>
                         <group string="Dates">
                             <field name="start_date"/>

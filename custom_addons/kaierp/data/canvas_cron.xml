@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_canvas_sync" model="ir.cron">
+            <field name="name">Canvas LMS: sync terms, courses, enrollments</field>
+            <field name="model_id" ref="model_school_canvas_sync_run"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_sync()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="param_canvas_sync_completed_courses" model="ir.config_parameter">
+            <field name="key">kaierp.canvas_sync_completed_courses</field>
+            <field name="value">True</field>
+        </record>
+    </data>
+</odoo>
