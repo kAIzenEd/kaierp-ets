@@ -3,6 +3,8 @@ import json
 
 from odoo import api, fields, models
 
+from ..hooks import ensure_dashboard_layout_column
+
 # Keep in sync with DASHBOARD_TILES KPI keys in school_dashboard.js
 KAIERP_DASHBOARD_KPI_KEYS = frozenset((
     'active_students',
@@ -31,6 +33,10 @@ class ResUsers(models.Model):
         string='kAI-ERP Dashboard Layout',
         help='JSON list of dashboard tile keys, saved per user.',
     )
+
+    def _register_hook(self):
+        super()._register_hook()
+        ensure_dashboard_layout_column(self.env.cr)
 
     @property
     def SELF_READABLE_FIELDS(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.3.98',
+    'version': '19.0.1.3.99',
     'category': 'Education',
     'summary': 'Complete school management: students, courses, admissions, grades & transcripts',
     'description': """
@@ -105,6 +105,7 @@
     #     ],
     # },
     'license': 'LGPL-3',
+    'pre_init_hook': 'pre_init_hook',
     'post_init_hook': 'post_init_hook',
     # 'images': ['static/description/icon.png'],
 }

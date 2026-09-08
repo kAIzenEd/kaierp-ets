@@ -1,5 +1,28 @@
 # -*- coding: utf-8 -*-
 
+
+def ensure_dashboard_layout_column(cr):
+    """Create res_users.kaierp_dashboard_layout if the Python field loaded before -u."""
+    cr.execute(
+        """
+        SELECT 1
+          FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND table_name = 'res_users'
+           AND column_name = 'kaierp_dashboard_layout'
+        """
+    )
+    if cr.fetchone():
+        return
+    cr.execute(
+        "ALTER TABLE res_users ADD COLUMN IF NOT EXISTS kaierp_dashboard_layout text"
+    )
+
+
+def pre_init_hook(env):
+    ensure_dashboard_layout_column(env.cr)
+
+
 STATE_MIGRATION = {
     'draft': 'initial_review',
     'under_review': 'initial_review',
