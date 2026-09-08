@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
+    admission_registration_year = fields.Char(
+        string='Admission Registration Year',
+        config_parameter='kaierp.admission_registration_year',
+        help='Four-digit intake year used in new Registration / Student IDs '
+             '(e.g. 2027 → 2027MDIV001). Leave blank to use the application '
+             'date year (or the current calendar year).',
+    )
     admission_webhook_secret = fields.Char(
         string='Admission Webhook Secret',
         config_parameter='kaierp.admission_webhook_secret',
@@ -15,12 +23,50 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='kaierp.admission_registrar_email',
         help='Receives an email whenever a new admission application is submitted.',
     )
+    admission_outgoing_email = fields.Char(
+        string='Admission Outgoing Email (From)',
+        config_parameter='kaierp.admission_outgoing_email',
+        help='SMTP From address for automated admission emails (applicant, registrar, '
+             'reference forms). Use the same mailbox as your Outlook outgoing server '
+             '(e.g. odoo@acaindia.org). Required for website form submissions.',
+    )
+    public_admissions_base_url = fields.Char(
+        string='Public Admissions Website URL',
+        config_parameter='kaierp.public_admissions_base_url',
+        default='https://apply.ets-india.org',
+        help='Base URL for online reference form links emailed to referees '
+             '(e.g. https://apply.ets-india.org → /references/{token}).',
+    )
     document_upload_token_days = fields.Integer(
         string='Document Upload Link Validity (days)',
         config_parameter='kaierp.document_upload_token_days',
         default=14,
         help='How long the applicant secure upload link remains valid (1–90 days).',
     )
+    mail_keep_sent_logs = fields.Boolean(
+        string='Keep Sent Email Logs',
+        config_parameter='kaierp.mail_keep_sent_logs',
+        default=True,
+        help='When enabled, successfully sent emails remain in Technical → Emails '
+             'instead of being deleted automatically (failed emails are always kept).',
+    )
+
+    @api.constrains('admission_registration_year')
+    def _check_admission_registration_year(self):
+        for rec in self:
+            year = (rec.admission_registration_year or '').strip()
+            if not year:
+                continue
+            if not (year.isdigit() and len(year) == 4):
+                raise ValidationError(_(
+                    'Admission Registration Year must be a 4-digit year '
+                    '(e.g. 2027), or left blank.',
+                ))
+            year_int = int(year)
+            if year_int < 2000 or year_int > 2100:
+                raise ValidationError(_(
+                    'Admission Registration Year must be between 2000 and 2100.',
+                ))
 
     # ── Razorpay (Payment Links) ────────────────────────────────
     razorpay_key_id = fields.Char(

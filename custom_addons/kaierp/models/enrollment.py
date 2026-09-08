@@ -5,7 +5,7 @@ from odoo.exceptions import ValidationError, UserError
 
 class SchoolEnrollment(models.Model):
     _name = 'school.enrollment'
-    _description = 'Class Enrollment'
+    _description = 'Course Enrollment'
     _inherit = ['mail.thread']
     _rec_name = 'display_name_full'
     _order = 'enrollment_date desc'
@@ -18,7 +18,7 @@ class SchoolEnrollment(models.Model):
         ondelete='cascade', tracking=True
     )
     class_id = fields.Many2one(
-        'school.class', string='Class', required=True,
+        'school.class', string='Course', required=True,
         ondelete='cascade', tracking=True
     )
     enrollment_date = fields.Date(
@@ -77,7 +77,7 @@ class SchoolEnrollment(models.Model):
         for rec in self:
             if rec.class_id.available_seats == 0 and rec.state == 'enrolled':
                 raise UserError(_(
-                    'Class "%s" is full. No available seats.'
+                    'Course "%s" is full. No available seats.'
                 ) % rec.class_id.name)
 
     def action_drop(self):

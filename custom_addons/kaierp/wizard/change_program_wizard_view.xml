@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_change_program_wizard_form" model="ir.ui.view">
+        <field name="name">school.change.program.wizard.form</field>
+        <field name="model">school.change.program.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Change Program">
+                <group>
+                    <group>
+                        <field name="student_id"/>
+                        <field name="person_key"/>
+                        <field name="intake_year" options="{'enable_formatting': False}"/>
+                    </group>
+                    <group>
+                        <field name="current_course"/>
+                        <field name="current_student_number"/>
+                        <field name="new_course"/>
+                        <field name="preview_student_number"/>
+                        <field name="notes" placeholder="Optional note for the chatter / history"/>
+                    </group>
+                </group>
+                <div class="text-muted mb-3">
+                    ETS ID and intake year stay the same. If this student already held a
+                    Student ID for the new program, that ID is restored; otherwise the next
+                    free ID for that program and intake year is assigned.
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Change Program"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

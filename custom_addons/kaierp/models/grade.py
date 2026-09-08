@@ -19,7 +19,7 @@ class SchoolGrade(models.Model):
         ondelete='cascade', tracking=True
     )
     class_id = fields.Many2one(
-        'school.class', string='Class', required=True,
+        'school.class', string='Course', required=True,
         ondelete='cascade', tracking=True
     )
     teacher_id = fields.Many2one(
@@ -137,7 +137,7 @@ class SchoolTranscript(models.Model):
     _rec_name = 'student_id'
 
     student_id = fields.Many2one('school.student', string='Student', readonly=True)
-    class_id = fields.Many2one('school.class', string='Class', readonly=True)
+    class_id = fields.Many2one('school.class', string='Course', readonly=True)
     academic_year = fields.Char(string='Academic Year', readonly=True)
     # subject = fields.Char(string='Subject', readonly=True)
     credit_hours = fields.Integer(string='Credits', readonly=True)

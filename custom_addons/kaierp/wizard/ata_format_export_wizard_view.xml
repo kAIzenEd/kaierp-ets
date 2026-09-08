@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_school_ata_format_export_wizard_form" model="ir.ui.view">
+        <field name="name">school.ata.format.export.wizard.form</field>
+        <field name="model">school.ata.format.export.wizard</field>
+        <field name="arch" type="xml">
+            <form string="ATA Format Export">
+                <group invisible="state == 'done'">
+                    <field name="admission_year" placeholder="YYYY"/>
+                    <field name="include_inactive"/>
+                    <field name="state" invisible="1"/>
+                </group>
+                <div class="text-muted mb-2" invisible="state == 'done'">
+                    Exports students admitted in the selected calendar year into a cleaner ATA-style Excel.
+                    Columns without Odoo data stay blank for manual / ATA completion.
+                </div>
+                <group invisible="state != 'done'">
+                    <field name="student_count"/>
+                    <field name="file_name" invisible="1"/>
+                    <field name="file_data" filename="file_name" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_export" type="object"
+                            string="Generate Excel" class="btn-primary"
+                            invisible="state == 'done'"/>
+                    <button name="action_download" type="object"
+                            string="Download Excel" class="btn-primary"
+                            invisible="state != 'done'"/>
+                    <button name="action_export" type="object"
+                            string="Regenerate" class="btn-secondary"
+                            invisible="state != 'done'"/>
+                    <button string="Close" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_school_ata_format_export_wizard" model="ir.actions.act_window">
+        <field name="name">ATA Format Export</field>
+        <field name="res_model">school.ata.format.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_school_ata_format_export"
+              name="ATA Format Export"
+              parent="menu_school_reports"
+              action="action_school_ata_format_export_wizard"
+              sequence="4"
+              groups="kaierp.group_school_registrar,kaierp.group_school_secretary,kaierp.group_school_president,kaierp.group_school_academic_dean,kaierp.group_school_manager"/>
+
+</odoo>

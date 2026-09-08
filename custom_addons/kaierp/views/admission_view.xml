@@ -24,7 +24,12 @@
                     <button name="action_move_to_exam_interview"
                             string="Proceed to Exam &amp; Interview" type="object"
                             class="btn-primary"
-                            invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            invisible="state not in ('initial_review', 'pending_applicant') or not can_proceed_to_exam_interview"/>
+                    <button string="Proceed to Exam &amp; Interview"
+                            class="btn-secondary"
+                            disabled="1"
+                            title="Complete document verification and all online reference forms first"
+                            invisible="state not in ('initial_review', 'pending_applicant') or can_proceed_to_exam_interview"/>
                     <button name="action_schedule_interview"
                             string="Schedule Interview" type="object"
                             icon="fa-calendar"
@@ -37,6 +42,7 @@
                             string="Accept &amp; Create Student" type="object"
                             icon="fa-graduation-cap" class="btn-success"
                             invisible="state != 'pending_exam_interview'"/>
+                    <field name="can_proceed_to_exam_interview" invisible="1"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="initial_review,pending_applicant,pending_exam_interview,accepted"/>
                 </header>
@@ -65,33 +71,20 @@
                     <field name="photo" widget="image" class="oe_avatar"/>
 
                     <div class="oe_title o_admission_title">
-                        <div class="o_admission_name_row mb-2">
-                            <label for="full_name"
-                                   string="Full Name (as on X / XII certificates)"/>
+                        <div class="o_admission_name_row o_admission_name_row--hero mb-2">
                             <field name="full_name"
-                                   placeholder="Full legal name as on certificates"
+                                   placeholder="Full legal name"
                                    nolabel="1"/>
-                        </div>
-                        <div class="o_admission_name_row d-flex flex-wrap align-items-end mb-2">
-                            <div class="o_admission_name_field">
-                                <label for="first_name" string="First Name"/>
-                                <field name="first_name" placeholder="First" nolabel="1"/>
-                            </div>
-                            <div class="o_admission_name_field o_admission_name_field--middle">
-                                <label for="middle_name" string="Middle Name"/>
-                                <field name="middle_name" placeholder="Middle" nolabel="1"/>
-                            </div>
-                            <div class="o_admission_name_field">
-                                <label for="last_name" string="Last Name"/>
-                                <field name="last_name" placeholder="Last" nolabel="1"/>
-                            </div>
                         </div>
                         <field name="name" invisible="1"/>
                         <div class="d-flex flex-wrap align-items-center gap-2 text-muted">
                             <span>Application #</span>
                             <field name="reference" readonly="1" nolabel="1" class="oe_inline"/>
                             <span>·</span>
-                            <label for="registration_number" string="Registration ID"/>
+                            <label for="person_key" string="ETS ID"/>
+                            <field name="person_key" readonly="1" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
+                            <label for="registration_number" string="Student ID"/>
                             <field name="registration_number" readonly="1" nolabel="1" class="oe_inline"/>
                             <span>·</span>
                             <field name="course" nolabel="1" class="oe_inline"/>
@@ -103,7 +96,9 @@
                             <field name="course" required="1"/>
                             <field name="study_mode" required="1"/>
                             <field name="application_date"/>
+                            <field name="person_key" readonly="1"/>
                             <field name="registration_number" readonly="1"/>
+                            <field name="intake_year" readonly="1" options="{'enable_formatting': False}"/>
                         </group>
                         <group string="Application Status">
                             <field name="priority" widget="priority"/>
@@ -112,6 +107,10 @@
                                    invisible="state not in ('initial_review', 'pending_applicant')"/>
                             <field name="documents_with_issues" readonly="1"
                                    invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            <field name="references_incomplete_count" readonly="1"
+                                   invisible="state not in ('initial_review', 'pending_applicant')"/>
+                            <field name="exam_interview_blocked_reason" readonly="1"
+                                   invisible="state not in ('initial_review', 'pending_applicant') or can_proceed_to_exam_interview"/>
                             <field name="document_upload_url" widget="CopyClipboardChar"
                                    invisible="state != 'pending_applicant' or not document_upload_url"/>
                             <field name="document_upload_token_expiry" readonly="1"
@@ -129,15 +128,12 @@
                             <group>
                                 <group string="Personal Information">
                                     <field name="title"/>
-                                    <field name="full_name"/>
-                                    <field name="first_name" required="1"/>
-                                    <field name="middle_name"/>
-                                    <field name="last_name" required="1"/>
+                                    <field name="full_name" required="1"/>
                                     <field name="whatsapp_number" required="1"/>
                                     <field name="date_of_birth" required="1"/>
                                     <field name="gender" required="1"/>
                                     <field name="nationality"/>
-                                    <field name="age"/>
+                                    <field name="age" readonly="1"/>
                                     <field name="marital_status"/>
                                     <field name="mother_tongue"/>
                                     <field name="plan_married_during_study"/>
@@ -202,6 +198,7 @@
                                     <field name="church_denomination"/>
                                     <field name="church_ministry_type"/>
                                     <field name="is_ordained"/>
+                                    <field name="is_commended"/>
                                     <field name="church_financial_support"/>
                                     <field name="graduated_seminary_last_two_years"/>
                                     <field name="working_for_organisation"/>
@@ -228,6 +225,37 @@
                                 <field name="personal_reference_4_email"
                                        placeholder="employer@example.com"/>
                             </group>
+                            <separator string="Online reference forms"/>
+                            <field name="reference_request_ids" nolabel="1" mode="list,form">
+                                <list string="Online references"
+                                      delete="0"
+                                      decoration-success="state == 'submitted'"
+                                      decoration-muted="state == 'cancelled'"
+                                      decoration-danger="state == 'expired'">
+                                    <field name="slot"/>
+                                    <field name="reference_type"/>
+                                    <field name="email"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state == 'sent'"
+                                           decoration-success="state == 'submitted'"
+                                           decoration-warning="state == 'pending'"
+                                           decoration-danger="state == 'expired'"/>
+                                    <field name="sent_at" optional="show"/>
+                                    <field name="expires_at"/>
+                                    <field name="submitted_at"/>
+                                    <field name="referee_name" optional="hide"/>
+                                    <field name="form_url" widget="url" optional="hide"/>
+                                    <button name="action_resend" type="object"
+                                            string="Resend" icon="fa-envelope"
+                                            invisible="state == 'submitted'"/>
+                                    <button name="action_extend_expiry" type="object"
+                                            string="Extend 30d" icon="fa-calendar-plus-o"
+                                            invisible="state == 'submitted'"/>
+                                    <button name="unlink" type="object"
+                                            string="Delete" icon="fa-trash"
+                                            confirm="Are you sure you want to delete this online reference form? The referee link will stop working. This cannot be undone."/>
+                                </list>
+                            </field>
                         </page>
 
                         <page string="Academic" name="academic">
@@ -449,6 +477,16 @@
                             </group>
                             <group string="Offline Payment Upload">
                                 <field name="doc_application_fee" widget="binary"/>
+                                <div class="text-muted mb-2">
+                                    Upload the bank transfer / offline receipt, then mark the fee as paid.
+                                </div>
+                                <button name="action_mark_application_fee_paid_manual"
+                                        type="object"
+                                        string="Mark Application Fee Paid Manually"
+                                        class="btn-primary"
+                                        icon="fa-check"
+                                        confirm="Mark this application fee as paid based on an offline payment (not Razorpay)?"
+                                        invisible="application_fee_paid or payment_successful"/>
                             </group>
                         </page>
 
@@ -552,6 +590,7 @@
                   decoration-danger="state == 'admission_denied'"
                   decoration-warning="state == 'pending_applicant'">
                 <field name="reference"/>
+                <field name="person_key" optional="show"/>
                 <field name="registration_number" optional="show"/>
                 <field name="name"/>
                 <field name="course"/>
@@ -646,6 +685,67 @@
             <p class="o_view_nocontent_smiling_face">
                 No admission applications yet.
             </p>
+        </field>
+    </record>
+
+
+    <record id="view_school_admission_reference_request_form" model="ir.ui.view">
+        <field name="name">school.admission.reference.request.form</field>
+        <field name="model">school.admission.reference.request</field>
+        <field name="arch" type="xml">
+            <form string="Online Reference">
+                <header>
+                    <button name="action_resend" type="object" string="Resend Email"
+                            class="btn-primary" invisible="state == 'submitted'"/>
+                    <button name="action_extend_expiry" type="object" string="Extend Expiry 30 Days"
+                            invisible="state == 'submitted'"/>
+                    <button name="action_cancel" type="object" string="Cancel Link"
+                            invisible="state in ('submitted', 'cancelled')"/>
+                    <button name="unlink" type="object" string="Delete"
+                            class="btn-danger"
+                            confirm="Are you sure you want to delete this online reference form? The referee link will stop working. This cannot be undone."/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="pending,sent,submitted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Request">
+                            <field name="admission_id"/>
+                            <field name="slot"/>
+                            <field name="reference_type"/>
+                            <field name="email"/>
+                            <field name="name_hint"/>
+                            <field name="form_url" widget="url"/>
+                            <field name="token" groups="base.group_no_one"/>
+                        </group>
+                        <group string="Timing">
+                            <field name="sent_at"/>
+                            <field name="expires_at"/>
+                            <field name="submitted_at"/>
+                        </group>
+                    </group>
+                    <group string="Submitted answers" invisible="state != 'submitted'">
+                        <group>
+                            <field name="referee_name"/>
+                            <field name="relationship"/>
+                            <field name="address"/>
+                            <field name="phone"/>
+                            <field name="answer_email"/>
+                            <field name="known_how_long"/>
+                            <field name="signature_name"/>
+                            <field name="signature_date"/>
+                        </group>
+                        <group>
+                            <field name="character_integrity"/>
+                            <field name="commitment"/>
+                            <field name="strengths"/>
+                            <field name="growth_areas"/>
+                            <field name="reservations"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
         </field>
     </record>
 

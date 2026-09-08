@@ -32,7 +32,7 @@ class SchoolCanvasSyncRun(models.Model):
     ], default='running', required=True)
     summary = fields.Text(string='Summary')
     terms_synced = fields.Integer()
-    classes_synced = fields.Integer()
+    classes_synced = fields.Integer(string='Courses Synced')
     enrollments_synced = fields.Integer()
     teachers_assigned = fields.Integer()
     issues_open = fields.Integer()
@@ -130,7 +130,7 @@ class SchoolCanvasSync(models.AbstractModel):
             fields.Datetime.now(),
         )
         summary = _(
-            'Terms: %(terms)s. Classes: %(classes)s. '
+            'Terms: %(terms)s. Courses: %(classes)s. '
             'Student enrollments: %(enrollments)s. Teachers assigned: %(teachers)s. '
             'Open issues: %(issues)s.',
             terms=len(terms),
@@ -373,7 +373,7 @@ class SchoolCanvasSync(models.AbstractModel):
                 class_id=school_class.id,
                 teacher_id=extra_teacher.id if extra_teacher else False,
                 message=extra_detail or _(
-                    'Odoo classes have one teacher. This additional Canvas teacher was not assigned.',
+                    'Odoo courses have one teacher. This additional Canvas teacher was not assigned.',
                 ),
             )
         return bool(teacher)

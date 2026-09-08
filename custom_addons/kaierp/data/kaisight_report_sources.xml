@@ -47,7 +47,7 @@
 
         <record id="report_source_enrollments" model="kai.view.report.source">
             <field name="name">Enrollments</field>
-            <field name="description">Class enrollments and academic year records</field>
+            <field name="description">Course enrollments and academic year records</field>
             <field name="sequence">30</field>
             <field name="icon">fa-list-alt</field>
             <field name="model_id" ref="model_school_enrollment"/>
@@ -63,8 +63,8 @@
         </record>
 
         <record id="report_source_classes" model="kai.view.report.source">
-            <field name="name">Classes</field>
-            <field name="description">Academic classes and schedules</field>
+            <field name="name">Courses</field>
+            <field name="description">Academic courses and schedules</field>
             <field name="sequence">40</field>
             <field name="icon">fa-university</field>
             <field name="model_id" ref="model_school_class"/>

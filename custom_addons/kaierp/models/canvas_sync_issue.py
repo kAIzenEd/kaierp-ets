@@ -35,7 +35,7 @@ class SchoolCanvasSyncIssue(models.Model):
 
     student_id = fields.Many2one('school.student', string='Link Student', ondelete='set null')
     teacher_id = fields.Many2one('school.teacher', string='Link Teacher', ondelete='set null')
-    class_id = fields.Many2one('school.class', string='Class', ondelete='set null')
+    class_id = fields.Many2one('school.class', string='Course', ondelete='set null')
 
     @api.depends('issue_type', 'canvas_user_name', 'canvas_course_name')
     def _compute_display_name(self):

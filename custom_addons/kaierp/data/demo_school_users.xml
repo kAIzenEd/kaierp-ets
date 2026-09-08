@@ -180,8 +180,7 @@
 
         <!-- Linked student profile for portal own-record rule -->
         <record id="demo_school_student" model="school.student">
-            <field name="first_name">Demo</field>
-            <field name="last_name">Student</field>
+            <field name="full_name">Demo Student</field>
             <field name="student_id">DEMO-STU-001</field>
             <field name="date_of_birth">2000-01-15</field>
             <field name="gender">female</field>

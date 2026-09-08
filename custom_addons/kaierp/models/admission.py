@@ -3,7 +3,7 @@ import base64
 import logging
 import re
 import secrets
-from datetime import timedelta
+from datetime import date, timedelta
 
 from markupsafe import Markup, escape
 
@@ -37,10 +37,6 @@ class SchoolAdmission(models.Model):
         ('doc_change_of_name', 'Change of Name Affidavit'),
         ('doc_marriage_certificate', 'Marriage Certificate'),
         ('doc_church_recommendation', 'Church Recommendation Letter'),
-        ('doc_reference_form_1', 'Reference Form 1'),
-        ('doc_reference_form_2', 'Reference Form 2'),
-        ('doc_reference_form_3', 'Reference Form 3'),
-        ('doc_reference_form_4_employer', 'Reference Form 4 (Employer)'),
         ('doc_finance_assurance', 'Finance Assurance Form'),
         ('doc_financial_guarantee', 'Financial Guarantee Letter'),
         ('doc_conduct_seminary', 'Conduct Certificate (Seminary)'),
@@ -82,9 +78,18 @@ class SchoolAdmission(models.Model):
     application_date = fields.Date(
         string='Application Date', default=fields.Date.today, tracking=True,
     )
+    person_key = fields.Char(
+        string='ETS ID', copy=False, index=True, readonly=True,
+        help='Permanent person key (e.g. ETS-000001). Never changes when the program or Student ID changes.',
+    )
     registration_number = fields.Char(
-        string='Registration #', copy=False, index=True, readonly=True,
-        help='ETS registration number assigned when the application is received (e.g. 2026MDIV001).',
+        string='Student ID', copy=False, index=True, readonly=True,
+        help='Official Student ID for the current program, assigned only at acceptance '
+             '(e.g. 27MTH001). May change if the student changes programs.',
+    )
+    intake_year = fields.Integer(
+        string='Intake Year', copy=False, readonly=True,
+        help='Four-digit intake year locked at acceptance and kept for the student’s whole time at ETS.',
     )
 
     # ── Academic choice ───────────────────────────────────────
@@ -95,6 +100,8 @@ class SchoolAdmission(models.Model):
         ('mdiv', 'Master of Divinity (MDIV)'),
         ('macc', 'Master of Arts in Christian Counselling (MACC)'),
         ('mth', 'Master of Theology (MTH)'),
+        ('dmin', 'Doctor of Ministry (D.Min)'),
+        ('bth', 'Bachelor of Theology (B.Th)'),
     ], string='Course', required=True, tracking=True)
     study_mode = fields.Selection([
         ('online', 'Online'),
@@ -112,14 +119,10 @@ class SchoolAdmission(models.Model):
         ('professor', 'Professor'),
     ], string='Title')
     full_name = fields.Char(
-        string='Full Name (as on X / XII certificates)',
+        string='Full Name',
         tracking=True,
-        help='Source of truth from the website form. First/last are kept for '
-             'compatibility when the site splits fullName.',
+        required=True,
     )
-    first_name = fields.Char(string='First Name', required=True, tracking=True)
-    middle_name = fields.Char(string='Middle Name')
-    last_name = fields.Char(string='Last Name', required=True, tracking=True)
     name = fields.Char(
         string='Applicant Name', compute='_compute_name', store=True, readonly=True,
         tracking=True,
@@ -131,7 +134,9 @@ class SchoolAdmission(models.Model):
         ('female', 'Female'),
     ], required=True, tracking=True)
     nationality = fields.Many2one('res.country', string='Nationality')
-    age = fields.Integer(string='Age')
+    age = fields.Integer(
+        string='Age', compute='_compute_age', store=True, readonly=True,
+    )
     marital_status = fields.Selection([
         ('single', 'Single'),
         ('married', 'Married'),
@@ -210,6 +215,10 @@ class SchoolAdmission(models.Model):
     ], string='Church Denomination')
     church_ministry_type = fields.Text(string='Church Ministry Involvement')
     is_ordained = fields.Selection([('yes', 'Yes'), ('no', 'No')], string='Ordained?')
+    is_commended = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string='Commended?',
+        help='Church commendation / recommendation for study.',
+    )
     church_financial_support = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')], string='Church Financial Support?',
     )
@@ -229,6 +238,10 @@ class SchoolAdmission(models.Model):
     personal_reference_2_email = fields.Char(string='Personal Reference 2 Email')
     personal_reference_3_email = fields.Char(string='Personal Reference 3 Email')
     personal_reference_4_email = fields.Char(string='Reference 4 (Employer) Email')
+    reference_request_ids = fields.One2many(
+        'school.admission.reference.request', 'admission_id',
+        string='Online Reference Forms',
+    )
 
     # ── Academic / professional qualification ─────────────────
     class_x_month_year = fields.Char(string='Class X Month & Year of Completion')
@@ -517,6 +530,18 @@ class SchoolAdmission(models.Model):
     documents_pending_review = fields.Integer(
         compute='_compute_document_review_counts', string='Documents Pending Review',
     )
+    references_incomplete_count = fields.Integer(
+        compute='_compute_exam_interview_gate',
+        string='References Not Submitted',
+    )
+    can_proceed_to_exam_interview = fields.Boolean(
+        compute='_compute_exam_interview_gate',
+        string='Can Proceed to Exam & Interview',
+    )
+    exam_interview_blocked_reason = fields.Char(
+        compute='_compute_exam_interview_gate',
+        string='Exam & Interview Blocked Because',
+    )
     document_upload_token = fields.Char(
         string='Document Upload Token', copy=False, index=True, readonly=True,
     )
@@ -633,14 +658,22 @@ class SchoolAdmission(models.Model):
                         'Exam accommodation is limited to %s nights maximum.',
                     ) % self.EXAM_ACCOMMODATION_MAX_NIGHTS)
 
-    @api.depends('full_name', 'first_name', 'middle_name', 'last_name')
+    @api.depends('full_name')
     def _compute_name(self):
         for rec in self:
-            if rec.full_name:
-                rec.name = rec.full_name.strip()
-            else:
-                parts = [p for p in (rec.first_name, rec.middle_name, rec.last_name) if p]
-                rec.name = ' '.join(parts)
+            rec.name = (rec.full_name or '').strip()
+
+    @api.depends('date_of_birth')
+    def _compute_age(self):
+        today = date.today()
+        for rec in self:
+            dob = rec.date_of_birth
+            if not dob:
+                rec.age = 0
+                continue
+            rec.age = today.year - dob.year - (
+                (today.month, today.day) < (dob.month, dob.day)
+            )
 
     @api.depends('document_review_ids.is_verified', 'document_review_ids.has_issue')
     def _compute_document_review_counts(self):
@@ -652,6 +685,38 @@ class SchoolAdmission(models.Model):
                 rec.document_review_ids.filtered(
                     lambda d: not d.is_verified and not d.has_issue,
                 ),
+            )
+
+    @api.depends(
+        'document_review_ids.is_verified',
+        'document_review_ids.has_issue',
+        'reference_request_ids.state',
+    )
+    def _compute_exam_interview_gate(self):
+        for rec in self:
+            incomplete_refs = rec.reference_request_ids.filtered(
+                lambda r: r.state not in ('submitted', 'cancelled'),
+            )
+            rec.references_incomplete_count = len(incomplete_refs)
+            blockers = []
+            if rec.documents_pending_review:
+                blockers.append(_(
+                    '%s document(s) still need verification',
+                    rec.documents_pending_review,
+                ))
+            if rec.documents_with_issues:
+                blockers.append(_(
+                    '%s document(s) have unresolved issues',
+                    rec.documents_with_issues,
+                ))
+            if incomplete_refs:
+                blockers.append(_(
+                    '%s online reference form(s) not submitted yet',
+                    len(incomplete_refs),
+                ))
+            rec.can_proceed_to_exam_interview = not blockers
+            rec.exam_interview_blocked_reason = (
+                '; '.join(blockers) if blockers else False
             )
 
     @api.depends('document_upload_token')
@@ -708,10 +773,34 @@ class SchoolAdmission(models.Model):
         'mdiv': 'MDIV',
         'macc': 'MACC',
         'mth': 'MTH',
+        'dmin': 'DMIN',
+        'bth': 'BTH',
     }
 
     @api.model
+    def _configured_registration_year(self):
+        """Return the Settings intake year when set, else None."""
+        raw = (
+            self.env['ir.config_parameter'].sudo()
+            .get_param('kaierp.admission_registration_year', '')
+            or ''
+        ).strip()
+        if raw.isdigit() and len(raw) == 4:
+            year = int(raw)
+            if 2000 <= year <= 2100:
+                return year
+        return None
+
+    @api.model
     def _registration_year_from_vals(self, vals, record=None):
+        """Year for Registration / Student IDs.
+
+        Prefer Settings → Admission Registration Year when configured,
+        otherwise the application date year, otherwise today.
+        """
+        configured = self._configured_registration_year()
+        if configured is not None:
+            return configured
         record = record or self
         app_date = vals.get('application_date')
         if app_date:
@@ -723,25 +812,60 @@ class SchoolAdmission(models.Model):
         return fields.Date.today().year
 
     @api.model
+    def _year_prefix(self, year):
+        """Two-digit year used in Student IDs (2027 → 27)."""
+        return f'{int(year) % 100:02d}'
+
+    @api.model
+    def _used_registration_numbers(self, prefix):
+        """All Student IDs ever issued with this prefix (admissions, students, history)."""
+        numbers = set()
+        like = f'{prefix}%'
+        for model, field in (
+            ('school.admission', 'registration_number'),
+            ('school.student', 'student_id'),
+            ('school.student.number.history', 'student_number'),
+        ):
+            if model not in self.env:
+                continue
+            for value in self.env[model].sudo().search([(field, '=like', like)]).mapped(field):
+                if value:
+                    numbers.add(value)
+        return numbers
+
+    @api.model
     def _next_registration_number(self, course, year, counters):
         code = self.COURSE_REG_CODES.get(course, (course or '').upper())
-        prefix = f'{year}{code}'
+        prefix = f'{self._year_prefix(year)}{code}'
         if prefix not in counters:
-            existing = self.search([('registration_number', '=like', f'{prefix}%')])
             max_seq = 0
-            for rec in existing:
-                suffix = (rec.registration_number or '')[len(prefix):]
+            for number in self._used_registration_numbers(prefix):
+                suffix = number[len(prefix):]
                 if suffix.isdigit():
                     max_seq = max(max_seq, int(suffix))
             counters[prefix] = max_seq
         counters[prefix] += 1
         return f'{prefix}{counters[prefix]:03d}'
 
+    def _assign_person_key(self):
+        """Permanent ETS-###### key — assigned when the application is created."""
+        Sequence = self.env['ir.sequence']
+        for rec in self:
+            if rec.person_key:
+                continue
+            key = Sequence.next_by_code('school.person.key')
+            if not key:
+                key = 'ETS-%06d' % rec.id
+            rec.person_key = key
+
     def _assign_registration_number(self):
+        """Official Student ID — only call at acceptance (not on application create)."""
         for rec in self:
             if rec.registration_number or not rec.course:
                 continue
-            year = rec._registration_year_from_vals({}, record=rec)
+            year = rec.intake_year or rec._registration_year_from_vals({}, record=rec)
+            if not rec.intake_year:
+                rec.intake_year = year
             rec.registration_number = rec._next_registration_number(
                 rec.course, year, {},
             )
@@ -754,7 +878,7 @@ class SchoolAdmission(models.Model):
             if not admission.email:
                 continue
             partner = Partner.find_or_create_school_billing_partner(
-                record_ref=admission.registration_number,
+                record_ref=admission.person_key or admission.registration_number,
                 name=admission.name or admission.email,
                 email=admission.email,
                 phone=(
@@ -893,7 +1017,11 @@ class SchoolAdmission(models.Model):
             raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.send_mail(
+                self.id,
+                force_send=True,
+                email_values=self._admission_mail_email_values(),
+            )
         else:
             self.message_post(
                 body=_(
@@ -948,6 +1076,29 @@ class SchoolAdmission(models.Model):
                 'sticky': False,
             },
         }
+
+    def action_mark_application_fee_paid_manual(self):
+        """Mark application fee paid for offline / non-Razorpay payments."""
+        for admission in self:
+            if admission.application_fee_paid or admission.payment_successful:
+                raise ValidationError(_(
+                    'Application fee is already marked as paid for %s.',
+                    admission.display_name,
+                ))
+            vals = {
+                'application_fee_paid': True,
+                'payment_successful': True,
+                'payment_status': 'paid',
+                'payment_provider': admission.payment_provider or 'offline',
+                'payment_method': admission.payment_method or 'offline',
+            }
+            if not admission.payment_currency:
+                vals['payment_currency'] = 'INR'
+            admission.write(vals)
+            admission.message_post(
+                body=_('Application fee marked as paid manually (offline payment).'),
+            )
+        return True
 
     def action_mark_exam_accommodation_paid(self):
         """Mark accommodation as paid manually (e.g. bank transfer with receipt)."""
@@ -1029,10 +1180,11 @@ class SchoolAdmission(models.Model):
                     'school.admission',
                 ) or _('New')
         records = super().create(vals_list)
-        records._assign_registration_number()
+        records._assign_person_key()
+        records._ensure_applicant_partner()
         records._ensure_document_reviews()
         records._register_application_fee_accounting_if_paid()
-        records._send_new_admission_emails()
+        records._schedule_new_admission_emails()
         return records
 
     def write(self, vals):
@@ -1080,11 +1232,61 @@ class SchoolAdmission(models.Model):
         ),
     )
 
+    def _schedule_new_admission_emails(self):
+        """Send admission emails after the DB transaction commits successfully."""
+        admission_ids = list(self.ids)
+        if not admission_ids:
+            return
+        dbname = self.env.cr.dbname
+        context = dict(self.env.context or {})
+
+        def _run_after_commit():
+            from odoo import SUPERUSER_ID, api
+            registry = self.env.registry
+            with registry.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, context)
+                admissions = env['school.admission'].browse(admission_ids).exists()
+                if admissions:
+                    admissions._send_new_admission_emails()
+
+        self.env.cr.postcommit.add(_run_after_commit)
+
+    @api.model
+    def _admission_outgoing_email_from(self):
+        """From address for automated admission emails.
+
+        Website submissions run as the integration user, not an admin mailbox.
+        Odoo may otherwise pick notifications@<catchall-domain> as the sender.
+        """
+        custom = self.env['ir.config_parameter'].sudo().get_param(
+            'kaierp.admission_outgoing_email',
+        )
+        if custom:
+            return custom.strip()
+        return (self.env.company.email or 'odoo@acaindia.org').strip()
+
+    def _admission_mail_email_values(self, extra=None):
+        values = {'email_from': self._admission_outgoing_email_from()}
+        if extra:
+            values.update(extra)
+        return values
+
     def _send_new_admission_emails(self):
-        self._notify_registrar_new_admission()
-        self._notify_applicant_application_received()
-        self._notify_personal_references()
-        self._notify_registrars_inbox()
+        """Send admission notifications; never block record creation on mail errors."""
+        steps = (
+            ('registrar email', self._notify_registrar_new_admission),
+            ('applicant email', self._notify_applicant_application_received),
+            ('reference emails', self._notify_personal_references),
+            ('registrar inbox', self._notify_registrars_inbox),
+        )
+        for label, method in steps:
+            try:
+                method()
+            except Exception:
+                _logger.exception(
+                    'Admission notification failed (%s) for records %s',
+                    label, self.ids,
+                )
 
     def _get_reference_form_attachment(self, module_relative_path, filename):
         """Load a blank reference PDF from the module and store as an attachment."""
@@ -1112,49 +1314,13 @@ class SchoolAdmission(models.Model):
         return '[ETS-REF:ID:%s-R%s]' % (self.id, int(slot))
 
     def _notify_personal_references(self):
-        """Email each personal reference with the matching blank PDF form."""
-        template = self.env.ref(
-            'kaierp.email_template_admission_reference_request',
-            raise_if_not_found=False,
-        )
-        if not template:
-            _logger.warning('Reference request email template not found.')
-            return
-
+        """Create tokenized online reference requests and email each referee."""
+        Request = self.env['school.admission.reference.request']
         for admission in self:
-            sent = []
-            applicant = admission.full_name or admission.name or ''
-            for email_field, pdf_path, pdf_name, slot, _doc_field in self._REFERENCE_FORM_PDFS:
-                email = (admission[email_field] or '').strip()
-                if not email:
-                    continue
-                attachment = admission._get_reference_form_attachment(pdf_path, pdf_name)
-                token = admission._reference_reply_token(slot)
-                email_values = {
-                    'email_to': email,
-                    'reply_to': 'ets@acaindia.org',
-                    'subject': _(
-                        'Reference Request — %(name)s %(token)s | ETS-ACA',
-                        name=applicant,
-                        token=token,
-                    ),
-                }
-                if attachment:
-                    email_values['attachment_ids'] = [(6, 0, attachment.ids)]
-                template.with_context(skip_reference_reply_ingest=True).send_mail(
-                    admission.id,
-                    force_send=True,
-                    email_values=email_values,
-                )
-                sent.append('%s (R%s)' % (email, slot))
-
-            if sent:
-                admission.message_post(
-                    body=_(
-                        'Reference request emails sent to: %s',
-                    ) % ', '.join(sent),
-                    message_type='notification',
-                )
+            created = Request.create_for_admission(admission)
+            to_send = created.filtered(lambda r: r.state in ('pending', 'sent', 'expired'))
+            if to_send:
+                to_send.action_send_email()
 
     def _extract_email_address(self, email_from):
         if not email_from:
@@ -1383,7 +1549,9 @@ class SchoolAdmission(models.Model):
             template.send_mail(
                 admission.id,
                 force_send=True,
-                email_values={'email_to': registrar_email},
+                email_values=admission._admission_mail_email_values({
+                    'email_to': registrar_email,
+                }),
             )
 
     def _notify_applicant_application_received(self):
@@ -1391,11 +1559,26 @@ class SchoolAdmission(models.Model):
             'kaierp.email_template_admission_received_applicant', raise_if_not_found=False,
         )
         if not template:
+            _logger.warning('Applicant confirmation email template missing.')
             return
         for admission in self:
-            if not admission.email:
+            applicant_email = (admission.email or '').strip()
+            if not applicant_email:
                 continue
-            template.send_mail(admission.id, force_send=True)
+            template.sudo().send_mail(
+                admission.id,
+                force_send=True,
+                email_values=admission._admission_mail_email_values({
+                    'email_to': applicant_email,
+                }),
+            )
+            admission.message_post(
+                body=_(
+                    'Application received confirmation emailed to %(email)s.',
+                    email=applicant_email,
+                ),
+                message_type='notification',
+            )
 
     def action_view_student(self):
         self.ensure_one()
@@ -1469,7 +1652,11 @@ class SchoolAdmission(models.Model):
         for admission in self:
             if not admission.email:
                 continue
-            template.send_mail(admission.id, force_send=True)
+            template.send_mail(
+                admission.id,
+                force_send=True,
+                email_values=admission._admission_mail_email_values(),
+            )
 
     def _notify_registrars_document_resubmitted(self, uploaded_labels):
         """Inbox note for registrar users when applicant uploads documents."""
@@ -1639,17 +1826,31 @@ class SchoolAdmission(models.Model):
 
     def action_move_to_exam_interview(self):
         self._check_state('initial_review', 'pending_applicant')
-        unverified = self.document_review_ids.filtered(
-            lambda d: not d.is_verified and not d.has_issue,
-        )
-        if unverified:
-            raise ValidationError(_(
-                'Verify every document (checkmark) or mark an issue before proceeding.',
-            ))
-        if self.document_review_ids.filtered('has_issue'):
-            raise ValidationError(_(
-                'Resolve document issues or request applicant response before proceeding.',
-            ))
+        for admission in self:
+            unverified = admission.document_review_ids.filtered(
+                lambda d: not d.is_verified and not d.has_issue,
+            )
+            if unverified:
+                raise ValidationError(_(
+                    'Verify every document (checkmark) or mark an issue before proceeding.',
+                ))
+            if admission.document_review_ids.filtered('has_issue'):
+                raise ValidationError(_(
+                    'Resolve document issues or request applicant response before proceeding.',
+                ))
+            incomplete_refs = admission.reference_request_ids.filtered(
+                lambda r: r.state not in ('submitted', 'cancelled'),
+            )
+            if incomplete_refs:
+                details = ', '.join(
+                    'R%s (%s)' % (r.slot, r.email or r.reference_type)
+                    for r in incomplete_refs.sorted('slot')
+                )
+                raise ValidationError(_(
+                    'All online reference forms must be submitted before '
+                    'proceeding to exam & interview. Still waiting on: %s',
+                    details,
+                ))
         self._invalidate_document_upload_token()
         self.write({'state': 'pending_exam_interview'})
 
@@ -1682,7 +1883,7 @@ class SchoolAdmission(models.Model):
 
     # Fields copied from admission → student (excludes exam accommodation & workflow).
     _ADMISSION_TO_STUDENT_FIELDS = (
-        'title', 'full_name', 'first_name', 'middle_name', 'last_name',
+        'title', 'full_name',
         'course', 'study_mode',
         'whatsapp_number', 'date_of_birth', 'gender', 'nationality', 'age',
         'marital_status', 'plan_married_during_study',
@@ -1691,7 +1892,7 @@ class SchoolAdmission(models.Model):
         'has_different_physical_address', 'physical_address',
         'emergency_title', 'emergency_name', 'emergency_relationship', 'emergency_mobile',
         'church_name', 'church_location', 'church_denomination', 'church_ministry_type',
-        'is_ordained', 'church_financial_support', 'graduated_seminary_last_two_years',
+        'is_ordained', 'is_commended', 'church_financial_support', 'graduated_seminary_last_two_years',
         'working_for_organisation',
         'personal_reference_1', 'personal_reference_2', 'personal_reference_3',
         'personal_reference_4',
@@ -1745,11 +1946,18 @@ class SchoolAdmission(models.Model):
             else:
                 vals[fname] = value
 
+        if not vals.get('full_name') and self.name:
+            vals['full_name'] = self.name.strip()
+
         if include_student_meta:
             academic_year = (
-                str(self.application_date.year)
-                if self.application_date
-                else str(fields.Date.today().year)
+                str(self.intake_year)
+                if self.intake_year
+                else (
+                    str(self.application_date.year)
+                    if self.application_date
+                    else str(fields.Date.today().year)
+                )
             )
             vals.update({
                 'admission_id': self.id,
@@ -1757,6 +1965,10 @@ class SchoolAdmission(models.Model):
                 'admission_date': fields.Date.today(),
                 'state': 'active',
             })
+            if self.person_key:
+                vals['person_key'] = self.person_key
+            if self.intake_year:
+                vals['intake_year'] = self.intake_year
             if self.registration_number:
                 vals['student_id'] = self.registration_number
             if self.partner_id:
@@ -1778,10 +1990,20 @@ class SchoolAdmission(models.Model):
             ))
         if self.student_id:
             raise ValidationError(_('A student record already exists for this applicant.'))
+        if not self.person_key:
+            self._assign_person_key()
+        if not self.intake_year:
+            self.intake_year = self._registration_year_from_vals({}, record=self)
         if not self.registration_number:
             self._assign_registration_number()
 
         student = self.env['school.student'].create(self._prepare_student_vals())
+        student._record_student_id_history(
+            course=student.course,
+            student_number=student.student_id,
+            intake_year=student.intake_year,
+            notes=_('Assigned at acceptance'),
+        )
 
         self.write({
             'student_id': student.id,
@@ -1792,14 +2014,20 @@ class SchoolAdmission(models.Model):
         })
 
         student.message_post(
-            body=_('Student created from admission application %s') % self.reference,
+            body=_('Student created from admission application %s (ETS ID %s, Student ID %s)') % (
+                self.reference, self.person_key or '', self.registration_number or '',
+            ),
         )
 
         template = self.env.ref(
             'kaierp.email_template_admission_approved', raise_if_not_found=False,
         )
         if template:
-            template.send_mail(self.id, force_send=True)
+            template.send_mail(
+                self.id,
+                force_send=True,
+                email_values=self._admission_mail_email_values(),
+            )
 
         return {
             'type': 'ir.actions.act_window',

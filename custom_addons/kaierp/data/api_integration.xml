@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <!-- noupdate=1: first install only. Never overwrite production settings on upgrade.
+         Admission webhook secret is NOT seeded here — set it once in
+         kAI-ERP → Settings (or Technical → System Parameters:
+         kaierp.admission_webhook_secret) to match the website ODOO_WEBHOOK_SECRET. -->
+    <data noupdate="1">
 
         <!-- Allow API key generation for integration users -->
         <record id="base_enable_programmatic_api_keys" model="ir.config_parameter">
@@ -8,10 +12,10 @@
             <field name="value">True</field>
         </record>
 
-        <!-- Shared secret for Railway → Odoo (set your own value in production) -->
-        <record id="kaierp_admission_webhook_secret" model="ir.config_parameter">
-            <field name="key">kaierp.admission_webhook_secret</field>
-            <field name="value">change-me-ets-admission-webhook</field>
+        <!-- Public website base used in referee emails (online reference forms) -->
+        <record id="kaierp_public_admissions_base_url" model="ir.config_parameter">
+            <field name="key">kaierp.public_admissions_base_url</field>
+            <field name="value">https://apply.ets-india.org</field>
         </record>
 
         <!-- Dedicated user for website → Odoo integration -->

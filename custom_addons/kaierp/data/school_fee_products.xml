@@ -235,5 +235,141 @@
             <field name="description">Refundable general caution deposit for family students.</field>
         </record>
 
+        <!-- Extra catalog lines used by ACAWEB historical fee import -->
+        <record id="product_exam_fee" model="product.template">
+            <field name="name">Exam Fee</field>
+            <field name="default_code">ETS-EXAM</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">exam_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Examination fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_thesis_fee" model="product.template">
+            <field name="name">Thesis Fee</field>
+            <field name="default_code">ETS-THESIS</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">thesis_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Thesis fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_dissertation_fee" model="product.template">
+            <field name="name">Dissertation Fee</field>
+            <field name="default_code">ETS-DISS</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">dissertation_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Dissertation fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_graduation_fee" model="product.template">
+            <field name="name">Graduation Fee</field>
+            <field name="default_code">ETS-GRAD</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">graduation_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Graduation fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_continuation_fee" model="product.template">
+            <field name="name">Continuation Fee</field>
+            <field name="default_code">ETS-CONT</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">continuation_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Continuation fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_transcript_fee" model="product.template">
+            <field name="name">Transcript Fee</field>
+            <field name="default_code">ETS-TRANS</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">transcript_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Transcript fee (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_other_fee" model="product.template">
+            <field name="name">Other Fees</field>
+            <field name="default_code">ETS-OTHER</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">other_fee</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Miscellaneous / other fees (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_previous_dues" model="product.template">
+            <field name="name">Previous Dues</field>
+            <field name="default_code">ETS-PREV</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">previous_dues</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Brought-forward previous dues (historical ACAWEB import).</field>
+        </record>
+
+        <record id="product_fine" model="product.template">
+            <field name="name">Fine</field>
+            <field name="default_code">ETS-FINE</field>
+            <field name="type">service</field>
+            <field name="categ_id" ref="product_category_ets_fees"/>
+            <field name="list_price">0.00</field>
+            <field name="sale_ok" eval="True"/>
+            <field name="purchase_ok" eval="False"/>
+            <field name="is_ets_fee" eval="True"/>
+            <field name="ets_fee_code">fine</field>
+            <field name="billing_unit">fixed</field>
+            <field name="default_quantity">1</field>
+            <field name="description">Fine / penalty (historical ACAWEB import).</field>
+        </record>
+
     </data>
 </odoo>

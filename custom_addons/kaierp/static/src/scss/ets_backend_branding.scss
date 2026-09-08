@@ -1,0 +1,29 @@
+// Backend top bar — ETS navy across all installed apps (kaierp, kaisight, etc.).
+$o-ets-navy: #0f1035;
+
+.o_main_navbar {
+    --NavBar-entry-color: rgba(255, 255, 255, 0.88);
+    --NavBar-entry-color--hover: #ffffff;
+    --NavBar-entry-color--active: #ffffff;
+    --NavBar-entry-backgroundColor: #{$o-ets-navy};
+    --NavBar-entry-backgroundColor--hover: rgba(255, 255, 255, 0.12);
+    --NavBar-entry-backgroundColor--focus: rgba(255, 255, 255, 0.12);
+    --NavBar-entry-backgroundColor--active: rgba(255, 255, 255, 0.18);
+    --NavBar-brand-color: #ffffff;
+
+    background: $o-ets-navy !important;
+    border-bottom-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.o_main_navbar .o_menu_sections .o_nav_entry,
+.o_main_navbar .o_menu_sections .dropdown-toggle,
+.o_main_navbar .o_nav_entry,
+.o_main_navbar .dropdown-toggle:not(.o-dropdown-toggle-custo) {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.o_main_navbar .o_menu_brand,
+.o_main_navbar .o_navbar_breadcrumbs,
+.o_main_navbar .o_navbar_breadcrumbs .btn {
+    color: #ffffff;
+}

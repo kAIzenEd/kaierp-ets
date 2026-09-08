@@ -6,7 +6,7 @@ class SchoolTakeAttendanceWizard(models.TransientModel):
     _name = 'school.take.attendance.wizard'
     _description = 'Take Attendance — Choose Date'
 
-    class_id = fields.Many2one('school.class', string='Class', required=True, ondelete='cascade')
+    class_id = fields.Many2one('school.class', string='Course', required=True, ondelete='cascade')
     date = fields.Date(string='Session Date', required=True, default=fields.Date.context_today)
 
 

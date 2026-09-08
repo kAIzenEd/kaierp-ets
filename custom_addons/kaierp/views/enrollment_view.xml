@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_school_enrollment_list" model="ir.ui.view">
+        <field name="name">school.enrollment.list</field>
+        <field name="model">school.enrollment</field>
+        <field name="arch" type="xml">
+            <list string="Enrollments" multi_edit="1">
+                <field name="student_id"/>
+                <field name="class_id"/>
+                <field name="academic_year"/>
+                <field name="teacher_id"/>
+                <field name="enrollment_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'completed'"
+                       decoration-info="state == 'enrolled'"
+                       decoration-warning="state == 'waitlisted'"
+                       decoration-danger="state in ('dropped','failed')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_enrollment_form" model="ir.ui.view">
+        <field name="name">school.enrollment.form</field>
+        <field name="model">school.enrollment</field>
+        <field name="arch" type="xml">
+            <form string="Enrollment">
+                <header>
+                    <button name="action_complete" type="object" string="Mark Completed"
+                            invisible="state == 'completed'"/>
+                    <button name="action_drop" type="object" string="Drop"
+                            invisible="state == 'dropped'" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="enrolled,completed,dropped"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="student_id"/>
+                            <field name="class_id"/>
+                            <field name="enrollment_date"/>
+                        </group>
+                        <group>
+                            <field name="academic_year"/>
+                            <field name="teacher_id"/>
+                            <field name="grade_id"/>
+                            <field name="canvas_enrollment_id" readonly="1"
+                                   groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_it_admin"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_school_enrollment_search" model="ir.ui.view">
+        <field name="name">school.enrollment.search</field>
+        <field name="model">school.enrollment</field>
+        <field name="arch" type="xml">
+            <search string="Enrollments">
+                <field name="student_id"/>
+                <field name="class_id"/>
+                <field name="academic_year"/>
+                <filter string="Enrolled" name="enrolled" domain="[('state','=','enrolled')]"/>
+                <filter string="Completed" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="Dropped" name="dropped" domain="[('state','=','dropped')]"/>
+                <group>
+                    <filter string="Course" name="group_class" context="{'group_by':'class_id'}"/>
+                    <filter string="Student" name="group_student" context="{'group_by':'student_id'}"/>
+                    <filter string="Academic Year" name="group_year" context="{'group_by':'academic_year'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_school_enrollment" model="ir.actions.act_window">
+        <field name="name">Enrollments</field>
+        <field name="res_model">school.enrollment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_school_enrollment_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create or import course enrollments.
+            </p>
+        </field>
+    </record>
+</odoo>

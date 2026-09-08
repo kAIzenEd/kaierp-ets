@@ -7,18 +7,36 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="kAI-ERP" string="kAI-ERP" name="kaierp" groups="kaierp.group_school_manager,kaierp.group_school_it_admin">
+                <app data-string="kAI-ERP" string="kAI-ERP" name="kaierp"
+                     groups="kaierp.group_school_manager,kaierp.group_school_it_admin,kaierp.group_school_registrar,kaierp.group_school_secretary">
                     <block title="Admissions" name="kaierp_admissions">
+                        <setting string="Admission Registration Year"
+                                 help="Intake year used in new Registration / Student IDs (e.g. 2027 → 2027MDIV001). Leave blank to use the application date year. Existing IDs are not changed.">
+                            <field name="admission_registration_year" placeholder="2027"/>
+                        </setting>
                         <setting string="Registrar notification email"
                                  help="An email is sent to this address whenever a new admission application is created (website or manual).">
                             <field name="admission_registrar_email" placeholder="registrar@example.org"/>
+                        </setting>
+                        <setting string="Admission outgoing email (From)"
+                                 help="From address for applicant/registrar/reference emails. Must match the Outlook mailbox (e.g. odoo@acaindia.org), especially for website submissions.">
+                            <field name="admission_outgoing_email" placeholder="odoo@acaindia.org"/>
+                        </setting>
+                        <setting string="Public admissions website URL"
+                                 help="Used in referee emails for online reference forms: {url}/references/{token}.">
+                            <field name="public_admissions_base_url" placeholder="https://apply.ets-india.org"/>
                         </setting>
                         <setting string="Document upload link validity"
                                  help="When staff request applicant response for document issues, a secure public upload link is emailed. This sets how many days the link stays valid.">
                             <field name="document_upload_token_days"/>
                         </setting>
+                        <setting string="Keep sent email logs"
+                                 help="Leave enabled so Technical → Emails shows both sent and failed messages. Odoo normally deletes successful sends automatically.">
+                            <field name="mail_keep_sent_logs"/>
+                        </setting>
                     </block>
-                    <block title="Website Integration" name="kaierp_website_integration">
+                    <block title="Website Integration" name="kaierp_website_integration"
+                           groups="kaierp.group_school_manager,kaierp.group_school_it_admin">
                         <setting string="Admission webhook secret"
                                  help="Use this value as ODOO_WEBHOOK_SECRET in Railway. Send it as the X-Webhook-Secret header when posting to /kaierp/api/admission/submit.">
                             <field name="admission_webhook_secret" password="True"/>
@@ -31,7 +49,8 @@
                             Database header: <code>X-Odoo-Database: odoo_ets</code></p>
                         </div>
                     </block>
-                    <block title="Razorpay (Payment Links)" name="kaierp_razorpay">
+                    <block title="Razorpay (Payment Links)" name="kaierp_razorpay"
+                           groups="kaierp.group_school_manager,kaierp.group_school_it_admin">
                         <setting string="API credentials"
                                  help="Same Razorpay account as your website. Used for exam accommodation payment links.">
                             <div class="content-group">
@@ -158,6 +177,6 @@
               parent="menu_school_root"
               action="action_kaierp_configuration"
               sequence="99"
-              groups="kaierp.group_school_manager,kaierp.group_school_it_admin"/>
+              groups="kaierp.group_school_manager,kaierp.group_school_it_admin,kaierp.group_school_registrar,kaierp.group_school_secretary"/>
 
 </odoo>

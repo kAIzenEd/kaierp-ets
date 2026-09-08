@@ -7,7 +7,7 @@ class SchoolBulkGradeWizard(models.TransientModel):
     _name = 'school.bulk.grade.wizard'
     _description = 'Bulk Grade Entry Wizard'
 
-    class_id = fields.Many2one('school.class', string='Class', required=True)
+    class_id = fields.Many2one('school.class', string='Course', required=True)
     assessment_type = fields.Selection([
         ('quiz', 'Quiz'), ('assignment', 'Assignment'),
         ('midterm', 'Midterm Exam'), ('final', 'Final Exam'),

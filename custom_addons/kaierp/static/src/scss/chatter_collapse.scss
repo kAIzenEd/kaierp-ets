@@ -1,0 +1,53 @@
+/* Collapse / expand the form chatter panel (kaierp) */
+
+.o_form_view {
+    position: relative;
+
+    &.kaierp_chatter_collapsed {
+        .o-mail-Form-chatter,
+        .o-mail-ChatterContainer {
+            display: none !important;
+            width: 0 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .o_form_sheet_bg {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 1 1 auto !important;
+        }
+
+        .kaierp-chatter-expand {
+            display: inline-flex;
+        }
+    }
+
+    .kaierp-chatter-expand {
+        display: none;
+        position: fixed;
+        top: 50%;
+        right: 0;
+        z-index: 1050;
+        transform: translateY(-50%);
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-top-left-radius: 0.5rem;
+        border-bottom-left-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        align-items: center;
+        gap: 0.15rem;
+        padding: 0.55rem 0.75rem;
+        writing-mode: horizontal-tb;
+    }
+}
+
+.o-mail-Chatter-topbar .kaierp-chatter-collapse {
+    opacity: 0.75;
+
+    &:hover {
+        opacity: 1;
+    }
+}

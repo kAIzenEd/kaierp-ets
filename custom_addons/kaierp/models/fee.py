@@ -13,6 +13,10 @@ class SchoolFee(models.Model):
     student_id = fields.Many2one(
         'school.student', string='Student', required=True, ondelete='cascade',
     )
+    student_number = fields.Char(
+        string='Student ID', related='student_id.student_id', store=True, readonly=True,
+        index=True,
+    )
     admission_id = fields.Many2one(
         'school.admission', string='Application', ondelete='set null',
     )
@@ -33,6 +37,11 @@ class SchoolFee(models.Model):
     quantity = fields.Float(string='Quantity', default=1.0, required=True)
     unit_price = fields.Float(string='Unit Price', digits=(16, 2), required=True)
     academic_year = fields.Char(string='Academic Year')
+    semester = fields.Selection([
+        ('summer', 'Summer Semester'),
+        ('fall', 'Fall Semester'),
+        ('spring', 'Spring Semester'),
+    ], string='Semester', index=True)
     amount_due = fields.Float(
         string='Amount Due', compute='_compute_amounts', store=True, digits=(16, 2),
     )

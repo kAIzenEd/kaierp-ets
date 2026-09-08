@@ -6,11 +6,14 @@
         <field name="name">school.student.form</field>
         <field name="model">school.student</field>
         <field name="arch" type="xml">
-            <form string="Student Profile">
+            <form string="Student Profile" delete="0">
                 <header>
                     <button name="action_set_active"    string="Set Active"    type="object"
                             invisible="state == 'active'"
                             class="btn-primary"/>
+                    <button name="action_set_inactive" string="Mark Inactive" type="object"
+                            invisible="state not in ('active', 'on_hold', 'draft')"
+                            class="btn-secondary"/>
                     <button name="action_set_graduated" string="Mark Graduated" type="object"
                             invisible="state != 'active'"
                             class="btn-secondary"/>
@@ -19,8 +22,14 @@
                             groups="kaierp.group_school_secretary,kaierp.group_school_registrar,kaierp.group_school_manager"/>
                     <button name="action_schedule_meeting"  string="Schedule Meeting"  type="object"
                             icon="fa-calendar" class="btn-secondary"/>
+                    <button name="action_open_change_program_wizard" type="object"
+                            string="Change Program" class="btn-secondary"
+                            groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_academic_dean"/>
+                    <button name="action_delete_with_confirm" type="object"
+                            string="Delete" class="btn-secondary"
+                            groups="kaierp.group_school_manager"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="active,on_hold,graduated"/>
+                           statusbar_visible="active,inactive,graduated"/>
                 </header>
 
                 <sheet>
@@ -35,7 +44,7 @@
                         </button>
                         <button class="oe_stat_button" type="object"
                                 name="action_view_enrollments" icon="fa-book">
-                            <field string="Classes"  name="enrollment_count" widget="statinfo"/>
+                            <field string="Courses"  name="enrollment_count" widget="statinfo"/>
                         </button>
                         <button class="oe_stat_button" type="object"
                                 name="action_view_grades" icon="fa-star">
@@ -55,37 +64,25 @@
                            options="{'preview_image': 'photo'}"/>
 
                     <div class="oe_title o_admission_title o_student_title">
-                        <div class="o_admission_name_row mb-2">
-                            <label for="full_name"
-                                   string="Full Name (as on X / XII certificates)"/>
+                        <div class="o_admission_name_row o_admission_name_row--hero mb-2">
                             <field name="full_name"
-                                   placeholder="Full legal name as on certificates"
+                                   placeholder="Full legal name"
                                    nolabel="1"/>
-                        </div>
-                        <div class="o_admission_name_row d-flex flex-wrap align-items-end mb-2">
-                            <div class="o_admission_name_field">
-                                <label for="first_name" string="First Name"/>
-                                <field name="first_name" placeholder="First" nolabel="1"/>
-                            </div>
-                            <div class="o_admission_name_field o_admission_name_field--middle">
-                                <label for="middle_name" string="Middle Name"/>
-                                <field name="middle_name" placeholder="Middle" nolabel="1"/>
-                            </div>
-                            <div class="o_admission_name_field">
-                                <label for="last_name" string="Last Name"/>
-                                <field name="last_name" placeholder="Last" nolabel="1"/>
-                            </div>
                         </div>
                         <field name="name" invisible="1"/>
                         <div class="d-flex flex-wrap align-items-center gap-2 text-muted">
+                            <label for="person_key" string="ETS ID"/>
+                            <field name="person_key" readonly="1" nolabel="1" class="oe_inline"/>
+                            <span>·</span>
                             <label for="student_id" string="Student ID"/>
-                            <field name="student_id" readonly="student_id" nolabel="1" class="oe_inline"/>
+                            <field name="student_id" readonly="1" nolabel="1" class="oe_inline"/>
                             <span>·</span>
                             <field name="course" nolabel="1" class="oe_inline"/>
                             <span>·</span>
                             <field name="state" widget="badge"
                                    decoration-success="state == 'active'"
                                    decoration-warning="state == 'on_hold'"
+                                   decoration-muted="state == 'inactive'"
                                    decoration-info="state == 'graduated'"
                                    decoration-danger="state in ('expelled','transferred')"/>
                         </div>
@@ -93,13 +90,16 @@
 
                     <group>
                         <group string="Academic Choice">
+                            <field name="person_key" readonly="1"/>
+                            <field name="student_id" readonly="1"/>
+                            <field name="intake_year" readonly="1" options="{'enable_formatting': False}"/>
                             <field name="course"/>
                             <field name="study_mode"/>
                             <field name="year_of_study"/>
                             <field name="ets_campus_location"/>
                             <field name="family_quarters"/>
                             <field name="ata_number"/>
-                            <field name="class_id" string="Academic Class"/>
+                            <field name="class_id" string="Academic Course"/>
                             <field name="roll_number"/>
                             <field name="admission_id" readonly="1"/>
                             <field name="canvas_user_id" readonly="1"
@@ -117,14 +117,25 @@
                     </group>
 
                     <notebook>
+                        <page string="ID History" name="id_history"
+                              groups="kaierp.group_school_manager,kaierp.group_school_registrar,kaierp.group_school_academic_dean,kaierp.group_school_secretary">
+                            <field name="id_history_ids">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="student_number"/>
+                                    <field name="program_course"/>
+                                    <field name="intake_year" options="{'enable_formatting': False}"/>
+                                    <field name="assigned_date"/>
+                                    <field name="ended_date"/>
+                                    <field name="is_current"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Personal" name="personal">
                             <group>
                                 <group string="Personal Information">
                                     <field name="title"/>
                                     <field name="full_name"/>
-                                    <field name="first_name"/>
-                                    <field name="middle_name"/>
-                                    <field name="last_name"/>
                                     <field name="whatsapp_number" widget="phone"/>
                                     <field name="date_of_birth" required="1"/>
                                     <field name="birth_day" readonly="1"/>
@@ -132,7 +143,7 @@
                                     <field name="birth_year" readonly="1"/>
                                     <field name="gender" required="1"/>
                                     <field name="nationality"/>
-                                    <field name="age"/>
+                                    <field name="age" readonly="1"/>
                                     <field name="marital_status"/>
                                     <field name="plan_married_during_study"/>
                                 </group>
@@ -184,6 +195,7 @@
                                     <field name="church_denomination"/>
                                     <field name="church_ministry_type"/>
                                     <field name="is_ordained"/>
+                                    <field name="is_commended"/>
                                     <field name="church_financial_support"/>
                                     <field name="graduated_seminary_last_two_years"/>
                                     <field name="working_for_organisation"/>
@@ -306,8 +318,8 @@
                             </group>
                         </page>
 
-                        <page string="Classes &amp; Grades" name="academic_records">
-                            <separator string="Enrolled Classes"/>
+                        <page string="Courses &amp; Grades" name="academic_records">
+                            <separator string="Enrolled Courses"/>
                             <field name="enrollment_ids" mode="list" nolabel="1">
                                 <list string="Enrollments" editable="bottom">
                                     <field name="class_id"/>
@@ -351,6 +363,8 @@
                             <field name="fee_ids" mode="list" nolabel="1">
                                 <list string="Fees" editable="bottom">
                                     <field name="product_id"/>
+                                    <field name="academic_year" optional="show"/>
+                                    <field name="semester" optional="show"/>
                                     <field name="quantity"/>
                                     <field name="unit_price"/>
                                     <field name="amount_due" readonly="1"/>
@@ -476,12 +490,20 @@
         <field name="name">school.student.list</field>
         <field name="model">school.student</field>
         <field name="arch" type="xml">
-            <list string="Students" decoration-muted="state != 'active'"
-                  decoration-danger="state == 'expelled'">
+            <list string="Students" decoration-muted="state not in ('active', 'graduated')"
+                  decoration-danger="state == 'expelled'"
+                  delete="0">
+                <header>
+                    <button name="action_delete_with_confirm" type="object"
+                            string="Delete"
+                            groups="kaierp.group_school_manager"/>
+                </header>
                 <field name="photo"       widget="image" options="{'size': [40, 40]}"/>
+                <field name="person_key" optional="show"/>
                 <field name="student_id"/>
                 <field name="name"/>
                 <field name="course"/>
+                <field name="intake_year" optional="hide" options="{'enable_formatting': False}"/>
                 <field name="study_mode"/>
                 <field name="gender"/>
                 <field name="age"/>
@@ -493,6 +515,7 @@
                 <field name="state"
                        widget="badge"
                        decoration-success="state == 'active'"
+                       decoration-muted="state == 'inactive'"
                        decoration-info="state == 'graduated'"
                        decoration-danger="state == 'expelled'"/>
             </list>
@@ -526,11 +549,12 @@
                                 <div><field name="student_id"/> · <field name="course"/></div>
                                 <div>
                                     <span>GPA: </span><field name="gpa"/>
-                                    <span class="ms-2">Classes: </span><field name="enrollment_count"/>
+                                    <span class="ms-2">Courses: </span><field name="enrollment_count"/>
                                 </div>
                                 <div class="mt-1">
                                     <field name="state" widget="badge"
                                            decoration-success="state == 'active'"
+                                           decoration-muted="state == 'inactive'"
                                            decoration-info="state == 'graduated'"/>
                                 </div>
                             </div>
@@ -541,12 +565,68 @@
         </field>
     </record>
 
-    <!-- ─── Action ───────────────────────────────────────────────── -->
-    <record id="action_school_student" model="ir.actions.act_window">
-        <field name="name">Students</field>
+    <!-- ─── Student Search ───────────────────────────────────────── -->
+    <record id="view_school_student_search" model="ir.ui.view">
+        <field name="name">school.student.search</field>
+        <field name="model">school.student</field>
+        <field name="arch" type="xml">
+            <search string="Students">
+                <field name="name"/>
+                <field name="student_id"/>
+                <field name="person_key"/>
+                <field name="course"/>
+                <field name="ets_email"/>
+                <field name="email"/>
+                <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
+                <filter string="Inactive" name="inactive" domain="[('state', '=', 'inactive')]"/>
+                <filter string="Graduated" name="graduated" domain="[('state', '=', 'graduated')]"/>
+                <filter string="Graduated &amp; Inactive" name="former"
+                        domain="[('state', 'in', ('graduated', 'inactive'))]"/>
+                <separator/>
+                <filter string="On Hold" name="on_hold" domain="[('state', '=', 'on_hold')]"/>
+                <group>
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Course" name="group_course" context="{'group_by': 'course'}"/>
+                    <filter string="Study Mode" name="group_study_mode" context="{'group_by': 'study_mode'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ─── Actions ──────────────────────────────────────────────── -->
+    <record id="action_school_student_active" model="ir.actions.act_window">
+        <field name="name">All Active Students</field>
         <field name="res_model">school.student</field>
         <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', '=', 'active')]</field>
+        <field name="search_view_id" ref="view_school_student_search"/>
         <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No active students. Add a student or set an existing record to Active.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_school_student_former" model="ir.actions.act_window">
+        <field name="name">All Graduated and Inactive Students</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('state', 'in', ('graduated', 'inactive'))]</field>
+        <field name="search_view_id" ref="view_school_student_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No graduated or inactive students yet.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_school_student" model="ir.actions.act_window">
+        <field name="name">All Students</field>
+        <field name="res_model">school.student</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_school_student_search"/>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No students yet. Add your first student!

@@ -7,6 +7,7 @@
             <list string="Fees"
                   decoration-danger="state == 'overdue'"
                   decoration-success="state == 'paid'">
+                <field name="student_number" string="Student ID"/>
                 <field name="student_id"/>
                 <field name="product_id"/>
                 <field name="quantity"/>
@@ -15,7 +16,9 @@
                 <field name="amount_paid"/>
                 <field name="amount_balance"/>
                 <field name="academic_year"/>
+                <field name="semester"/>
                 <field name="due_date"/>
+                <field name="payment_date" optional="show"/>
                 <field name="invoice_id" optional="show"/>
                 <field name="state" widget="badge"
                        decoration-success="state == 'paid'"
@@ -23,6 +26,47 @@
                        decoration-danger="state == 'overdue'"
                        decoration-info="state == 'pending'"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_school_fee_search" model="ir.ui.view">
+        <field name="name">school.fee.search</field>
+        <field name="model">school.fee</field>
+        <field name="arch" type="xml">
+            <search string="Fees">
+                <field name="student_number" string="Student ID"/>
+                <field name="student_id"/>
+                <field name="product_id"/>
+                <field name="academic_year"/>
+                <field name="semester"/>
+                <field name="name"/>
+                <separator/>
+                <filter string="Pending" name="filter_pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Partial" name="filter_partial" domain="[('state', '=', 'partial')]"/>
+                <filter string="Paid" name="filter_paid" domain="[('state', '=', 'paid')]"/>
+                <filter string="Overdue" name="filter_overdue" domain="[('state', '=', 'overdue')]"/>
+                <filter string="Waived" name="filter_waived" domain="[('state', '=', 'waived')]"/>
+                <separator/>
+                <filter string="Outstanding" name="filter_outstanding"
+                        domain="[('state', 'not in', ['paid', 'waived'])]"/>
+                <filter string="Historical (Paid / Waived)" name="filter_historical"
+                        domain="[('state', 'in', ['paid', 'waived'])]"/>
+                <separator/>
+                <filter string="Summer" name="filter_summer" domain="[('semester', '=', 'summer')]"/>
+                <filter string="Fall" name="filter_fall" domain="[('semester', '=', 'fall')]"/>
+                <filter string="Spring" name="filter_spring" domain="[('semester', '=', 'spring')]"/>
+                <separator/>
+                <filter string="Has Balance" name="filter_has_balance"
+                        domain="[('amount_balance', '>', 0)]"/>
+                <group>
+                    <filter string="Student" name="groupby_student" context="{'group_by': 'student_id'}"/>
+                    <filter string="Student ID" name="groupby_student_number" context="{'group_by': 'student_number'}"/>
+                    <filter string="Fee Product" name="groupby_product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Academic Year" name="groupby_year" context="{'group_by': 'academic_year'}"/>
+                    <filter string="Semester" name="groupby_semester" context="{'group_by': 'semester'}"/>
+                    <filter string="Status" name="groupby_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -49,6 +93,7 @@
                 <sheet>
                     <group>
                         <group>
+                            <field name="student_number" string="Student ID"/>
                             <field name="student_id"/>
                             <field name="admission_id" readonly="1"/>
                             <field name="partner_id"/>
@@ -56,6 +101,7 @@
                             <field name="billing_unit"/>
                             <field name="is_refundable"/>
                             <field name="academic_year"/>
+                            <field name="semester"/>
                         </group>
                         <group>
                             <field name="quantity"/>
@@ -79,13 +125,34 @@
         <field name="res_model">school.fee</field>
         <field name="view_mode">list,form</field>
         <field name="domain">[('state', 'not in', ['paid', 'waived'])]</field>
+        <field name="search_view_id" ref="view_school_fee_search"/>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No outstanding fee assignments.
             </p>
             <p>
-                Fees awaiting invoice or payment appear here. Paid and waived
-                fees are in <strong>Invoices</strong> and <strong>Payments</strong>.
+                Only unpaid / partial / overdue fees appear here.
+                Open <strong>All Fees</strong> for the full ledger including paid history.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_school_fee_all" model="ir.actions.act_window">
+        <field name="name">All Fees</field>
+        <field name="res_model">school.fee</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[]</field>
+        <field name="search_view_id" ref="view_school_fee_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No student fees yet.
+            </p>
+            <p>
+                Full fee ledger: pending, partial, paid, and waived — including
+                historical ACAWEB imports. Use filters for Paid / Historical /
+                Academic Year.
             </p>
         </field>
     </record>

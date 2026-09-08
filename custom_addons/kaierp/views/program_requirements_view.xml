@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Course Catalog views ──────────────────────────────────── -->
+    <record id="view_school_course_catalog_list" model="ir.ui.view">
+        <field name="name">school.course.catalog.list</field>
+        <field name="model">school.course.catalog</field>
+        <field name="arch" type="xml">
+            <list string="Course Catalog">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="area"/>
+                <field name="credit_hours"/>
+                <field name="program_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_course_catalog_form" model="ir.ui.view">
+        <field name="name">school.course.catalog.form</field>
+        <field name="model">school.course.catalog</field>
+        <field name="arch" type="xml">
+            <form string="Catalog Course">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code"/>
+                        <h1><field name="code" placeholder="e.g. NT101"/></h1>
+                        <label for="name"/>
+                        <h2><field name="name" placeholder="Course title"/></h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="area"/>
+                            <field name="credit_hours"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="program_count"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Optional description for staff feedback..."/>
+                    </group>
+                    <notebook>
+                        <page string="Programs" name="programs">
+                            <field name="requirement_ids">
+                                <list editable="bottom">
+                                    <field name="program"/>
+                                    <field name="requirement_type"/>
+                                    <field name="credits"/>
+                                    <field name="sequence"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Course Offerings" name="classes">
+                            <field name="class_ids">
+                                <list>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="academic_year"/>
+                                    <field name="semester"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_school_course_catalog_search" model="ir.ui.view">
+        <field name="name">school.course.catalog.search</field>
+        <field name="model">school.course.catalog</field>
+        <field name="arch" type="xml">
+            <search string="Course Catalog">
+                <field name="code"/>
+                <field name="name"/>
+                <filter string="Biblical Studies" name="area_biblical" domain="[('area','=','biblical')]"/>
+                <filter string="Theology" name="area_theology" domain="[('area','=','theology')]"/>
+                <filter string="Active" name="active" domain="[('active','=',True)]"/>
+                <group>
+                    <filter string="Area" name="group_area" context="{'group_by': 'area'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_school_course_catalog" model="ir.actions.act_window">
+        <field name="name">Course Catalog</field>
+        <field name="res_model">school.course.catalog</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add durable catalog courses (e.g. NT101).
+            </p>
+            <p>
+                Catalog courses are separate from semester courses. Map them to programs
+                under Program Requirements.
+            </p>
+        </field>
+    </record>
+
+    <!-- ── Program Requirement views ─────────────────────────────── -->
+    <record id="view_school_program_requirement_list" model="ir.ui.view">
+        <field name="name">school.program.requirement.list</field>
+        <field name="model">school.program.requirement</field>
+        <field name="arch" type="xml">
+            <list string="Program Requirements">
+                <field name="sequence" widget="handle"/>
+                <field name="program"/>
+                <field name="catalog_code"/>
+                <field name="catalog_name"/>
+                <field name="requirement_type"/>
+                <field name="credits"/>
+                <field name="notes"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_school_program_requirement_form" model="ir.ui.view">
+        <field name="name">school.program.requirement.form</field>
+        <field name="model">school.program.requirement</field>
+        <field name="arch" type="xml">
+            <form string="Program Requirement">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="program"/>
+                            <field name="catalog_id"/>
+                            <field name="requirement_type"/>
+                        </group>
+                        <group>
+                            <field name="credits"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                            <field name="notes"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_school_program_requirement_search" model="ir.ui.view">
+        <field name="name">school.program.requirement.search</field>
+        <field name="model">school.program.requirement</field>
+        <field name="arch" type="xml">
+            <search string="Program Requirements">
+                <field name="program"/>
+                <field name="catalog_code"/>
+                <field name="catalog_name"/>
+                <filter string="Required" name="type_required" domain="[('requirement_type','=','required')]"/>
+                <filter string="Elective" name="type_elective" domain="[('requirement_type','=','elective')]"/>
+                <group>
+                    <filter string="Program" name="group_program" context="{'group_by': 'program'}"/>
+                    <filter string="Type" name="group_type" context="{'group_by': 'requirement_type'}"/>
+                    <filter string="Course" name="group_catalog" context="{'group_by': 'catalog_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_school_program_requirement" model="ir.actions.act_window">
+        <field name="name">Requirement Mappings</field>
+        <field name="res_model">school.program.requirement</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_program': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Map catalog courses to programs.
+            </p>
+            <p>
+                The same course (e.g. NT101) can count toward multiple programs.
+            </p>
+        </field>
+    </record>
+
+    <!-- ── Visual explorer client action ──────────────────────────── -->
+    <record id="action_school_program_requirements_explorer" model="ir.actions.client">
+        <field name="name">Program Requirements</field>
+        <field name="tag">school_program_requirements</field>
+    </record>
+
+</odoo>

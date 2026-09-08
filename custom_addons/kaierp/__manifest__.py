@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'kAI ERP',
-    'version': '19.0.1.3.57',
+    'version': '19.0.1.3.98',
     'category': 'Education',
-    'summary': 'Complete school management: students, classes, admissions, grades & transcripts',
+    'summary': 'Complete school management: students, courses, admissions, grades & transcripts',
     'description': """
         kAI-ERP
         ========================
         A comprehensive school management addon for Odoo 19 featuring:
         - Custom home dashboard with image, shortcuts, and live date/time
         - Student profiles with full academic records
-        - Class management with student enrollment
+        - Course management with student enrollment
         - Admissions pipeline with approval workflow
         - Grades and transcript generation
         - Integration with Odoo Calendar and To-Do
@@ -44,6 +44,7 @@
         'data/kaisight_report_sources.xml',
         'data/kaisight_student_directory_report.xml',
         'data/demo_school_users.xml',
+        'data/program_requirements_demo.xml',
         'data/canvas_cron.xml',
 
         # Views
@@ -52,6 +53,8 @@
         'views/student_view.xml',
         'views/student_care_views.xml',
         'views/class_view.xml',
+        'views/program_requirements_view.xml',
+        'views/enrollment_view.xml',
         'views/admission_view.xml',
         'views/admission_document_upload_templates.xml',
         'views/grade_view.xml',
@@ -70,14 +73,25 @@
         'wizard/bulk_grade_wizard_view.xml',
         'wizard/take_attendance_wizard_view.xml',
         'wizard/assign_fee_wizard_view.xml',
+        'wizard/ata_format_export_wizard_view.xml',
+        'wizard/student_delete_wizard_view.xml',
+        'wizard/change_program_wizard_view.xml',
         # Reports
         'report/transcript_report.xml',
         'report/report_templates.xml',
     ],
     'assets': {
+        'web._assets_primary_variables': [
+            'kaierp/static/src/scss/ets_primary_variables.scss',
+        ],
         'web.assets_backend': [
+            'kaierp/static/src/scss/ets_backend_branding.scss',
+            'kaierp/static/src/scss/chatter_collapse.scss',
             'kaierp/static/src/css/school_dashboard.css',
+            'kaierp/static/src/css/program_requirements.css',
             'kaierp/static/src/js/school_dashboard.js',
+            'kaierp/static/src/js/program_requirements.js',
+            'kaierp/static/src/js/chatter_collapse.js',
         ],
     },
     'demo': [],

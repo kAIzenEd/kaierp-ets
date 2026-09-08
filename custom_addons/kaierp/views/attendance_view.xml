@@ -85,7 +85,7 @@
                 <filter string="Present" name="present" domain="[('state', '=', 'present')]"/>
                 <filter string="Absent" name="absent" domain="[('state', '=', 'absent')]"/>
                 <group>
-                    <filter string="Class" name="group_class" context="{'group_by': 'class_id'}"/>
+                    <filter string="Course" name="group_class" context="{'group_by': 'class_id'}"/>
                     <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
                     <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
                 </group>

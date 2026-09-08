@@ -1,0 +1,2 @@
+id,name,student_id/id,product_id/id,quantity,unit_price,amount_paid,academic_year,semester,due_date,payment_date,state,notes
+acaweb_fee_EXAMPLE_tuition,Tuition (Summer · Year 1 · R3668),17MBS011,kaierp.product_tuition_product,1,3500.00,3500.00,2017,summer,2017-06-30,2017-06-30,paid,ACAWEB historical example — replace with generated import_phase5/fees_*.csv

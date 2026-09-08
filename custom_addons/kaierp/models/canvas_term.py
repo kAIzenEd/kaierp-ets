@@ -26,7 +26,7 @@ class SchoolCanvasTerm(models.Model):
         ('spring', 'Spring Semester'),
     ], string='Odoo Semester')
     last_sync_at = fields.Datetime(string='Last Synced')
-    class_count = fields.Integer(string='# Classes', compute='_compute_class_count')
+    class_count = fields.Integer(string='# Courses', compute='_compute_class_count')
 
     _canvas_term_id_uniq = models.Constraint(
         'unique(canvas_term_id)',

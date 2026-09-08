@@ -43,7 +43,7 @@
                         </group>
                     </group>
                     <p class="text-muted">
-                        Academic year and semester are written onto synced classes.
+                        Academic year and semester are written onto synced courses.
                         Adjust them here if the automatic guess from the Canvas term name is wrong, then sync again.
                     </p>
                 </sheet>

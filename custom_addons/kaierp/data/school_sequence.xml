@@ -9,6 +9,14 @@
             <field name="company_id" eval="False"/>
         </record>
 
+        <record id="seq_school_person_key" model="ir.sequence">
+            <field name="name">ETS Person Key</field>
+            <field name="code">school.person.key</field>
+            <field name="prefix">ETS-</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
         <record id="seq_school_admission" model="ir.sequence">
             <field name="name">Admission Reference</field>
             <field name="code">school.admission</field>

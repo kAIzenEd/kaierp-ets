@@ -5,6 +5,7 @@
         <record id="email_template_admission_new_registrar" model="mail.template">
             <field name="name">New Admission — Registrar Notification</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">New Admission Application: {{ object.reference }} — {{ object.name }}</field>
             <field name="body_html" type="html">
 <p>A new admission application has been submitted and is ready for review.</p>
@@ -37,6 +38,7 @@
         <record id="email_template_admission_received_applicant" model="mail.template">
             <field name="name">New Admission — Applicant Confirmation</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">Application Received — {{ object.reference }} | ETS-ACA</field>
             <field name="email_to">{{ object.email }}</field>
             <field name="body_html" type="html">
@@ -61,6 +63,7 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
         <record id="email_template_admission_approved" model="mail.template">
             <field name="name">Admission Approved</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">Your Application to ETS-ACA Has Been Accepted</field>
             <field name="body_html" type="html">
 <p>Dear <t t-out="object.name or ''"/>,</p>
@@ -77,6 +80,7 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
         <record id="email_template_exam_accommodation_payment" model="mail.template">
             <field name="name">Exam Accommodation — Payment Link</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">Exam Visit Accommodation Payment — {{ object.reference }} | ETS-ACA</field>
             <field name="email_to">{{ object.email }}</field>
             <field name="body_html" type="html">
@@ -85,7 +89,8 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
 <strong>Evangelical Theological Seminary (ETS-ACA)</strong>.</p>
 <table style="border-collapse:collapse;width:100%;max-width:560px;margin:16px 0;">
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Application #</td><td><t t-out="object.reference or ''"/></td></tr>
-    <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Registration #</td><td><t t-out="object.registration_number or ''"/></td></tr>
+    <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">ETS ID</td><td><t t-out="object.person_key or ''"/></td></tr>
+    <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Student ID</td><td><t t-out="object.registration_number or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Nights</td><td><t t-out="object.exam_accommodation_nights or ''"/></td></tr>
     <tr><td style="padding:6px 12px 6px 0;font-weight:bold;">Amount</td><td>₹<t t-out="'%.0f' % (object.exam_accommodation_amount or 0)"/></td></tr>
 </table>
@@ -105,20 +110,41 @@ or via WhatsApp at <t t-out="object.whatsapp_number or ''"/>.</p>
             <field name="lang">{{ object.env.user.lang }}</field>
         </record>
 
-        <!-- Email: ask personal references to complete the attached PDF form -->
+        <!-- Email: ask personal references to complete the online form (legacy PDF template kept for history) -->
         <record id="email_template_admission_reference_request" model="mail.template">
-            <field name="name">Admission — Personal Reference Request</field>
+            <field name="name">Admission — Personal Reference Request (legacy PDF)</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">Reference Request — {{ object.full_name or object.name }} | ETS-ACA</field>
             <field name="reply_to">ets@acaindia.org</field>
             <field name="body_html" type="html">
 <p>Greetings from the Evangelical Theological Seminary of ACA,</p>
 <p><t t-out="object.full_name or object.name or ''"/> has selected you as a reference for them.
-Please see the attached PDF for the template to follow when submitting their reference form.
-Once you have filled out the form, <strong>reply to this email</strong> and attach the
-filled-out form to your reply (please keep the subject line unchanged).
+Please complete the online reference form using the link provided by admissions.
 If you have any questions please reach out to us at
 <a href="mailto:ets@acaindia.org">ets@acaindia.org</a>.</p>
+            </field>
+            <field name="lang">{{ object.env.user.lang }}</field>
+        </record>
+
+        <!-- Email: online reference form link (no PDF) -->
+        <record id="email_template_admission_reference_online" model="mail.template">
+            <field name="name">Admission — Online Reference Form</field>
+            <field name="model_id" ref="model_school_admission_reference_request"/>
+            <field name="auto_delete" eval="False"/>
+            <field name="subject">Reference Request — {{ object.admission_id.full_name or object.admission_id.name }} | ETS-ACA</field>
+            <field name="email_to">{{ object.email }}</field>
+            <field name="reply_to">ets@acaindia.org</field>
+            <field name="body_html" type="html">
+<p>Greetings from the Evangelical Theological Seminary of ACA,</p>
+<p><t t-out="object.admission_id.full_name or object.admission_id.name or ''"/> has selected you as a reference
+for their application (<t t-out="object.admission_id.reference or ''"/>).</p>
+<p>Please complete the online reference form using this secure link
+(valid for 30 days):</p>
+<p><a t-att-href="object.form_url"><t t-out="object.form_url or ''"/></a></p>
+<p>If you have any questions, contact
+<a href="mailto:ets@acaindia.org">ets@acaindia.org</a>.</p>
+<p>Thank you for your help,<br/>ETS-ACA Admissions Office</p>
             </field>
             <field name="lang">{{ object.env.user.lang }}</field>
         </record>
@@ -127,6 +153,7 @@ If you have any questions please reach out to us at
         <record id="email_template_admission_document_upload" model="mail.template">
             <field name="name">Admission — Document Upload Request</field>
             <field name="model_id" ref="model_school_admission"/>
+            <field name="auto_delete" eval="False"/>
             <field name="subject">Documents Needed — {{ object.reference }} | ETS-ACA</field>
             <field name="email_to">{{ object.email }}</field>
             <field name="body_html" type="html">

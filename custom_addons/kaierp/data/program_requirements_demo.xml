@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ── Course Catalog (provisional demo curriculum) ─────────── -->
+    <record id="catalog_nt101" model="school.course.catalog">
+        <field name="code">NT101</field>
+        <field name="name">Introduction to the New Testament</field>
+        <field name="credit_hours">3</field>
+        <field name="area">biblical</field>
+        <field name="description">Survey of New Testament books, themes, and backgrounds. Demo catalog course for client feedback.</field>
+    </record>
+    <record id="catalog_ot101" model="school.course.catalog">
+        <field name="code">OT101</field>
+        <field name="name">Introduction to the Old Testament</field>
+        <field name="credit_hours">3</field>
+        <field name="area">biblical</field>
+    </record>
+    <record id="catalog_nt201" model="school.course.catalog">
+        <field name="code">NT201</field>
+        <field name="name">Synoptic Gospels</field>
+        <field name="credit_hours">3</field>
+        <field name="area">biblical</field>
+    </record>
+    <record id="catalog_ot201" model="school.course.catalog">
+        <field name="code">OT201</field>
+        <field name="name">Pentateuch</field>
+        <field name="credit_hours">3</field>
+        <field name="area">biblical</field>
+    </record>
+    <record id="catalog_th101" model="school.course.catalog">
+        <field name="code">TH101</field>
+        <field name="name">Introduction to Christian Theology</field>
+        <field name="credit_hours">3</field>
+        <field name="area">theology</field>
+    </record>
+    <record id="catalog_th201" model="school.course.catalog">
+        <field name="code">TH201</field>
+        <field name="name">Systematic Theology I</field>
+        <field name="credit_hours">3</field>
+        <field name="area">theology</field>
+    </record>
+    <record id="catalog_ch101" model="school.course.catalog">
+        <field name="code">CH101</field>
+        <field name="name">Church History Survey</field>
+        <field name="credit_hours">3</field>
+        <field name="area">history</field>
+    </record>
+    <record id="catalog_ch301" model="school.course.catalog">
+        <field name="code">CH301</field>
+        <field name="name">Reformation History</field>
+        <field name="credit_hours">3</field>
+        <field name="area">history</field>
+    </record>
+    <record id="catalog_pt110" model="school.course.catalog">
+        <field name="code">PT110</field>
+        <field name="name">Spiritual Formation</field>
+        <field name="credit_hours">2</field>
+        <field name="area">practical</field>
+    </record>
+    <record id="catalog_pt210" model="school.course.catalog">
+        <field name="code">PT210</field>
+        <field name="name">Homiletics</field>
+        <field name="credit_hours">3</field>
+        <field name="area">practical</field>
+    </record>
+    <record id="catalog_gr101" model="school.course.catalog">
+        <field name="code">GR101</field>
+        <field name="name">Biblical Greek I</field>
+        <field name="credit_hours">3</field>
+        <field name="area">languages</field>
+    </record>
+    <record id="catalog_hb101" model="school.course.catalog">
+        <field name="code">HB101</field>
+        <field name="name">Biblical Hebrew I</field>
+        <field name="credit_hours">3</field>
+        <field name="area">languages</field>
+    </record>
+    <record id="catalog_el301" model="school.course.catalog">
+        <field name="code">EL301</field>
+        <field name="name">Ministry Elective</field>
+        <field name="credit_hours">3</field>
+        <field name="area">elective</field>
+    </record>
+    <record id="catalog_cc201" model="school.course.catalog">
+        <field name="code">CC201</field>
+        <field name="name">Pastoral Counselling Foundations</field>
+        <field name="credit_hours">3</field>
+        <field name="area">counselling</field>
+    </record>
+
+    <!-- ── MABS requirements ─────────────────────────────────────── -->
+    <record id="req_mabs_nt101" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_nt101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="req_mabs_ot101" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_ot101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="req_mabs_nt201" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_nt201"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="req_mabs_ot201" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_ot201"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="req_mabs_th101" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_th101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="req_mabs_th201" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_th201"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="req_mabs_gr101" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_gr101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="req_mabs_hb101" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_hb101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="req_mabs_el301" model="school.program.requirement">
+        <field name="program">mabs</field>
+        <field name="catalog_id" ref="catalog_el301"/>
+        <field name="requirement_type">elective</field>
+        <field name="credits">3</field>
+        <field name="sequence">90</field>
+        <field name="notes">Any approved ministry elective</field>
+    </record>
+
+    <!-- ── MDIV requirements (overlaps with MABS) ────────────────── -->
+    <record id="req_mdiv_nt101" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_nt101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="req_mdiv_ot101" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_ot101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="req_mdiv_th101" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_th101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="req_mdiv_th201" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_th201"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="req_mdiv_ch101" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_ch101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="req_mdiv_ch301" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_ch301"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="req_mdiv_pt110" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_pt110"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">2</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="req_mdiv_pt210" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_pt210"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">80</field>
+    </record>
+    <record id="req_mdiv_gr101" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_gr101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">90</field>
+    </record>
+    <record id="req_mdiv_el301" model="school.program.requirement">
+        <field name="program">mdiv</field>
+        <field name="catalog_id" ref="catalog_el301"/>
+        <field name="requirement_type">elective</field>
+        <field name="credits">3</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- ── MACS requirements (lighter / overlapping) ─────────────── -->
+    <record id="req_macs_nt101" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_nt101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="req_macs_ot101" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_ot101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="req_macs_th101" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_th101"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">3</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="req_macs_ch101" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_ch101"/>
+        <field name="requirement_type">core</field>
+        <field name="credits">3</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="req_macs_pt110" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_pt110"/>
+        <field name="requirement_type">required</field>
+        <field name="credits">2</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="req_macs_cc201" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_cc201"/>
+        <field name="requirement_type">concentration</field>
+        <field name="credits">3</field>
+        <field name="sequence">60</field>
+        <field name="notes">Demo concentration course</field>
+    </record>
+    <record id="req_macs_el301" model="school.program.requirement">
+        <field name="program">macs</field>
+        <field name="catalog_id" ref="catalog_el301"/>
+        <field name="requirement_type">elective</field>
+        <field name="credits">3</field>
+        <field name="sequence">70</field>
+    </record>
+
+    <!-- ── Sample class offerings linked to catalog ──────────────── -->
+    <record id="demo_class_nt101" model="school.class">
+        <field name="name">Introduction to the New Testament</field>
+        <field name="code">NT101-F26</field>
+        <field name="catalog_id" ref="catalog_nt101"/>
+        <field name="academic_year">2026-2027</field>
+        <field name="semester">fall</field>
+        <field name="credit_hours">3</field>
+        <field name="max_students">40</field>
+        <field name="state">open</field>
+        <field name="schedule">Tue/Thu 09:00-10:30</field>
+        <field name="room">A-101</field>
+    </record>
+    <record id="demo_class_ot101" model="school.class">
+        <field name="name">Introduction to the Old Testament</field>
+        <field name="code">OT101-F26</field>
+        <field name="catalog_id" ref="catalog_ot101"/>
+        <field name="academic_year">2026-2027</field>
+        <field name="semester">fall</field>
+        <field name="credit_hours">3</field>
+        <field name="max_students">40</field>
+        <field name="state">in_progress</field>
+        <field name="schedule">Mon/Wed 11:00-12:30</field>
+        <field name="room">A-102</field>
+    </record>
+    <record id="demo_class_th101" model="school.class">
+        <field name="name">Introduction to Christian Theology</field>
+        <field name="code">TH101-S26</field>
+        <field name="catalog_id" ref="catalog_th101"/>
+        <field name="academic_year">2025-2026</field>
+        <field name="semester">spring</field>
+        <field name="credit_hours">3</field>
+        <field name="max_students">35</field>
+        <field name="state">completed</field>
+        <field name="schedule">Fri 09:00-12:00</field>
+        <field name="room">B-201</field>
+    </record>
+
+</odoo>

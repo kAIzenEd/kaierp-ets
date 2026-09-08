@@ -82,7 +82,7 @@
                 <filter string="Unpublished"   name="unpublished" domain="[('is_published','=',False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Student"     name="by_student" context="{'group_by':'student_id'}"/>
-                    <filter string="Class"       name="by_class"   context="{'group_by':'class_id'}"/>
+                    <filter string="Course"       name="by_class"   context="{'group_by':'class_id'}"/>
                     <filter string="Year"        name="by_year"    context="{'group_by':'academic_year'}"/>
                     <filter string="Assessment"  name="by_type"    context="{'group_by':'assessment_type'}"/>
                 </group>

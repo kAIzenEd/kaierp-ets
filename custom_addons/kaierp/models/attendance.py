@@ -12,7 +12,7 @@ class SchoolAttendance(models.Model):
         'school.student', string='Student', required=True, ondelete='cascade', index=True,
     )
     class_id = fields.Many2one(
-        'school.class', string='Class', required=True, ondelete='cascade', index=True,
+        'school.class', string='Course', required=True, ondelete='cascade', index=True,
     )
     date = fields.Date(string='Date', required=True, default=fields.Date.context_today, index=True)
     state = fields.Selection([
@@ -30,7 +30,7 @@ class SchoolAttendance(models.Model):
         (
             'class_student_date_uniq',
             'unique(class_id, student_id, date)',
-            'Attendance for this student in this class on this date already exists.',
+            'Attendance for this student in this course on this date already exists.',
         ),
     ]
 
@@ -39,7 +39,7 @@ class SchoolAttendance(models.Model):
         state_labels = dict(self._fields['state'].selection)
         for rec in self:
             student = rec.student_id.name or _('Student')
-            class_name = rec.class_id.name or _('Class')
+            class_name = rec.class_id.name or _('Course')
             day = rec.date or ''
             status = state_labels.get(rec.state, rec.state or '')
             rec.display_name = f'{student} — {class_name} ({day}) [{status}]'
@@ -56,7 +56,7 @@ class SchoolAttendance(models.Model):
             or self.env.context.get('default_date')
         )
         if not class_id or not att_date:
-            raise UserError(_('Open attendance from a class to use bulk actions.'))
+            raise UserError(_('Open attendance from a course to use bulk actions.'))
         return [('class_id', '=', class_id), ('date', '=', att_date)]
 
     def action_session_mark_all_present(self):

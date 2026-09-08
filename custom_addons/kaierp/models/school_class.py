@@ -5,13 +5,19 @@ from odoo.exceptions import ValidationError, UserError
 
 class SchoolClass(models.Model):
     _name = 'school.class'
-    # _description = 'Class'
+    _description = 'Course'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'display_name_full'
     _order = 'academic_year desc, name asc'
 
-    name = fields.Char(string='Class Name', required=True, tracking=True)
-    code = fields.Char(string='Class Code', required=True, copy=False, tracking=True)
+    name = fields.Char(string='Course Name', required=True, tracking=True)
+    code = fields.Char(string='Course Code', required=True, copy=False, tracking=True)
+    catalog_id = fields.Many2one(
+        'school.course.catalog', string='Catalog Course',
+        ondelete='set null', tracking=True, index=True,
+        help='Links this semester offering to a durable catalog course (e.g. NT101) '
+             'for program requirements and degree progress.',
+    )
     display_name_full = fields.Char(
         string='Full Name', compute='_compute_display_name_full', store=True
     )
@@ -66,7 +72,7 @@ class SchoolClass(models.Model):
     end_date = fields.Date(string='End Date')
     canvas_course_id = fields.Char(
         string='Canvas Course ID', copy=False, index=True,
-        help='Set automatically when this class is synced from Canvas.',
+        help='Set automatically when this course is synced from Canvas.',
     )
     canvas_term_id = fields.Char(string='Canvas Term ID', copy=False, index=True)
     canvas_sis_course_id = fields.Char(string='Canvas SIS Course ID', copy=False)
@@ -87,6 +93,18 @@ class SchoolClass(models.Model):
         from datetime import date
         y = date.today().year
         return f'{y}-{y + 1}'
+
+    @api.onchange('catalog_id')
+    def _onchange_catalog_id(self):
+        for rec in self:
+            if not rec.catalog_id:
+                continue
+            if not rec.code:
+                rec.code = rec.catalog_id.code
+            if not rec.name:
+                rec.name = rec.catalog_id.name
+            if rec.catalog_id.credit_hours and rec.credit_hours in (0, 3):
+                rec.credit_hours = rec.catalog_id.credit_hours
 
     @api.depends('code', 'name', 'academic_year')
     def _compute_display_name_full(self):
@@ -171,7 +189,7 @@ class SchoolClass(models.Model):
         enrollments = self._get_enrollments_for_attendance()
         if not enrollments:
             raise UserError(_(
-                'There are no students with status **Enrolled** or **Completed** in class "%(class_name)s".\n\n'
+                'There are no students with status **Enrolled** or **Completed** in course "%(class_name)s".\n\n'
                 'Add enrollments on the **Enrolled Students** tab, '
                 'then take attendance again.',
                 class_name=self.name,
@@ -228,7 +246,7 @@ class SchoolClass(models.Model):
     def action_add_to_calendar(self):
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Add Class to Calendar'),
+            'name': _('Add Course to Calendar'),
             'res_model': 'calendar.event',
             'view_mode': 'form',
             'target': 'new',

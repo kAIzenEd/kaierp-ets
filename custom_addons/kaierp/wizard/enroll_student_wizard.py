@@ -8,7 +8,7 @@ class SchoolEnrollStudentWizard(models.TransientModel):
     _description = 'Enroll Students Wizard'
 
     class_id = fields.Many2one(
-        'school.class', string='Class', required=True, readonly=True
+        'school.class', string='Course', required=True, readonly=True
     )
     student_ids = fields.Many2many(
         'school.student', string='Students to Enroll',

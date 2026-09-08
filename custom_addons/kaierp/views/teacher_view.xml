@@ -14,7 +14,7 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button class="oe_stat_button" icon="fa-book">
-                            <field name="class_count" widget="statinfo" string="Classes"/>
+                            <field name="class_count" widget="statinfo" string="Courses"/>
                         </button>
                     </div>
                     <field name="photo" widget="image" class="oe_avatar"/>
@@ -38,7 +38,7 @@
                             <field name="user_id"/>
                         </group>
                     </group>
-                    <separator string="Classes"/>
+                    <separator string="Courses"/>
                     <field name="class_ids" mode="list" nolabel="1">
                         <list create="0">
                             <field name="code"/>

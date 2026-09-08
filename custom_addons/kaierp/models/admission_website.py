@@ -17,9 +17,6 @@ class SchoolAdmissionWebsite(models.Model):
         'study_mode': 'study_mode',
         'title': 'title',
         'full_name': 'full_name',
-        'first_name': 'first_name',
-        'middle_name': 'middle_name',
-        'last_name': 'last_name',
         'whatsapp_number': 'whatsapp_number',
         'whatsapp': 'whatsapp_number',
         'date_of_birth': 'date_of_birth',
@@ -201,9 +198,6 @@ class SchoolAdmissionWebsite(models.Model):
         # Railway / ACA ERPNext gateway (camelCase)
         'correlationId': 'website_submission_id',
         'fullName': 'full_name',
-        'firstName': 'first_name',
-        'lastName': 'last_name',
-        'middleName': 'middle_name',
         'dateOfBirth': 'date_of_birth',
         'appliedProgram': 'course',
         'studyMode': 'study_mode',
@@ -508,16 +502,9 @@ class SchoolAdmissionWebsite(models.Model):
         missing = [
             field for field in ('course', 'study_mode', 'whatsapp_number',
                                 'date_of_birth', 'gender', 'email', 'postal_address',
-                                'city', 'country_id')
+                                'city', 'country_id', 'full_name')
             if not vals.get(field)
         ]
-        # full_name is preferred; first/last still accepted (website may send both)
-        if not vals.get('full_name') and not (vals.get('first_name') and vals.get('last_name')):
-            missing.append('full_name (or first_name + last_name)')
-        if vals.get('full_name') and not vals.get('first_name'):
-            parts = str(vals['full_name']).split(None, 1)
-            vals['first_name'] = parts[0]
-            vals['last_name'] = parts[1] if len(parts) > 1 else parts[0]
         if missing:
             raise ValidationError(
                 _('Missing required fields: %s') % ', '.join(missing),
@@ -582,6 +569,7 @@ class SchoolAdmissionWebsite(models.Model):
             'applicantType', 'indianState', 'academicCountry',
             'appliedTerm', 'term', 'applicant_type', 'indian_state',
             'academic_country', 'applied_term', 'middleName', 'middle_name',
+            'firstName', 'lastName', 'first_name', 'last_name',
         ):
             data.pop(obsolete, None)
 
@@ -589,26 +577,16 @@ class SchoolAdmissionWebsite(models.Model):
 
     @api.model
     def _normalize_full_name_fields(self, data):
-        """Prefer fullName; derive first/last when the site only sends fullName."""
+        """Accept fullName or split website names; store only full_name."""
         full = (data.get('fullName') or data.get('full_name') or '').strip()
+        if not full:
+            first = (data.get('firstName') or data.get('first_name') or '').strip()
+            middle = (data.get('middleName') or data.get('middle_name') or '').strip()
+            last = (data.get('lastName') or data.get('last_name') or '').strip()
+            full = ' '.join(p for p in (first, middle, last) if p)
         if full:
             data['fullName'] = full
             data['full_name'] = full
-            if not (data.get('firstName') or data.get('first_name')):
-                parts = full.split(None, 1)
-                data['firstName'] = parts[0]
-                data['lastName'] = parts[1] if len(parts) > 1 else parts[0]
-            return
-
-        # Build full_name from parts when website still sends split names only
-        first = (data.get('firstName') or data.get('first_name') or '').strip()
-        middle = (data.get('middleName') or data.get('middle_name') or '').strip()
-        last = (data.get('lastName') or data.get('last_name') or '').strip()
-        if first or last:
-            assembled = ' '.join(p for p in (first, middle, last) if p)
-            if assembled:
-                data['fullName'] = assembled
-                data['full_name'] = assembled
 
     @api.model
     def _normalize_references_from_list(self, data):
@@ -914,6 +892,10 @@ class SchoolAdmissionWebsite(models.Model):
             'mdiv': 'mdiv',
             'macc': 'macc',
             'mth': 'mth',
+            'dmin': 'dmin',
+            'd.min': 'dmin',
+            'bth': 'bth',
+            'b.th': 'bth',
         }
         for key, code in mapping.items():
             if key in text:
@@ -924,6 +906,10 @@ class SchoolAdmissionWebsite(models.Model):
             return 'pgdbs'
         if 'biblical studies' in text:
             return 'mabs'
+        if 'doctor of ministry' in text or 'd.min' in text:
+            return 'dmin'
+        if 'bachelor of theology' in text or 'b.th' in text:
+            return 'bth'
         if 'divinity' in text:
             return 'mdiv'
         if 'counselling' in text or 'counseling' in text:

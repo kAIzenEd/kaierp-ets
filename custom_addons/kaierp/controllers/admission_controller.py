@@ -114,6 +114,12 @@ class AdmissionApiController(http.Controller):
             )
             raise
         except Exception as exc:
+            _logger.error(
+                'Admission API submission failed correlationId=%s: %s: %s',
+                correlation_id,
+                type(exc).__name__,
+                exc,
+            )
             _logger.exception(
                 'Admission API submission failed correlationId=%s',
                 correlation_id,
@@ -135,3 +141,82 @@ class AdmissionApiController(http.Controller):
     def health_check(self):
         """Simple connectivity check for Railway / ngrok."""
         return {'ok': True, 'service': 'kaierp-admission-api'}
+
+
+    def _json_error(self, message, status=400):
+        return request.make_json_response({'ok': False, 'error': message}, status=status)
+
+    @http.route(
+        '/kaierp/api/admission/reference/<string:token>',
+        type='http',
+        auth='public',
+        methods=['GET'],
+        csrf=False,
+        save_session=False,
+    )
+    def reference_get(self, token, **kwargs):
+        """Return reference form metadata for the public website."""
+        from odoo import fields as odoo_fields
+
+        self._authenticate_request()
+        req = request.env['school.admission.reference.request'].sudo()._find_by_token(token)
+        if not req:
+            return self._json_error('Reference form not found.', status=404)
+        if req.state == 'cancelled':
+            return self._json_error('This reference form link has been cancelled.', status=410)
+        if req.state == 'expired' or (
+            req.expires_at and req.expires_at < odoo_fields.Datetime.now()
+        ):
+            if req.state != 'expired':
+                req.state = 'expired'
+            return self._json_error('This reference form link has expired.', status=410)
+        return request.make_json_response(req._api_public_payload())
+
+    @http.route(
+        '/kaierp/api/admission/reference/<string:token>',
+        type='http',
+        auth='public',
+        methods=['POST'],
+        csrf=False,
+        save_session=False,
+    )
+    def reference_submit(self, token, **kwargs):
+        """Accept submitted answers for a tokenized reference form."""
+        import json
+
+        self._authenticate_request()
+        req = request.env['school.admission.reference.request'].sudo()._find_by_token(token)
+        if not req:
+            return self._json_error('Reference form not found.', status=404)
+        try:
+            payload = request.get_json_data()
+        except Exception:
+            raw = request.httprequest.get_data(as_text=True) or '{}'
+            try:
+                payload = json.loads(raw)
+            except json.JSONDecodeError:
+                return self._json_error('Invalid JSON body.', status=400)
+        if not isinstance(payload, dict):
+            return self._json_error('Invalid JSON body.', status=400)
+        body_token = (payload.get('token') or '').strip()
+        if body_token and body_token != token:
+            return self._json_error('Token mismatch.', status=400)
+        answers = payload.get('answers') or {}
+        if not isinstance(answers, dict):
+            return self._json_error('answers must be an object.', status=400)
+        try:
+            req.submit_answers(answers)
+        except ValidationError as exc:
+            msg = str(exc)
+            lower = msg.lower()
+            if 'already submitted' in lower:
+                status = 409
+            elif 'expired' in lower or 'cancelled' in lower:
+                status = 410
+            else:
+                status = 400
+            return self._json_error(msg, status=status)
+        return request.make_json_response({
+            'ok': True,
+            'message': 'Reference submitted successfully.',
+        })

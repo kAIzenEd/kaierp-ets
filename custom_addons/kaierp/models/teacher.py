@@ -33,8 +33,8 @@ class SchoolTeacher(models.Model):
         ('active', 'Active'), ('on_leave', 'On Leave'), ('inactive', 'Inactive')
     ], default='active', tracking=True)
 
-    class_ids = fields.One2many('school.class', 'teacher_id', string='Classes')
-    class_count = fields.Integer(compute='_compute_class_count', string='# Classes')
+    class_ids = fields.One2many('school.class', 'teacher_id', string='Courses')
+    class_count = fields.Integer(compute='_compute_class_count', string='# Courses')
 
     user_id = fields.Many2one('res.users', string='Related User')
     notes = fields.Html(string='Notes')

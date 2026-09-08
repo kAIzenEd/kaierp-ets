@@ -23,8 +23,6 @@ def migrate_admission_workflow(env):
     admissions._ensure_applicant_partner()
 
 
-def post_init_hook(cr, registry):
-    from odoo import api, SUPERUSER_ID
-    env = api.Environment(cr, SUPERUSER_ID, {})
+def post_init_hook(env):
     migrate_admission_workflow(env)
     env['res.users'].kaierp_set_dashboard_home_for_all_school_users()

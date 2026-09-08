@@ -13,9 +13,21 @@ class SchoolStudent(models.Model):
 
     # ── Identity (student-specific) ───────────────────────────
     name = fields.Char(string='Full Name', compute='_compute_name', store=True, tracking=True)
+    person_key = fields.Char(
+        string='ETS ID', copy=False, index=True, readonly=True, tracking=True,
+        help='Permanent person key (e.g. ETS-000001). Never changes when the program or Student ID changes.',
+    )
     student_id = fields.Char(
-        string='Student ID', copy=False, tracking=True,
-        help='Assigned from the admission registration number when the applicant is accepted.',
+        string='Student ID', copy=False, tracking=True, index=True,
+        help='Official ID for the current program (e.g. 27MTH001). Assigned at acceptance; '
+             'may change when the student changes programs.',
+    )
+    intake_year = fields.Integer(
+        string='Intake Year', copy=False, readonly=True, tracking=True,
+        help='Four-digit intake year locked at acceptance for the student’s whole time at ETS.',
+    )
+    id_history_ids = fields.One2many(
+        'school.student.number.history', 'student_id', string='Student ID History',
     )
     ata_number = fields.Char(
         string='ATA Number', tracking=True,
@@ -28,7 +40,7 @@ class SchoolStudent(models.Model):
         'res.partner', string='Billing Contact', copy=False, tracking=True,
         help='Contact used for invoices and payments.',
     )
-    class_id = fields.Many2one('school.class', string='Academic Class')
+    class_id = fields.Many2one('school.class', string='Academic Course')
     roll_number = fields.Char(string='Roll Number')
     photo = fields.Binary(string='Photo', attachment=True)
     photo_filename = fields.Char(string='Photo Filename')
@@ -41,6 +53,8 @@ class SchoolStudent(models.Model):
         ('mdiv', 'Master of Divinity (MDIV)'),
         ('macc', 'Master of Arts in Christian Counselling (MACC)'),
         ('mth', 'Master of Theology (MTH)'),
+        ('dmin', 'Doctor of Ministry (D.Min)'),
+        ('bth', 'Bachelor of Theology (B.Th)'),
     ], string='Course', tracking=True)
     study_mode = fields.Selection([
         ('online', 'Online'),
@@ -75,12 +89,10 @@ class SchoolStudent(models.Model):
         ('mr', 'Mr'),
         ('professor', 'Professor'),
     ], string='Title')
-    first_name = fields.Char(string='First Name', tracking=True)
-    middle_name = fields.Char(string='Middle Name')
-    last_name = fields.Char(string='Last Name', tracking=True)
     full_name = fields.Char(
-        string='Full Name (as on X / XII certificates)',
+        string='Full Name',
         tracking=True,
+        required=True,
     )
     whatsapp_number = fields.Char(string='WhatsApp Number')
     date_of_birth = fields.Date(string='Date of Birth', required=True, tracking=True)
@@ -90,7 +102,7 @@ class SchoolStudent(models.Model):
     birth_month = fields.Integer(
         string='Month of Birth', compute='_compute_birth_parts', store=True, readonly=True,
     )
-    birth_year = fields.Integer(
+    birth_year = fields.Char(
         string='Year of Birth', compute='_compute_birth_parts', store=True, readonly=True,
     )
     gender = fields.Selection([
@@ -98,7 +110,9 @@ class SchoolStudent(models.Model):
         ('female', 'Female'),
     ], string='Gender', required=True, tracking=True)
     nationality = fields.Many2one('res.country', string='Nationality')
-    age = fields.Integer(string='Age')
+    age = fields.Integer(
+        string='Age', compute='_compute_age', store=True, readonly=True,
+    )
     marital_status = fields.Selection([
         ('single', 'Single'),
         ('married', 'Married'),
@@ -171,6 +185,10 @@ class SchoolStudent(models.Model):
     ], string='Church Denomination')
     church_ministry_type = fields.Text(string='Church Ministry Involvement')
     is_ordained = fields.Selection([('yes', 'Yes'), ('no', 'No')], string='Ordained?')
+    is_commended = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string='Commended?',
+        help='Church commendation / recommendation for study.',
+    )
     church_financial_support = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')], string='Church Financial Support?',
     )
@@ -310,10 +328,14 @@ class SchoolStudent(models.Model):
         ('draft', 'Draft'),
         ('active', 'Active'),
         ('on_hold', 'On Hold'),
+        ('inactive', 'Inactive'),
         ('graduated', 'Graduated'),
         ('expelled', 'Expelled'),
         ('transferred', 'Transferred'),
-    ], string='Status', default='active', tracking=True)
+    ], string='Status', default='active', tracking=True,
+        help='Inactive is for students who left without graduating. '
+             'Use Graduated when they completed the programme.',
+    )
 
     admission_date = fields.Date(string='Admission Date', default=fields.Date.today)
     graduation_date = fields.Date(string='Expected Graduation')
@@ -323,7 +345,7 @@ class SchoolStudent(models.Model):
         'school.enrollment', 'student_id', string='Enrollments'
     )
     enrollment_count = fields.Integer(
-        string='Classes', compute='_compute_enrollment_count'
+        string='Courses', compute='_compute_enrollment_count'
     )
 
     grade_ids = fields.One2many('school.grade', 'student_id', string='Grades')
@@ -411,15 +433,10 @@ class SchoolStudent(models.Model):
         )
 
     # ─── Computes ─────────────────────────────────────────────
-    @api.depends('full_name', 'first_name', 'middle_name', 'last_name')
+    @api.depends('full_name')
     def _compute_name(self):
         for rec in self:
-            if rec.full_name:
-                rec.name = rec.full_name.strip()
-            else:
-                rec.name = ' '.join(
-                    filter(None, [rec.first_name, rec.middle_name, rec.last_name]),
-                ).strip()
+            rec.name = (rec.full_name or '').strip()
 
     @api.depends('enrollment_ids')
     def _compute_enrollment_count(self):
@@ -460,36 +477,39 @@ class SchoolStudent(models.Model):
         No auto-generation or modification of student_id.
         """
         for vals in vals_list:
-            if vals.get('full_name'):
-                vals['name'] = vals['full_name'].strip() or _('New')
-            else:
-                assembled = ' '.join(filter(None, [
-                    vals.get('first_name', ''),
-                    vals.get('middle_name', ''),
-                    vals.get('last_name', ''),
-                ])).strip()
-                vals['name'] = assembled or _('New')
+            vals['name'] = (vals.get('full_name') or '').strip() or _('New')
         students = super().create(vals_list)
         students._ensure_partner()
         return students
 
     def write(self, vals):
-        if 'student_id' in vals:
+        if 'student_id' in vals and not self.env.context.get('allow_student_id_change'):
             for rec in self:
                 if rec.student_id and rec.student_id != vals['student_id']:
                     raise ValidationError(
-                        _('Student ID cannot be changed after creation. '
+                        _('Student ID cannot be changed directly. '
+                          'Use Change Program for Administrator, Registrar, or Academic Dean. '
                           'Current: %s | Attempted: %s') % (rec.student_id, vals['student_id'])
                     )
+        if 'person_key' in vals:
+            for rec in self:
+                if rec.person_key and rec.person_key != vals['person_key']:
+                    raise ValidationError(_('ETS ID (person key) cannot be changed.'))
+        if 'intake_year' in vals:
+            for rec in self:
+                if rec.intake_year and rec.intake_year != vals['intake_year']:
+                    raise ValidationError(_('Intake year cannot be changed after it is set.'))
         return super().write(vals)
 
     def _ensure_partner(self):
         """Ensure each student has a billing contact for invoicing."""
         Partner = self.env['res.partner']
         for student in self:
-            record_ref = student.student_id
+            record_ref = student.person_key
             if not record_ref and student.admission_id:
-                record_ref = student.admission_id.registration_number
+                record_ref = student.admission_id.person_key or student.admission_id.registration_number
+            if not record_ref:
+                record_ref = student.student_id
             if not student.email:
                 continue
             if student.admission_id:
@@ -506,6 +526,135 @@ class SchoolStudent(models.Model):
                 current_partner=student.partner_id,
             )
             student.partner_id = partner.id
+
+    def _record_student_id_history(self, course, student_number, intake_year, notes=False):
+        """Create a current history row for this Student ID / program."""
+        History = self.env['school.student.number.history']
+        for student in self:
+            if not student_number or not course:
+                continue
+            History.search([
+                ('student_id', '=', student.id),
+                ('is_current', '=', True),
+            ]).write({
+                'is_current': False,
+                'ended_date': fields.Date.today(),
+            })
+            existing = History.search([
+                ('student_id', '=', student.id),
+                ('program_course', '=', course),
+                ('student_number', '=', student_number),
+            ], limit=1)
+            if existing:
+                existing.write({
+                    'is_current': True,
+                    'ended_date': False,
+                    'assigned_date': fields.Date.today(),
+                    'notes': notes or existing.notes,
+                })
+            else:
+                History.create({
+                    'student_id': student.id,
+                    'program_course': course,
+                    'student_number': student_number,
+                    'intake_year': intake_year or student.intake_year or fields.Date.today().year,
+                    'assigned_date': fields.Date.today(),
+                    'is_current': True,
+                    'notes': notes or False,
+                })
+
+    def _can_change_program(self):
+        user = self.env.user
+        return (
+            user.has_group('kaierp.group_school_manager')
+            or user.has_group('kaierp.group_school_registrar')
+            or user.has_group('kaierp.group_school_academic_dean')
+        )
+
+    def action_open_change_program_wizard(self):
+        self.ensure_one()
+        if not self._can_change_program():
+            raise ValidationError(_(
+                'Only Administrator, Registrar, or Academic Dean can change a student’s program.',
+            ))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Change Program'),
+            'res_model': 'school.change.program.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_student_id': self.id,
+                'default_current_course': self.course,
+                'default_current_student_number': self.student_id,
+                'default_intake_year': self.intake_year,
+            },
+        }
+
+    def action_change_program(self, new_course, notes=False):
+        """Switch program: restore prior Student ID for that program, or allocate a new one."""
+        self.ensure_one()
+        if not self._can_change_program():
+            raise ValidationError(_(
+                'Only Administrator, Registrar, or Academic Dean can change a student’s program.',
+            ))
+        if not new_course:
+            raise ValidationError(_('Select a new program.'))
+        if new_course == self.course:
+            raise ValidationError(_('The student is already in that program.'))
+        if not self.intake_year:
+            raise ValidationError(_(
+                'This student has no intake year. Set intake year before changing program.',
+            ))
+
+        History = self.env['school.student.number.history'].sudo()
+        prior = History.search([
+            ('student_id', '=', self.id),
+            ('program_course', '=', new_course),
+        ], order='assigned_date desc, id desc', limit=1)
+
+        if prior:
+            new_number = prior.student_number
+            note = notes or _('Restored prior Student ID for this program')
+        else:
+            new_number = self.env['school.admission']._next_registration_number(
+                new_course, self.intake_year, {},
+            )
+            note = notes or _('New Student ID for program change')
+
+        old_course = self.course
+        old_number = self.student_id
+        self.sudo().with_context(allow_student_id_change=True).write({
+            'course': new_course,
+            'student_id': new_number,
+        })
+        self.sudo()._record_student_id_history(
+            course=new_course,
+            student_number=new_number,
+            intake_year=self.intake_year,
+            notes=note,
+        )
+
+        if self.admission_id:
+            self.admission_id.sudo().write({
+                'course': new_course,
+                'registration_number': new_number,
+            })
+
+        self.message_post(
+            body=_(
+                'Program changed from %(old_course)s (%(old_id)s) to %(new_course)s (%(new_id)s). '
+                'ETS ID %(person)s and intake year %(year)s unchanged.'
+            ) % {
+                'old_course': old_course or '',
+                'old_id': old_number or '',
+                'new_course': new_course,
+                'new_id': new_number,
+                'person': self.person_key or '',
+                'year': self.intake_year or '',
+            },
+        )
+        return True
 
     def action_assign_fees(self):
         self.ensure_one()
@@ -558,11 +707,23 @@ class SchoolStudent(models.Model):
             if rec.date_of_birth:
                 rec.birth_day = rec.date_of_birth.day
                 rec.birth_month = rec.date_of_birth.month
-                rec.birth_year = rec.date_of_birth.year
+                rec.birth_year = str(rec.date_of_birth.year)
             else:
                 rec.birth_day = 0
                 rec.birth_month = 0
-                rec.birth_year = 0
+                rec.birth_year = False
+
+    @api.depends('date_of_birth')
+    def _compute_age(self):
+        today = date.today()
+        for rec in self:
+            dob = rec.date_of_birth
+            if not dob:
+                rec.age = 0
+                continue
+            rec.age = today.year - dob.year - (
+                (today.month, today.day) < (dob.month, dob.day)
+            )
 
     @api.constrains('date_of_birth')
     def _check_dob(self):
@@ -573,8 +734,27 @@ class SchoolStudent(models.Model):
     def action_set_active(self):
         self.write({'state': 'active'})
 
+    def action_set_inactive(self):
+        """Mark students who left without graduating."""
+        self.write({'state': 'inactive'})
+
     def action_set_graduated(self):
         self.write({'state': 'graduated', 'graduation_date': fields.Date.today()})
+
+    def action_delete_with_confirm(self):
+        """Open Yes/Cancel confirmation before permanently deleting students."""
+        if not self:
+            raise ValidationError(_('Select at least one student to delete.'))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Delete Student'),
+            'res_model': 'school.delete.student.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_student_ids': [(6, 0, self.ids)],
+            },
+        }
 
     def action_view_enrollments(self):
         return {
