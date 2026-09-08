@@ -5,7 +5,7 @@ import re
 from datetime import date
 
 from odoo import fields, models, _
-from odoo.exceptions import UserError
+from odoo.addons.kaierp.models.legacy_dates import age_in_years, is_missing_dob
 
 
 def _year_token(value):
@@ -26,19 +26,13 @@ def _study_span(enroll, grad_month_year):
 
 
 def _is_missing_dob(dob):
-    """Legacy ACAWEB used 1900-01-01 as an empty DOB sentinel."""
-    if not dob:
-        return True
-    return dob.year <= 1900
+    return is_missing_dob(dob)
 
 
 def _age_on(dob, on_date):
-    """Age in full years on on_date (Odoo Date = calendar date, not locale string)."""
-    if _is_missing_dob(dob) or not on_date:
-        return ''
-    return on_date.year - dob.year - (
-        (on_date.month, on_date.day) < (dob.month, dob.day)
-    )
+    """Age in full years on on_date, or empty when DOB is a legacy placeholder."""
+    years = age_in_years(dob, on_date)
+    return years or ''
 
 
 def _sel_label(record, field_name):

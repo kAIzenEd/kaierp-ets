@@ -3,6 +3,8 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 from datetime import date, timedelta
 
+from .legacy_dates import age_in_years
+
 
 class SchoolStudent(models.Model):
     _name = 'school.student'
@@ -111,6 +113,9 @@ class SchoolStudent(models.Model):
     ], string='Gender', required=True, tracking=True)
     nationality = fields.Many2one('res.country', string='Nationality')
     age = fields.Integer(
+        string='Age', compute='_compute_age', store=True, readonly=True,
+    )
+    age_display = fields.Char(
         string='Age', compute='_compute_age', store=True, readonly=True,
     )
     marital_status = fields.Selection([
@@ -715,15 +720,10 @@ class SchoolStudent(models.Model):
 
     @api.depends('date_of_birth')
     def _compute_age(self):
-        today = date.today()
         for rec in self:
-            dob = rec.date_of_birth
-            if not dob:
-                rec.age = 0
-                continue
-            rec.age = today.year - dob.year - (
-                (today.month, today.day) < (dob.month, dob.day)
-            )
+            years = age_in_years(rec.date_of_birth)
+            rec.age = years
+            rec.age_display = str(years) if years else ''
 
     @api.constrains('date_of_birth')
     def _check_dob(self):

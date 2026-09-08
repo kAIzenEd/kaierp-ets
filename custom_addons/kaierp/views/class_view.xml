@@ -179,7 +179,7 @@
                   decoration-success="state == 'completed'">
                 <field name="code"/>
                 <field name="name"/>
-                <field name="id"/>
+                <field name="id" options="{'enable_formatting': False}"/>
                 <!-- <field name="subject"/> -->
                 <field name="teacher_id"/>
                 <field name="academic_year"/>

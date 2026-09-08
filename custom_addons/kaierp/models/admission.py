@@ -12,6 +12,8 @@ from odoo.exceptions import ValidationError
 from odoo.tools import email_normalize, file_open
 from odoo.tools.mail import email_split
 
+from .legacy_dates import age_in_years
+
 _logger = logging.getLogger(__name__)
 
 # Must stay in sync with admission_reference_mail.ETS_REF_TOKEN_RE
@@ -665,15 +667,8 @@ class SchoolAdmission(models.Model):
 
     @api.depends('date_of_birth')
     def _compute_age(self):
-        today = date.today()
         for rec in self:
-            dob = rec.date_of_birth
-            if not dob:
-                rec.age = 0
-                continue
-            rec.age = today.year - dob.year - (
-                (today.month, today.day) < (dob.month, dob.day)
-            )
+            rec.age = age_in_years(rec.date_of_birth)
 
     @api.depends('document_review_ids.is_verified', 'document_review_ids.has_issue')
     def _compute_document_review_counts(self):
